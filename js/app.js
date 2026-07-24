@@ -8,6 +8,12 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
             console.log('Service Worker registered', reg);
+            
+            // Tự động kiểm tra bản cập nhật mỗi 10 giây (dùng cho mục đích test)
+            setInterval(() => {
+                reg.update();
+            }, 10000);
+
             reg.addEventListener('updatefound', () => {
                 newWorker = reg.installing;
                 newWorker.addEventListener('statechange', () => {
