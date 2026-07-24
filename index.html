@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=1.13.1">
+    <link rel="stylesheet" href="css/style.css?v=1.14.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 </head>
 <body>
@@ -63,7 +63,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.13.1</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.14.0</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -76,6 +76,9 @@
                     <button id="btn-notifications" class="icon-btn header-btn" title="Nhắc nhở">
                         <span class="material-symbols-rounded">notifications</span>
                         <span id="notification-badge" class="badge hidden"></span>
+                    </button>
+                    <button id="btn-help" class="icon-btn header-btn" title="Hướng dẫn sử dụng">
+                        <span class="material-symbols-rounded">help</span>
                     </button>
                     <button id="btn-settings" class="icon-btn header-btn" title="Cài đặt">
                         <span class="material-symbols-rounded">settings</span>
@@ -92,7 +95,7 @@
                     <h2>Thành viên gia đình</h2>
                     <div style="display: flex; gap: 10px;">
 
-                        <button id="btn-add-member" class="primary-btn neumorphic-btn">
+                        <button id="btn-add-member" class="primary-btn neumorphic-btn" data-help-title="Thêm thành viên" data-help-desc="Tạo hồ sơ mới cho người thân trong gia đình">
                             <span class="material-symbols-rounded">person_add</span> Thêm thành viên
                         </button>
                     </div>
@@ -105,7 +108,7 @@
             <!-- View: Member Detail -->
             <section id="view-member-detail" class="view">
                 <div class="detail-header">
-                    <button id="btn-back-dashboard" class="icon-btn neumorphic-btn">
+                    <button id="btn-back-dashboard" class="icon-btn neumorphic-btn" data-help-title="Quay lại" data-help-desc="Trở về trang danh sách thành viên">
                         <span class="material-symbols-rounded">reply</span>
                     </button>
                     <div class="member-header-info">
@@ -113,7 +116,7 @@
                         <h2 id="current-member-name">Tên thành viên</h2>
                     </div>
                     <div class="header-actions">
-                        <button id="btn-edit-member" class="icon-btn neumorphic-btn" title="Sửa thông tin">
+                        <button id="btn-edit-member" class="icon-btn neumorphic-btn" title="Sửa thông tin" data-help-title="Sửa thông tin" data-help-desc="Chỉnh sửa hoặc xóa hồ sơ thành viên này">
                             <span class="material-symbols-rounded">edit</span>
                         </button>
                     </div>
@@ -121,10 +124,10 @@
 
                 <!-- Tabs -->
                 <div class="tabs-container neumorphic-panel">
-                    <button class="tab-btn active" data-target="tab-profile">Hồ Sơ</button>
-                    <button class="tab-btn" data-target="tab-history">Lịch sử khám</button>
-                    <button class="tab-btn" data-target="tab-reminders">Lịch hẹn</button>
-                    <button class="tab-btn" data-target="tab-stats">Thống kê</button>
+                    <button class="tab-btn active" data-target="tab-profile" data-help-title="Hồ Sơ" data-help-desc="Xem thông tin cá nhân và sức khỏe chung">Hồ Sơ</button>
+                    <button class="tab-btn" data-target="tab-history" data-help-title="Lịch sử khám" data-help-desc="Xem danh sách các lần đi khám bệnh">Lịch sử khám</button>
+                    <button class="tab-btn" data-target="tab-reminders" data-help-title="Lịch hẹn" data-help-desc="Đặt lời nhắc đi tái khám hoặc tiêm chủng">Lịch hẹn</button>
+                    <button class="tab-btn" data-target="tab-stats" data-help-title="Thống kê" data-help-desc="Xem biểu đồ số lần đi khám trong năm">Thống kê</button>
                 </div>
 
                 <!-- Tab Contents -->
@@ -145,7 +148,7 @@
                                 </select>
                                 <input type="month" id="filter-month" class="neumorphic-input">
                             </div>
-                            <button id="btn-add-record" class="primary-btn neumorphic-btn" style="white-space: nowrap;">
+                            <button id="btn-add-record" class="primary-btn neumorphic-btn" style="white-space: nowrap;" data-help-title="Thêm Lượt khám" data-help-desc="Thêm một hồ sơ bệnh án mới (bạn có thể upload ảnh để AI tự động điền)">
                                 <span class="material-symbols-rounded">post_add</span> Thêm
                             </button>
                         </div>
@@ -486,11 +489,11 @@
                     <p class="help-text" style="margin-top: -8px; margin-bottom: 12px;">Lưu ý: AI có thể đọc sai hoặc thiếu sót, đặc biệt với ảnh mờ/chụp nghiêng. Vui lòng kiểm tra và chỉnh sửa lại thông tin trước khi lưu — đây là công cụ hỗ trợ, không thay thế chẩn đoán của bác sĩ.</p>
                     <div class="ocr-actions">
                         <input type="file" id="record-image-input" accept="image/*,application/pdf" multiple hidden>
-                        <button id="btn-select-ocr-img" class="secondary-btn neumorphic-btn">
+                        <button id="btn-select-ocr-img" class="secondary-btn neumorphic-btn" data-help-title="Chọn tệp" data-help-desc="Tải lên ảnh hoặc file PDF chứa kết quả khám bệnh">
                             <span class="material-symbols-rounded">folder_open</span> Chọn tệp (Ảnh/PDF)
                         </button>
-                        <button id="btn-scan-analyze" class="primary-btn neumorphic-btn magic-btn" style="background: linear-gradient(135deg, #27ae60, #2ecc71);" disabled>
-                            <span class="material-symbols-rounded" style="vertical-align: middle;">auto_awesome</span> Xử lý thông tin
+                        <button id="btn-scan-analyze" class="primary-btn neumorphic-btn magic-btn" style="background: linear-gradient(135deg, #27ae60, #2ecc71);" disabled data-help-title="Xử lý thông tin" data-help-desc="AI sẽ tự động đọc, điền form và tạo báo cáo">
+                            <span class="material-symbols-rounded">auto_awesome</span> Xử lý thông tin
                         </button>
                     </div>
                     <div id="ocr-preview-container" style="display: none; margin-top: 15px; gap: 10px; overflow-x: auto; padding-bottom: 10px; white-space: nowrap;">
@@ -771,9 +774,30 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
-    <script src="js/data.js?v=1.13.1"></script>
-    <script src="js/ai.js?v=1.13.1"></script>
-    <script src="js/components.js?v=1.13.1"></script>
-    <script src="js/app.js?v=1.13.1"></script>
+    <!-- Help System UI -->
+    <div id="help-backdrop" class="help-backdrop hidden"></div>
+    <div id="help-layer" class="help-layer hidden"></div>
+    
+    <button id="btn-workflow-guide" class="btn-workflow-guide hidden">
+        <span class="material-symbols-rounded">menu_book</span> Hướng dẫn Quy trình
+    </button>
+
+    <div id="modal-workflow-guide" class="modal hidden">
+        <div class="modal-content neumorphic-panel" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Quy trình thao tác</h2>
+                <button class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="modal-body" id="workflow-guide-content">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js?v=1.14.0"></script>
+    <script src="js/ai.js?v=1.14.0"></script>
+    <script src="js/components.js?v=1.14.0"></script>
+    <script src="js/help.js?v=1.14.0"></script>
+    <script src="js/app.js?v=1.14.0"></script>
 </body>
 </html>

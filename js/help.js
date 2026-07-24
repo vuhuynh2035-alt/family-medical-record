@@ -1,0 +1,163 @@
+const HelpService = {
+    isHelpModeActive: false,
+    
+    init() {
+        this.btnHelp = document.getElementById('btn-help');
+        this.backdrop = document.getElementById('help-backdrop');
+        this.layer = document.getElementById('help-layer');
+        this.btnWorkflow = document.getElementById('btn-workflow-guide');
+        this.modalWorkflow = document.getElementById('modal-workflow-guide');
+        this.workflowContent = document.getElementById('workflow-guide-content');
+
+        if (this.btnHelp) {
+            this.btnHelp.addEventListener('click', () => this.toggleHelpMode());
+        }
+        if (this.backdrop) {
+            this.backdrop.addEventListener('click', () => this.toggleHelpMode()); // Click outside to close
+        }
+        if (this.btnWorkflow) {
+            this.btnWorkflow.addEventListener('click', () => this.showWorkflowGuide());
+        }
+        
+        // Modal close button
+        if (this.modalWorkflow) {
+            const closeBtn = this.modalWorkflow.querySelector('.close-modal');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.modalWorkflow.classList.add('hidden');
+                });
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            if (this.isHelpModeActive) {
+                this.renderHelpElements();
+            }
+        });
+    },
+
+    toggleHelpMode() {
+        this.isHelpModeActive = !this.isHelpModeActive;
+        
+        if (this.isHelpModeActive) {
+            this.backdrop.classList.remove('hidden');
+            this.layer.classList.remove('hidden');
+            this.btnWorkflow.classList.remove('hidden');
+            this.renderHelpElements();
+        } else {
+            this.backdrop.classList.add('hidden');
+            this.layer.classList.add('hidden');
+            this.btnWorkflow.classList.add('hidden');
+            this.layer.innerHTML = '';
+        }
+    },
+
+    renderHelpElements() {
+        this.layer.innerHTML = ''; // Clear previous
+        
+        // Find active view
+        const activeView = document.querySelector('.view.active');
+        if (!activeView) return;
+
+        // Find all elements with data-help in this view
+        const elements = activeView.querySelectorAll('[data-help-title]');
+        
+        elements.forEach(el => {
+            // Ignore hidden elements (e.g. tabs that are not visible)
+            if (el.offsetParent === null) return;
+            
+            const rect = el.getBoundingClientRect();
+            const title = el.getAttribute('data-help-title');
+            const desc = el.getAttribute('data-help-desc');
+
+            // 1. Create Glowing Box
+            const box = document.createElement('div');
+            box.className = 'help-highlight-box';
+            // Add some padding to the box
+            const padding = 6;
+            box.style.top = (rect.top - padding) + 'px';
+            box.style.left = (rect.left - padding) + 'px';
+            box.style.width = (rect.width + padding * 2) + 'px';
+            box.style.height = (rect.height + padding * 2) + 'px';
+            
+            this.layer.appendChild(box);
+
+            // 2. Create Tooltip
+            const tooltip = document.createElement('div');
+            tooltip.className = 'help-tooltip';
+            tooltip.innerHTML = `
+                <div class="help-tooltip-title"><span class="material-symbols-rounded">info</span> ${title}</div>
+                <div class="help-tooltip-desc">${desc}</div>
+            `;
+            
+            this.layer.appendChild(tooltip);
+
+            // Calculate position for tooltip
+            // Default: place below the element
+            let tooltipTop = rect.bottom + padding + 15;
+            let arrowClass = 'arrow-up';
+            
+            // If it goes off screen bottom, place above
+            if (tooltipTop + 100 > window.innerHeight) {
+                tooltipTop = rect.top - padding - 80; // approximate height
+                arrowClass = 'arrow-down';
+            }
+            
+            tooltip.classList.add(arrowClass);
+            tooltip.style.top = tooltipTop + 'px';
+            
+            // Center horizontally with element, but keep inside window
+            let tooltipLeft = rect.left + (rect.width / 2) - 30; // 30 is offset for arrow
+            if (tooltipLeft < 10) tooltipLeft = 10;
+            if (tooltipLeft + 250 > window.innerWidth) tooltipLeft = window.innerWidth - 260;
+            
+            tooltip.style.left = tooltipLeft + 'px';
+        });
+    },
+
+    showWorkflowGuide() {
+        const activeView = document.querySelector('.view.active');
+        const viewId = activeView ? activeView.id : 'unknown';
+        
+        let html = '';
+        
+        if (viewId === 'view-dashboard') {
+            html = `
+                <h3>Quy trình Trang Chủ (Dashboard)</h3>
+                <ol>
+                    <li><strong>Bắt đầu:</strong> Nhấn nút <strong>Thêm thành viên</strong> để tạo hồ sơ mới cho người thân trong gia đình.</li>
+                    <li><strong>Điền thông tin:</strong> Nhập Tên, Giới tính, Ngày sinh, Mối quan hệ và Lưu lại. Hệ thống tự động tính tuổi.</li>
+                    <li><strong>Xem hồ sơ:</strong> Sau khi tạo xong, một thẻ đại diện cho thành viên sẽ hiện ra. Nhấn trực tiếp vào thẻ đó để mở chi tiết <strong>Hồ sơ Bệnh án</strong> của người này.</li>
+                </ol>
+            `;
+        } else if (viewId === 'view-member-detail') {
+            html = `
+                <h3>Quy trình Chi tiết Hồ sơ Bệnh án</h3>
+                <ol>
+                    <li><strong>Hồ Sơ:</strong> Xem thông tin tổng quan. Có thể ấn nút Cây bút góc trên để sửa hoặc xoá thành viên.</li>
+                    <li><strong>Lịch sử khám:</strong> Nơi lưu trữ các lần đi khám. 
+                        <ul>
+                            <li>Nhấn <strong>Thêm Lượt Khám</strong>.</li>
+                            <li>Sử dụng chức năng <strong>Chọn tệp (Ảnh/PDF)</strong> để tải ảnh đơn thuốc/xét nghiệm.</li>
+                            <li>Nhấn <strong>Xử lý thông tin</strong> để AI tự động đọc và phân tích toàn bộ bệnh án.</li>
+                            <li>Kiểm tra lại kết quả và nhấn <strong>Lưu bệnh án</strong>.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Lịch hẹn:</strong> Đặt các lịch nhắc tái khám. Tới ngày, hệ thống sẽ báo chuông.</li>
+                    <li><strong>Thống kê:</strong> Xem biểu đồ trực quan số lần đi khám của người này trong năm.</li>
+                    <li><strong>Kết thúc:</strong> Nhấn nút mũi tên <strong>Quay lại</strong> ở góc trên trái để về lại Trang chủ.</li>
+                </ol>
+            `;
+        } else {
+            html = '<p>Chưa có hướng dẫn cho trang này.</p>';
+        }
+        
+        this.workflowContent.innerHTML = html;
+        this.modalWorkflow.classList.remove('hidden');
+    }
+};
+
+// Initialize after DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+    HelpService.init();
+});
