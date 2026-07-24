@@ -134,25 +134,53 @@ const HelpService = {
             this.layer.appendChild(tooltip);
 
             // Calculate position for tooltip
-            // Default: place below the element
-            let tooltipTop = rect.bottom + padding + 15;
-            let arrowClass = 'arrow-up';
+            let tooltipTop = 0;
+            let tooltipLeft = 0;
+            let arrowClass = '';
             
-            // If it goes off screen bottom, place above
-            if (tooltipTop + 100 > window.innerHeight) {
-                tooltipTop = rect.top - padding - 80; // approximate height
+            const pos = el.getAttribute('data-help-pos') || 'bottom';
+
+            if (pos === 'right') {
+                arrowClass = 'arrow-left';
+                tooltipTop = rect.top + (rect.height / 2) - 30; // 30 is approx half tooltip height
+                tooltipLeft = rect.right + padding + 15;
+            } else if (pos === 'left') {
+                arrowClass = 'arrow-right';
+                tooltipTop = rect.top + (rect.height / 2) - 30;
+                // We'll set a default left, but we might need to adjust after it's in DOM
+                // since we don't know the exact width. We assume max-width 250px.
+                tooltipLeft = rect.left - padding - 250 - 15; 
+            } else if (pos === 'top') {
                 arrowClass = 'arrow-down';
+                tooltipTop = rect.top - padding - 80;
+                tooltipLeft = rect.left + (rect.width / 2) - 30;
+            } else { // bottom (default)
+                arrowClass = 'arrow-up';
+                tooltipTop = rect.bottom + padding + 15;
+                tooltipLeft = rect.left + (rect.width / 2) - 30;
+                
+                // If it goes off screen bottom, place above
+                if (tooltipTop + 100 > window.innerHeight) {
+                    tooltipTop = rect.top - padding - 80;
+                    arrowClass = 'arrow-down';
+                }
             }
             
-            tooltip.classList.add(arrowClass);
-            tooltip.style.top = tooltipTop + 'px';
-            
-            // Center horizontally with element, but keep inside window
-            let tooltipLeft = rect.left + (rect.width / 2) - 30; // 30 is offset for arrow
+            // Boundary checks for top/left
+            if (tooltipTop < 10) tooltipTop = 10;
+            if (tooltipTop + 100 > window.innerHeight) tooltipTop = window.innerHeight - 100;
             if (tooltipLeft < 10) tooltipLeft = 10;
             if (tooltipLeft + 250 > window.innerWidth) tooltipLeft = window.innerWidth - 260;
             
+            tooltip.classList.add(arrowClass);
+            tooltip.style.top = tooltipTop + 'px';
             tooltip.style.left = tooltipLeft + 'px';
+            
+            // For 'left' position, if it's too wide, we fix it by forcing the right side
+            if (pos === 'left') {
+                tooltip.style.left = 'auto';
+                tooltip.style.right = (window.innerWidth - rect.left + padding + 15) + 'px';
+            }
         });
     },
 
