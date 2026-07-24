@@ -735,7 +735,10 @@ function setupEventListeners() {
             const loading = document.getElementById('ai-assessment-loading');
             const content = document.getElementById('ai-assessment-content');
             loading.classList.remove('hidden');
-            content.innerHTML = `<p style="text-align:center; color: var(--text-muted); margin-top: 10px;">Đang tra cứu chuyên sâu về "${disease}"... Xin vui lòng chờ.</p>`;
+            content.innerHTML = `<p style="text-align:center; color: var(--text-muted); margin-top: 10px;">
+                <span class="loading-spinner" style="border-color: rgba(0,0,0,0.1); border-top-color: var(--text-muted); width: 14px; height: 14px;"></span> 
+                Đang tra cứu chuyên sâu về "${disease}"... Xin vui lòng chờ.
+            </p>`;
             
             try {
                 const aiResult = await AIService.searchDiseaseInfo(disease);

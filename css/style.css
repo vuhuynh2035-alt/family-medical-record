@@ -601,6 +601,22 @@ textarea.neumorphic-input {
     font-weight: 500;
 }
 
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 3px solid rgba(142, 68, 173, 0.3);
+    border-radius: 50%;
+    border-top-color: #8e44ad;
+    animation: spin 1s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
 .hidden { display: none !important; }
 
 /* AI Assessment Markdown Content */
