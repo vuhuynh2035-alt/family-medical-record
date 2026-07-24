@@ -265,21 +265,21 @@ Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy đ�
 
     // 1.5. Khám Tổng Quát / Đa chuyên khoa (Comprehensive Report)
     async generateComprehensiveReport(base64Files, overrideModel = null) {
-        const prompt = `Bạn là một hội đồng y khoa bác sĩ chuyên gia. Dưới đây là nhiều trang kết quả khám bệnh (dưới dạng ảnh hoặc tài liệu PDF) của một bệnh nhân, có thể đến từ nhiều chuyên khoa khác nhau (ví dụ: tim mạch, hô hấp, xét nghiệm máu...).
-Hãy đọc cẩn thận toàn bộ các tài liệu này và tổng hợp thành một "Báo cáo Đánh giá Sức khỏe Toàn diện", phân chia rõ ràng theo từng hạng mục.
+        const prompt = `Bạn là một hội đồng y khoa bác sĩ chuyên gia. Dưới đây là kết quả khám bệnh (dưới dạng ảnh hoặc tài liệu PDF) của một bệnh nhân. Đặc biệt lưu ý nếu đây là đợt Khám tổng quát, sẽ có rất nhiều hạng mục xét nghiệm và kiểm tra khác nhau.
+Nhiệm vụ của bạn là: Hãy đọc CẨN THẬN TOÀN BỘ các file/hình ảnh đính kèm (không bỏ sót bất kỳ trang nào) và phân tích, đánh giá kết quả theo từng hạng mục xét nghiệm/chuyên khoa một cách chi tiết, rõ ràng nhất để tạo thành một "Báo cáo Đánh giá Sức khỏe Toàn diện".
 
 Yêu cầu định dạng báo cáo (Sử dụng Markdown rõ ràng, đẹp mắt):
 1. Phần Tổng Quan: Nhận định nhanh về tình trạng sức khỏe tổng thể.
-2. Chi tiết từng chuyên khoa/hạng mục (Mỗi hạng mục là một Heading 3 \`###\`):
-   - Nêu rõ tên hạng mục (Ví dụ: ### Tim mạch, ### Phổi, ### Sinh hóa máu...)
+2. Chi tiết từng chuyên khoa / hạng mục xét nghiệm (Mỗi hạng mục là một Heading 3 \`###\`):
+   - Nêu rõ tên hạng mục kiểm tra/xét nghiệm (Ví dụ: ### Xét nghiệm máu sinh hóa, ### Siêu âm ổ bụng, ### Điện tâm đồ, ### Khám Mắt...)
    - Bác sĩ phụ trách / Nơi khám (nếu có).
-   - Tóm tắt kết quả chính hoặc bất thường.
-   - Kết luận / Chẩn đoán của hạng mục đó.
-   - Hướng điều trị / Đơn thuốc / Lời khuyên cụ thể cho hạng mục đó.
-3. Phần Tổng Kết & Lời Khuyên Chung: Khuyên bệnh nhân nên làm gì tiếp theo, chế độ sinh hoạt, dinh dưỡng.
+   - Phân tích chi tiết các chỉ số/kết quả chính (đặc biệt nhấn mạnh giải thích các chỉ số bất thường).
+   - Kết luận / Chẩn đoán cụ thể của hạng mục đó.
+   - Hướng điều trị / Đơn thuốc / Lời khuyên cụ thể cho riêng hạng mục đó.
+3. Phần Tổng Kết & Lời Khuyên Chung: Khuyên bệnh nhân nên làm gì tiếp theo, chế độ sinh hoạt, dinh dưỡng tổng thể.
 4. Tài Liệu Tham Khảo: Cung cấp các đường link tham khảo đáng tin cậy về loại bệnh mắc phải, các phác đồ điều trị chuẩn y khoa hiện nay để bệnh nhân tự tìm hiểu thêm.
 
-Chú ý: Trình bày nội dung cực kỳ chuyên nghiệp, dễ đọc, xuống dòng rõ ràng, sử dụng bullet points \`-\` hoặc in đậm \`**\` để làm nổi bật thông tin quan trọng.`;
+Chú ý: Trình bày nội dung cực kỳ chuyên nghiệp, dễ hiểu cho bệnh nhân, xuống dòng rõ ràng, sử dụng bullet points \`-\` hoặc in đậm \`**\` để làm nổi bật thông tin quan trọng.`;
 
         let result = "";
         if (overrideModel === 'chatgpt') {
