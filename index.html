@@ -29,7 +29,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.8.2</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.8.3</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -524,34 +524,28 @@
                 <button class="icon-btn close-modal"><span class="material-symbols-rounded">reply</span></button>
             </div>
             <div class="modal-body">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <button type="button" id="btn-download-pdf" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
-                        <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">picture_as_pdf</span> Tải xuống PDF
-                    </button>
-                    <button type="button" id="btn-toggle-report-edit" class="secondary-btn neumorphic-btn" style="font-size: 13px;">
-                        <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">edit</span> Chỉnh sửa
-                    </button>
+                <div id="report-preview-mode" class="markdown-body" style="background: white; padding: 20px; border-radius: 12px; min-height: 400px;">
                 </div>
                 
-                <div id="report-preview-mode" class="markdown-body" style="background: white; padding: 20px; border-radius: 12px; min-height: 400px; max-height: 60vh; overflow-y: auto;">
-                </div>
-                
-                <textarea id="report-edit-mode" class="neumorphic-input hidden" style="width: 100%; height: 400px; font-family: monospace; line-height:1.5; padding: 15px; max-height: 60vh;" placeholder="Chỉnh sửa nội dung Markdown..."></textarea>
+                <textarea id="report-edit-mode" class="neumorphic-input hidden" style="width: 100%; min-height: 400px; font-family: monospace; line-height:1.5; padding: 15px; resize: vertical;" placeholder="Chỉnh sửa nội dung Markdown..."></textarea>
                 
                 <div style="margin-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
                     <div style="display: flex; gap: 10px;">
                         <button type="button" class="secondary-btn neumorphic-btn close-modal" style="font-size: 13px;">
                             <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">reply</span> Quay lại
                         </button>
-                        <button type="button" class="secondary-btn neumorphic-btn" onclick="document.getElementById('btn-download-pdf').click()" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
+                        <button type="button" id="btn-download-pdf" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
                             <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">picture_as_pdf</span> Tải xuống PDF
                         </button>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button type="button" class="secondary-btn neumorphic-btn" onclick="document.getElementById('report-preview-mode').scrollTo({top: 0, behavior: 'smooth'}); document.getElementById('report-edit-mode').scrollTo({top: 0, behavior: 'smooth'});" style="font-size: 13px;">
+                        <button type="button" id="btn-toggle-report-edit" class="secondary-btn neumorphic-btn" style="font-size: 13px;">
+                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">edit</span> Chỉnh sửa
+                        </button>
+                        <button type="button" id="btn-save-report-editor" class="primary-btn neumorphic-btn hidden" style="font-size: 13px;">Lưu</button>
+                        <button type="button" class="secondary-btn neumorphic-btn" onclick="this.closest('.modal-content').scrollTo({top: 0, behavior: 'smooth'})" style="font-size: 13px;">
                             <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">arrow_upward</span> Về đầu trang
                         </button>
-                        <button type="button" id="btn-save-report-editor" class="primary-btn neumorphic-btn hidden" style="font-size: 13px;">Lưu & Đóng</button>
                     </div>
                 </div>
             </div>
