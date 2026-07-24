@@ -471,7 +471,7 @@ function setupEventListeners() {
 
     document.getElementById('btn-delete-member').addEventListener('click', async () => {
         if (confirm("Bạn có chắc chắn muốn xóa thành viên này và toàn bộ hồ sơ khám bệnh liên quan?")) {
-            const records = DataManager.getRecordsByMemberId(currentMemberId);
+            const records = DataManager.getRecords(currentMemberId);
             for (let record of records) {
                 const images = record.originalImages || (record.originalImage ? [record.originalImage] : []);
                 for (let imgId of images) {
