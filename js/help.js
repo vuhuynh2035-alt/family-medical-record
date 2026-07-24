@@ -114,8 +114,7 @@ const HelpService = {
             // 1. Create Glowing Box
             const box = document.createElement('div');
             box.className = 'help-highlight-box';
-            // Add some padding to the box
-            const padding = 6;
+            
             box.style.top = (rect.top - padding) + 'px';
             box.style.left = (rect.left - padding) + 'px';
             box.style.width = (rect.width + padding * 2) + 'px';
