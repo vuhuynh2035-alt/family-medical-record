@@ -271,6 +271,20 @@ function setupEventListeners() {
 
 
 
+    // DOB Toggle Logic
+    document.getElementById('toggle-dob-type').addEventListener('click', (e) => {
+        const isYearOnly = document.getElementById('member-dob-full').classList.contains('hidden');
+        if (isYearOnly) {
+            document.getElementById('member-dob-full').classList.remove('hidden');
+            document.getElementById('member-dob-year').classList.add('hidden');
+            e.target.innerText = 'Chỉ nhập Năm';
+        } else {
+            document.getElementById('member-dob-full').classList.add('hidden');
+            document.getElementById('member-dob-year').classList.remove('hidden');
+            e.target.innerText = 'Nhập chi tiết ngày';
+        }
+    });
+
     // Member Modal
     document.getElementById('btn-add-member').addEventListener('click', () => {
         document.getElementById('form-member').reset();
@@ -279,6 +293,11 @@ function setupEventListeners() {
         document.getElementById('member-avatar-preview').src = 'assets/default-avatar.png';
         document.getElementById('modal-member-title').innerText = 'Thêm thành viên';
         document.getElementById('custom-fields-container').innerHTML = ''; // Clear custom fields
+        
+        document.getElementById('member-dob-full').classList.remove('hidden');
+        document.getElementById('member-dob-year').classList.add('hidden');
+        document.getElementById('toggle-dob-type').innerText = 'Chỉ nhập Năm';
+        
         openModal('modal-member');
     });
 
@@ -367,7 +386,9 @@ function setupEventListeners() {
             id: document.getElementById('member-id').value,
             name: document.getElementById('member-name').value,
             nickname: document.getElementById('member-nickname').value,
-            dob: document.getElementById('member-dob').value,
+            dob: document.getElementById('member-dob-full').classList.contains('hidden') ? 
+                 document.getElementById('member-dob-year').value : 
+                 (document.getElementById('member-dob-full').value ? document.getElementById('member-dob-full').value.split('-').reverse().join('/') : ''),
             blood: document.getElementById('member-blood').value,
             height: document.getElementById('member-height').value,
             weight: document.getElementById('member-weight').value,
@@ -401,7 +422,18 @@ function setupEventListeners() {
             document.getElementById('member-id').value = member.id;
             document.getElementById('member-name').value = member.name;
             document.getElementById('member-nickname').value = member.nickname || '';
-            document.getElementById('member-dob').value = member.dob;
+            const dob = member.dob || '';
+            if (dob.includes('/')) {
+                document.getElementById('member-dob-full').value = dob.split('/').reverse().join('-');
+                document.getElementById('member-dob-full').classList.remove('hidden');
+                document.getElementById('member-dob-year').classList.add('hidden');
+                document.getElementById('toggle-dob-type').innerText = 'Chỉ nhập Năm';
+            } else {
+                document.getElementById('member-dob-year').value = dob;
+                document.getElementById('member-dob-full').classList.add('hidden');
+                document.getElementById('member-dob-year').classList.remove('hidden');
+                document.getElementById('toggle-dob-type').innerText = 'Nhập chi tiết ngày';
+            }
             document.getElementById('member-blood').value = member.blood || '';
             document.getElementById('member-height').value = member.height || '';
             document.getElementById('member-weight').value = member.weight || '';
