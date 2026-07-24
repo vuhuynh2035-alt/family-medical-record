@@ -1128,28 +1128,52 @@ function setupEventListeners() {
         if (e.target.files && e.target.files.length > 0) {
             const btnScan = document.getElementById('btn-scan-analyze');
             const originalScanText = btnScan.innerHTML;
-            const total = e.target.files.length;
+            const files = e.target.files;
 
-            btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải... 0%`;
+            btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải...`;
             btnScan.disabled = true;
 
-            for (let i = 0; i < total; i++) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
                 try {
-                    const base64 = await DataManager.fileToBase64(e.target.files[i]);
-                    if (base64) {
-                        addImageToPreview(base64);
+                    if (file.type === 'application/pdf') {
+                        btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang đọc PDF...`;
+                        await new Promise(r => setTimeout(r, 50));
+                        
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        
+                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                            btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Tách trang ${pageNum}/${pdf.numPages}...`;
+                            await new Promise(r => setTimeout(r, 50));
+                            
+                            const page = await pdf.getPage(pageNum);
+                            const viewport = page.getViewport({ scale: 2.0 });
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+                            
+                            await page.render({ canvasContext: context, viewport: viewport }).promise;
+                            
+                            const base64 = canvas.toDataURL('image/jpeg', 0.8);
+                            addImageToPreview(base64);
+                        }
+                    } else {
+                        btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải ảnh ${i + 1}/${files.length}...`;
+                        await new Promise(r => setTimeout(r, 50));
+                        const base64 = await DataManager.fileToBase64(file);
+                        if (base64) {
+                            addImageToPreview(base64);
+                        }
                     }
                 } catch (err) {
-                    console.error("Lỗi khi tải ảnh:", err);
+                    console.error("Lỗi khi tải file:", err);
+                    alert("Có lỗi khi xử lý file " + file.name + ": " + err.message);
                 }
-                const percent = Math.round(((i + 1) / total) * 100);
-                btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải... ${percent}%`;
-                await new Promise(r => setTimeout(r, 50)); // Force DOM repaint
             }
-            // addImageToPreview() đã tự bật/tắt trạng thái disabled của #btn-scan-analyze
-            // dựa trên số ảnh hiện có trong khay xem trước (xem hàm addImageToPreview bên dưới).
-            e.target.value = '';
 
+            e.target.value = '';
             setTimeout(() => {
                 btnScan.innerHTML = originalScanText;
             }, 500);

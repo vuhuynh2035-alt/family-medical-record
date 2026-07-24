@@ -767,6 +767,10 @@
          phòng chống XSS nếu nội dung AI trả về (hoặc bị can thiệp giữa đường truyền) chứa mã độc. -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
     <script src="js/data.js?v=1.12"></script>
     <script src="js/ai.js?v=1.12"></script>
     <script src="js/components.js?v=1.12"></script>
