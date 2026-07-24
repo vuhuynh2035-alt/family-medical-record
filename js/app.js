@@ -706,10 +706,15 @@ function setupEventListeners() {
             const member = DataManager.getMemberById(currentMemberId);
             
             if (record && member) {
-                document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">psychiatry</span> AI Nhận xét tình trạng`;
+                const activeProvider = DataManager.getActiveProvider();
+                const pName = activeProvider === 'openai' ? 'ChatGPT' : (activeProvider === 'anthropic' ? 'Claude' : 'Gemini');
+                
+                document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">psychiatry</span> ${pName} Nhận xét tình trạng`;
                 openModal('modal-ai-assessment');
                 const loading = document.getElementById('ai-assessment-loading');
                 const content = document.getElementById('ai-assessment-content');
+                
+                loading.innerHTML = `<span class="loading-spinner"></span> ${pName} đang tổng hợp và phân tích hồ sơ...`;
                 loading.classList.remove('hidden');
                 content.innerHTML = '';
                 
@@ -730,16 +735,17 @@ function setupEventListeners() {
             const disease = btnSearch.dataset.disease;
             if (!disease) return;
             
-            document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">travel_explore</span> Tra cứu chuyên sâu`;
+            const activeProvider = DataManager.getActiveProvider();
+            const pName = activeProvider === 'openai' ? 'ChatGPT' : (activeProvider === 'anthropic' ? 'Claude' : 'Gemini');
+            
+            document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">travel_explore</span> Tra cứu chuyên sâu (${pName})`;
             openModal('modal-ai-assessment');
             const loading = document.getElementById('ai-assessment-loading');
             const content = document.getElementById('ai-assessment-content');
-            loading.classList.remove('hidden');
-            content.innerHTML = `<p style="text-align:center; color: var(--text-muted); margin-top: 10px;">
-                <span class="loading-spinner" style="border-color: rgba(0,0,0,0.1); border-top-color: var(--text-muted); width: 14px; height: 14px;"></span> 
-                Đang tra cứu chuyên sâu về "${disease}"... Xin vui lòng chờ.
-            </p>`;
             
+            loading.innerHTML = `<span class="loading-spinner"></span> ${pName} đang tra cứu chuyên sâu về "${disease}"... Xin vui lòng chờ.`;
+            loading.classList.remove('hidden');
+            content.innerHTML = '';
             try {
                 const aiResult = await AIService.searchDiseaseInfo(disease);
                 loading.classList.add('hidden');
