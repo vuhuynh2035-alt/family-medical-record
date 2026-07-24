@@ -58,15 +58,18 @@ const HelpService = {
     },
 
     renderHelpElements() {
+        console.log("renderHelpElements called");
         this.layer.innerHTML = ''; // Clear previous
         this.backdrop.innerHTML = ''; // Clear previous canvas
         
         // Find active view
         const activeView = document.querySelector('.view.active');
+        console.log("activeView is:", activeView ? activeView.id : 'null');
         if (!activeView) return;
 
         // Find all elements with data-help in this view
         const elements = activeView.querySelectorAll('[data-help-title]');
+        console.log("Found help elements:", elements.length);
         
         // Create canvas for the dark overlay with transparent holes
         const canvas = document.createElement('canvas');
@@ -79,6 +82,7 @@ const HelpService = {
         canvas.style.height = '100vh';
         canvas.style.pointerEvents = 'none'; // let backdrop div handle clicks
         this.backdrop.appendChild(canvas);
+        console.log("Canvas appended to backdrop. Width:", canvas.width, "Height:", canvas.height);
 
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Dark overlay color
