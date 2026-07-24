@@ -257,7 +257,6 @@ const UI = {
         }
 
         const ageInfo = this.calculateAge(member.dob);
-        const ageHtml = ageInfo ? ` <span style="color: var(--text-muted); font-weight: 400; font-size: 13px;">(${this.escapeHtml(ageInfo.label)})</span>` : '';
 
         profileContainer.innerHTML = `
             <div class="profile-grid">
@@ -267,7 +266,11 @@ const UI = {
                 </div>
                 <div class="profile-item">
                     <label>Ngày sinh / Năm sinh</label>
-                    <p>${this.escapeHtml(this.formatDate(member.dob))}${ageHtml}</p>
+                    <p>${this.escapeHtml(this.formatDate(member.dob))}</p>
+                </div>
+                <div class="profile-item">
+                    <label>Số tuổi</label>
+                    <p>${ageInfo ? this.escapeHtml(ageInfo.label) : 'Chưa xác định'}</p>
                 </div>
                 <div class="profile-item">
                     <label>Nhóm máu</label>
