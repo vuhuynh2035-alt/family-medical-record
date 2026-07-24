@@ -54,6 +54,7 @@ const HelpService = {
 
     renderHelpElements() {
         this.layer.innerHTML = ''; // Clear previous
+        this.backdrop.innerHTML = ''; // Clear previous canvas
         
         // Find active view
         const activeView = document.querySelector('.view.active');
@@ -62,6 +63,24 @@ const HelpService = {
         // Find all elements with data-help in this view
         const elements = activeView.querySelectorAll('[data-help-title]');
         
+        // Create canvas for the dark overlay with transparent holes
+        const canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
+        canvas.style.pointerEvents = 'none'; // let backdrop div handle clicks
+        this.backdrop.appendChild(canvas);
+
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Dark overlay color
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.globalCompositeOperation = 'destination-out';
+        
         elements.forEach(el => {
             // Ignore hidden elements (e.g. tabs that are not visible)
             if (el.offsetParent === null) return;
@@ -69,6 +88,28 @@ const HelpService = {
             const rect = el.getBoundingClientRect();
             const title = el.getAttribute('data-help-title');
             const desc = el.getAttribute('data-help-desc');
+
+            const padding = 6;
+            
+            // Draw transparent hole in canvas for the element
+            const x = rect.left - padding;
+            const y = rect.top - padding;
+            const w = rect.width + padding * 2;
+            const h = rect.height + padding * 2;
+            const r = 8; // border radius
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.fill();
 
             // 1. Create Glowing Box
             const box = document.createElement('div');

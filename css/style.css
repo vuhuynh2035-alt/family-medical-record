@@ -899,9 +899,7 @@ input::placeholder {
 .help-backdrop {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.6);
     z-index: 9000;
-    backdrop-filter: blur(2px);
     transition: opacity 0.3s;
 }
 
