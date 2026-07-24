@@ -3,26 +3,24 @@ const HelpService = {
     
     init() {
         this.btnHelp = document.getElementById('btn-help');
-        this.backdrop = document.getElementById('help-backdrop');
-        this.layer = document.getElementById('help-layer');
         this.btnWorkflow = document.getElementById('btn-workflow-guide');
         this.modalWorkflow = document.getElementById('modal-workflow-guide');
         this.workflowContent = document.getElementById('workflow-guide-content');
-
-        console.log("HelpService.init() called, btnHelp:", this.btnHelp, "backdrop:", this.backdrop);
+        
         if (this.btnHelp) {
             this.btnHelp.addEventListener('click', (e) => {
-                console.log("btn-help clicked!");
+                e.stopPropagation();
                 this.toggleHelpMode();
             });
         }
-        if (this.backdrop) {
-            this.backdrop.addEventListener('click', () => this.toggleHelpMode()); // Click outside to close
-        }
-        if (this.btnWorkflow) {
-            this.btnWorkflow.addEventListener('click', () => this.showWorkflowGuide());
-        }
         
+        if (this.btnWorkflow) {
+            this.btnWorkflow.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.showWorkflowGuide();
+            });
+        }
+
         // Modal close button
         if (this.modalWorkflow) {
             const closeBtn = this.modalWorkflow.querySelector('.close-modal');
@@ -41,101 +39,75 @@ const HelpService = {
     },
 
     toggleHelpMode() {
-        console.log("toggleHelpMode called, isHelpModeActive was:", this.isHelpModeActive);
         this.isHelpModeActive = !this.isHelpModeActive;
         
         if (this.isHelpModeActive) {
-            this.backdrop.classList.remove('hidden');
-            
-            // Force inline styles to override any potential external interference (e.g. adblockers)
-            this.backdrop.style.setProperty('display', 'block', 'important');
-            this.backdrop.style.setProperty('position', 'fixed', 'important');
-            this.backdrop.style.setProperty('top', '0', 'important');
-            this.backdrop.style.setProperty('left', '0', 'important');
-            this.backdrop.style.setProperty('width', '100vw', 'important');
-            this.backdrop.style.setProperty('height', '100vh', 'important');
-            this.backdrop.style.setProperty('z-index', '9999', 'important');
-            this.backdrop.style.setProperty('pointer-events', 'auto', 'important');
-            
-            const comp = window.getComputedStyle(this.backdrop);
-            console.log("Backdrop Diagnostics:", {
-                inDOM: document.body.contains(this.backdrop),
-                display: comp.display,
-                width: comp.width,
-                height: comp.height,
-                zIndex: comp.zIndex,
-                pointerEvents: comp.pointerEvents,
-                opacity: comp.opacity
-            });
-
-            this.layer.classList.remove('hidden');
-            this.btnWorkflow.classList.remove('hidden');
+            if (this.btnWorkflow) this.btnWorkflow.classList.remove('hidden');
             this.renderHelpElements();
         } else {
-            this.backdrop.classList.add('hidden');
-            this.backdrop.style.removeProperty('display');
-            this.backdrop.style.removeProperty('position');
-            this.backdrop.style.removeProperty('top');
-            this.backdrop.style.removeProperty('left');
-            this.backdrop.style.removeProperty('width');
-            this.backdrop.style.removeProperty('height');
-            this.backdrop.style.removeProperty('z-index');
-            this.backdrop.style.removeProperty('pointer-events');
-            this.layer.classList.add('hidden');
-            this.btnWorkflow.classList.add('hidden');
-            this.layer.innerHTML = '';
+            if (this.btnWorkflow) this.btnWorkflow.classList.add('hidden');
+            this.cleanup();
         }
     },
 
+    cleanup() {
+        if (this.helpCanvas && this.helpCanvas.parentNode) {
+            this.helpCanvas.parentNode.removeChild(this.helpCanvas);
+        }
+        if (this.helpLayer && this.helpLayer.parentNode) {
+            this.helpLayer.parentNode.removeChild(this.helpLayer);
+        }
+        this.helpCanvas = null;
+        this.helpLayer = null;
+    },
+
     renderHelpElements() {
-        console.log("renderHelpElements called");
-        this.layer.innerHTML = ''; // Clear previous
-        this.backdrop.innerHTML = ''; // Clear previous canvas
+        this.cleanup(); // Clear previous
         
-        // Find active view
         const activeView = document.querySelector('.view.active');
-        console.log("activeView is:", activeView ? activeView.id : 'null');
         if (!activeView) return;
 
-        // Find all elements with data-help in this view
         const elements = activeView.querySelectorAll('[data-help-title]');
-        console.log("Found help elements:", elements.length);
         
-        // Create canvas for the dark overlay with transparent holes
-        const canvas = document.createElement('canvas');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        canvas.style.position = 'fixed';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-        canvas.style.width = '100vw';
-        canvas.style.height = '100vh';
-        canvas.style.pointerEvents = 'none'; // let backdrop div handle clicks
-        this.backdrop.appendChild(canvas);
-        console.log("Canvas appended to backdrop. Width:", canvas.width, "Height:", canvas.height);
+        // 1. Create Canvas
+        this.helpCanvas = document.createElement('canvas');
+        this.helpCanvas.width = window.innerWidth;
+        this.helpCanvas.height = window.innerHeight;
+        this.helpCanvas.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9998; cursor: pointer;';
+        
+        // Clicking the canvas turns off help mode
+        this.helpCanvas.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleHelpMode();
+        });
+        
+        document.body.appendChild(this.helpCanvas);
 
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Dark overlay color
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const ctx = this.helpCanvas.getContext('2d');
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)'; 
+        ctx.fillRect(0, 0, this.helpCanvas.width, this.helpCanvas.height);
         
         ctx.globalCompositeOperation = 'destination-out';
         
+        // 2. Create Layer for Tooltips
+        this.helpLayer = document.createElement('div');
+        this.helpLayer.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; pointer-events: none;';
+        document.body.appendChild(this.helpLayer);
+
         elements.forEach(el => {
-            // Ignore hidden elements (e.g. tabs that are not visible)
             if (el.offsetParent === null) return;
             
             const rect = el.getBoundingClientRect();
             const title = el.getAttribute('data-help-title');
             const desc = el.getAttribute('data-help-desc');
-
             const padding = 6;
             
-            // Draw transparent hole in canvas for the element
+            // Draw hole
             const x = rect.left - padding;
             const y = rect.top - padding;
             const w = rect.width + padding * 2;
             const h = rect.height + padding * 2;
-            const r = 8; // border radius
+            const r = 8;
             
             ctx.fillStyle = 'rgba(255, 255, 255, 1)';
             ctx.beginPath();
@@ -150,26 +122,23 @@ const HelpService = {
             ctx.quadraticCurveTo(x, y, x + r, y);
             ctx.fill();
 
-            // 1. Create Glowing Box
+            // Highlight Box
             const box = document.createElement('div');
             box.className = 'help-highlight-box';
-            
             box.style.top = (rect.top - padding) + 'px';
             box.style.left = (rect.left - padding) + 'px';
             box.style.width = (rect.width + padding * 2) + 'px';
             box.style.height = (rect.height + padding * 2) + 'px';
-            
-            this.layer.appendChild(box);
+            this.helpLayer.appendChild(box);
 
-            // 2. Create Tooltip
+            // Tooltip
             const tooltip = document.createElement('div');
             tooltip.className = 'help-tooltip';
             tooltip.innerHTML = `
                 <div class="help-tooltip-title"><span class="material-symbols-rounded">info</span> ${title}</div>
                 <div class="help-tooltip-desc">${desc}</div>
             `;
-            
-            this.layer.appendChild(tooltip);
+            this.helpLayer.appendChild(tooltip);
 
             // Calculate position for tooltip
             let tooltipTop = 0;
