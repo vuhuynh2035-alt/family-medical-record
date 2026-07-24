@@ -1169,7 +1169,7 @@ function applyFilters() {
         );
     }
     if (type !== 'all') {
-        filtered = filtered.filter(r => r.type === type);
+        filtered = filtered.filter(r => Components.getTypeInfo(r.type).text === type);
     }
     if (month) {
         filtered = filtered.filter(r => r.date.startsWith(month));

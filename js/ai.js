@@ -142,7 +142,7 @@ TUYỆT ĐỐI CHỈ TRẢ VỀ JSON, KHÔNG THÊM BẤT KỲ ĐOẠN VĂN BẢN
 - "date": Ngày khám bệnh (định dạng YYYY-MM-DD). Nếu không có, hãy để chuỗi rỗng "".
 - "hospital": Tên bệnh viện hoặc phòng khám.
 - "doctor": Tên bác sĩ điều trị.
-- "type": Phân loại khám bệnh (Chọn một trong các giá trị: "routine", "mild", "severe", "chronic").
+- "type": Phân loại bệnh (Ghi một thuật ngữ y khoa chuyên môn ngắn gọn. Ví dụ: "Khám sức khỏe tổng quát", "Bệnh lý cấp tính (Nhẹ)", "Bệnh lý cấp tính (Nặng)", "Bệnh lý mạn tính", "Khám thai", "Tiêm chủng", "Nha khoa", v.v...).
 - "bp": Huyết áp (vd: "120/80").
 - "hr": Nhịp tim (vd: 80 - số nguyên).
 - "temp": Nhiệt độ (vd: 37.0 - số thực).
@@ -227,7 +227,7 @@ Trình bày bằng định dạng Markdown rõ ràng, dễ đọc.
 - Bệnh viện/Phòng khám: ${recordData.hospital}
 - Bác sĩ: ${recordData.doctor || "Chưa rõ"}
 - Chẩn đoán: ${recordData.disease}
-- Phân loại: ${recordData.type === 'routine' ? 'Khám định kỳ' : recordData.type === 'mild' ? 'Bệnh nhẹ' : recordData.type === 'severe' ? 'Bệnh nặng' : 'Bệnh mãn tính'}
+- Phân loại: ${recordData.type}
 - Phương án điều trị / Thuốc: ${recordData.treatment}${extraInfo}
 
 Vui lòng phân tích và đưa ra nhận xét:

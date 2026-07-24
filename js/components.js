@@ -14,13 +14,29 @@ const UI = {
     },
     
     getTypeInfo(type) {
-        switch(type) {
-            case 'routine': return { text: 'Khám định kỳ', class: 'type-routine' };
-            case 'mild': return { text: 'Bệnh nhẹ', class: 'type-mild' };
-            case 'severe': return { text: 'Bệnh nặng', class: 'type-severe' };
-            case 'chronic': return { text: 'Bệnh mãn tính', class: 'type-chronic' };
-            default: return { text: 'Khác', class: 'type-routine' };
+        if (!type) return { text: 'Chưa phân loại', style: 'background: #f5f5f5; color: #7f8c8d;' };
+        
+        // Handle legacy/standard strings
+        const typeLower = type.toLowerCase().trim();
+        if (typeLower === 'routine' || typeLower === 'khám sức khỏe tổng quát' || typeLower === 'định kỳ') 
+            return { text: 'Khám sức khỏe tổng quát', style: 'background: #e1f5fe; color: #0277bd;' };
+        if (typeLower === 'mild' || typeLower === 'bệnh lý cấp tính (nhẹ)' || typeLower === 'nhẹ') 
+            return { text: 'Bệnh lý cấp tính (Nhẹ)', style: 'background: #f1f8e9; color: #33691e;' };
+        if (typeLower === 'severe' || typeLower === 'bệnh lý cấp tính (nặng)' || typeLower === 'nặng') 
+            return { text: 'Bệnh lý cấp tính (Nặng/Cấp cứu)', style: 'background: #fbe9e7; color: #bf360c;' };
+        if (typeLower === 'chronic' || typeLower === 'bệnh lý mạn tính' || typeLower === 'mãn tính') 
+            return { text: 'Bệnh lý mạn tính', style: 'background: #f3e5f5; color: #4a148c;' };
+
+        // Dynamic types
+        let hash = 0;
+        for (let i = 0; i < type.length; i++) {
+            hash = type.charCodeAt(i) + ((hash << 5) - hash);
         }
+        const hue = Math.abs(hash) % 360;
+        return { 
+            text: type, 
+            style: `background: hsla(${hue}, 70%, 90%, 1); color: hsl(${hue}, 80%, 30%);` 
+        };
     },
 
     // 1. Render Members Dashboard
@@ -134,7 +150,7 @@ const UI = {
             el.innerHTML = `
                 <div class="record-header">
                     <span class="record-date">${this.formatDate(record.date)}</span>
-                    <span class="type-badge ${this.getTypeInfo(record.type).class}">${this.getTypeInfo(record.type).text}</span>
+                    <span class="type-badge" style="${this.getTypeInfo(record.type).style}">${this.getTypeInfo(record.type).text}</span>
                 </div>
                 <div class="record-body" style="grid-template-columns: 1fr; gap: 5px;">
                     <div class="record-detail" style="font-size: 16px;">
@@ -166,7 +182,7 @@ const UI = {
                     <p style="font-size: 14px;"><strong>Bác sĩ:</strong> ${record.doctor || 'N/A'}</p>
                 </div>
                 <div>
-                    <span class="type-badge ${typeInfo.class}">${typeInfo.text}</span>
+                    <span class="type-badge" style="${typeInfo.style}">${typeInfo.text}</span>
                 </div>
             </div>
             
