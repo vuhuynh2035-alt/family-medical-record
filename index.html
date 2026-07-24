@@ -29,7 +29,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.8.3</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.8.4</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -78,9 +78,6 @@
                     <div class="header-actions">
                         <button id="btn-edit-member" class="icon-btn neumorphic-btn" title="Sửa thông tin">
                             <span class="material-symbols-rounded">edit</span>
-                        </button>
-                        <button id="btn-delete-member" class="icon-btn neumorphic-btn danger" title="Xóa thành viên">
-                            <span class="material-symbols-rounded">delete</span>
                         </button>
                     </div>
                 </div>
@@ -359,9 +356,14 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer" style="display: flex; justify-content: space-between;">
-                <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
-                <button type="submit" form="form-member" class="primary-btn neumorphic-btn">Lưu thông tin</button>
+            <div class="modal-footer" style="display: flex; flex-direction: column; gap: 15px;">
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                    <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
+                    <button type="submit" form="form-member" class="primary-btn neumorphic-btn">Lưu thông tin</button>
+                </div>
+                <button type="button" id="btn-delete-member" class="primary-btn neumorphic-btn danger hidden" style="width: 100%;">
+                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 5px;">delete</span> Xóa thành viên này
+                </button>
             </div>
         </div>
     </div>

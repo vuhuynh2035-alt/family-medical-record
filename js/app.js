@@ -298,6 +298,8 @@ function setupEventListeners() {
         document.getElementById('member-dob-year').classList.add('hidden');
         document.getElementById('toggle-dob-type').innerText = 'Chỉ nhập Năm';
         
+        document.getElementById('btn-delete-member').classList.add('hidden');
+        
         openModal('modal-member');
     });
 
@@ -461,6 +463,8 @@ function setupEventListeners() {
                 });
             }
 
+            document.getElementById('btn-delete-member').classList.remove('hidden');
+
             openModal('modal-member');
         }
     });
@@ -475,6 +479,7 @@ function setupEventListeners() {
                 }
             }
             DataManager.deleteMember(currentMemberId);
+            closeModal('modal-member');
             switchView('view-dashboard');
             initDashboard();
         }
