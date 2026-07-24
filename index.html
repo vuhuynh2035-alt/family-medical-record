@@ -29,7 +29,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.8.8</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.8.9</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -501,16 +501,24 @@
                         </div>
                     </div>
 
-                    <div style="margin-top: 25px; display: flex; justify-content: space-between; align-items: center;">
-                        <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
-                        <div style="display: flex; gap: 15px; align-items: center;">
-                            <button type="button" id="btn-view-ai-report" class="secondary-btn neumorphic-btn magic-btn hidden" style="border: 1px solid #f39c12; color: #d35400;">
-                                <span class="material-symbols-rounded" style="vertical-align:middle;">description</span> Xem Báo cáo Đánh giá (AI)
+                    <div style="margin-top: 25px; display: flex; flex-direction: column; gap: 15px;">
+                        <button type="button" id="btn-view-ai-report" class="secondary-btn neumorphic-btn magic-btn hidden" style="width: 100%; border: 1px solid #f39c12; color: #d35400; justify-content: center;">
+                            <span class="material-symbols-rounded" style="vertical-align:middle; margin-right: 5px;">description</span> Xem Báo cáo Đánh giá (AI)
+                        </button>
+                        <input type="hidden" id="record-comprehensive-report-data">
+                        
+                        <button type="button" id="btn-delete-record-modal" class="primary-btn neumorphic-btn danger hidden" style="width: 100%; justify-content: center;">
+                            <span class="material-symbols-rounded" style="vertical-align:middle; margin-right: 5px;">delete</span> Xóa Hồ Sơ
+                        </button>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
+                            <button type="button" class="icon-btn neumorphic-btn close-modal" title="Quay lại">
+                                <span class="material-symbols-rounded">reply</span>
                             </button>
-                            <input type="hidden" id="record-comprehensive-report-data">
-                            
-                            <button type="button" id="btn-delete-record-modal" class="neumorphic-btn danger hidden">Xóa Hồ Sơ</button>
                             <button type="submit" class="neumorphic-btn primary-btn magic-btn">Lưu Hồ Sơ</button>
+                            <button type="button" class="icon-btn neumorphic-btn" onclick="this.closest('.modal-content').scrollTo({top: 0, behavior: 'smooth'})" title="Về đầu trang">
+                                <span class="material-symbols-rounded">arrow_upward</span>
+                            </button>
                         </div>
                     </div>
                 </form>
