@@ -997,6 +997,19 @@ function setupEventListeners() {
         html2pdf().set(opt).from(element).save();
     });
 
+    document.getElementById('btn-download-assessment-pdf').addEventListener('click', () => {
+        const element = document.getElementById('ai-assessment-content');
+        const titleText = document.querySelector('#modal-ai-assessment .modal-header h3').innerText.trim().replace('psychiatry', '').trim() || 'AI_Assessment';
+        const opt = {
+            margin:       0.5,
+            filename:     `${titleText}.pdf`.replace(/\s+/g, '_'),
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    });
+
     // Report Editor Modal Logic
     document.getElementById('btn-view-ai-report').addEventListener('click', () => {
         const reportData = document.getElementById('record-comprehensive-report-data').value;

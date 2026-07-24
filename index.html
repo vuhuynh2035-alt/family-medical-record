@@ -29,7 +29,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.8.5</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.8.6</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -531,24 +531,24 @@
                 
                 <textarea id="report-edit-mode" class="neumorphic-input hidden" style="width: 100%; min-height: 400px; font-family: monospace; line-height:1.5; padding: 15px; resize: vertical;" placeholder="Chỉnh sửa nội dung Markdown..."></textarea>
                 
-                <div style="margin-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
+                <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
                     <div style="display: flex; gap: 10px;">
-                        <button type="button" class="secondary-btn neumorphic-btn close-modal" style="font-size: 13px;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">reply</span> Quay lại
+                        <button type="button" class="icon-btn neumorphic-btn close-modal" title="Quay lại">
+                            <span class="material-symbols-rounded">reply</span>
                         </button>
-                        <button type="button" id="btn-download-pdf" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">picture_as_pdf</span> Tải xuống PDF
+                        <button type="button" id="btn-toggle-report-edit" class="icon-btn neumorphic-btn" title="Chỉnh sửa">
+                            <span class="material-symbols-rounded">edit</span>
+                        </button>
+                        <button type="button" id="btn-save-report-editor" class="icon-btn neumorphic-btn hidden" title="Lưu" style="color: var(--primary-blue);">
+                            <span class="material-symbols-rounded">save</span>
                         </button>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button type="button" id="btn-toggle-report-edit" class="secondary-btn neumorphic-btn" style="font-size: 13px;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">edit</span> Chỉnh sửa
-                        </button>
-                        <button type="button" id="btn-save-report-editor" class="primary-btn neumorphic-btn hidden" style="font-size: 13px;">Lưu</button>
-                        <button type="button" class="secondary-btn neumorphic-btn" onclick="this.closest('.modal-content').scrollTo({top: 0, behavior: 'smooth'})" style="font-size: 13px;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">arrow_upward</span> Về đầu trang
-                        </button>
-                    </div>
+                    <button type="button" id="btn-download-pdf" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
+                        <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">picture_as_pdf</span> Tải xuống PDF
+                    </button>
+                    <button type="button" class="icon-btn neumorphic-btn" onclick="this.closest('.modal-content').scrollTo({top: 0, behavior: 'smooth'})" title="Về đầu trang">
+                        <span class="material-symbols-rounded">arrow_upward</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -567,20 +567,16 @@
                     <div id="view-record-report-data" style="margin-top: 20px;"></div>
                 </div>
                 
-                <div style="margin-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    <div>
-                        <button type="button" class="secondary-btn neumorphic-btn close-modal" style="font-size: 13px;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">reply</span> Quay lại
-                        </button>
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button type="button" id="btn-download-record-pdf" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">picture_as_pdf</span> Tải xuống PDF
-                        </button>
-                        <button type="button" class="secondary-btn neumorphic-btn" onclick="this.closest('.modal-content').scrollTo({top: 0, behavior: 'smooth'})" style="font-size: 13px;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">arrow_upward</span> Về đầu trang
-                        </button>
-                    </div>
+                <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
+                    <button type="button" class="icon-btn neumorphic-btn close-modal" title="Quay lại">
+                        <span class="material-symbols-rounded">reply</span>
+                    </button>
+                    <button type="button" id="btn-download-record-pdf" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
+                        <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">picture_as_pdf</span> Tải xuống PDF
+                    </button>
+                    <button type="button" class="icon-btn neumorphic-btn" onclick="this.closest('.modal-content').scrollTo({top: 0, behavior: 'smooth'})" title="Về đầu trang">
+                        <span class="material-symbols-rounded">arrow_upward</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -598,6 +594,18 @@
                     <span class="loading-spinner"></span> AI đang tổng hợp và phân tích hồ sơ...
                 </div>
                 <div id="ai-assessment-content" class="ai-result-content"></div>
+                
+                <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
+                    <button type="button" class="icon-btn neumorphic-btn close-modal" title="Quay lại">
+                        <span class="material-symbols-rounded">reply</span>
+                    </button>
+                    <button type="button" id="btn-download-assessment-pdf" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
+                        <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">picture_as_pdf</span> Tải xuống PDF
+                    </button>
+                    <button type="button" class="icon-btn neumorphic-btn" onclick="this.closest('.modal-content').scrollTo({top: 0, behavior: 'smooth'})" title="Về đầu trang">
+                        <span class="material-symbols-rounded">arrow_upward</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
