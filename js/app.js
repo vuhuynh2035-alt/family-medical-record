@@ -9,10 +9,17 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').then(reg => {
             console.log('Service Worker registered', reg);
             
-            // Tự động kiểm tra bản cập nhật mỗi 10 giây (dùng cho mục đích test)
+            // Tự động kiểm tra bản cập nhật mỗi 1 giờ (3600000 ms)
             setInterval(() => {
                 reg.update();
-            }, 10000);
+            }, 3600000);
+
+            // Kiểm tra cập nhật mỗi khi người dùng mở lại tab ứng dụng
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    reg.update();
+                }
+            });
 
             reg.addEventListener('updatefound', () => {
                 newWorker = reg.installing;
