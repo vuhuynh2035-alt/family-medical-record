@@ -9,8 +9,12 @@ const HelpService = {
         this.modalWorkflow = document.getElementById('modal-workflow-guide');
         this.workflowContent = document.getElementById('workflow-guide-content');
 
+        console.log("HelpService.init() called, btnHelp:", this.btnHelp, "backdrop:", this.backdrop);
         if (this.btnHelp) {
-            this.btnHelp.addEventListener('click', () => this.toggleHelpMode());
+            this.btnHelp.addEventListener('click', (e) => {
+                console.log("btn-help clicked!");
+                this.toggleHelpMode();
+            });
         }
         if (this.backdrop) {
             this.backdrop.addEventListener('click', () => this.toggleHelpMode()); // Click outside to close
@@ -37,6 +41,7 @@ const HelpService = {
     },
 
     toggleHelpMode() {
+        console.log("toggleHelpMode called, isHelpModeActive was:", this.isHelpModeActive);
         this.isHelpModeActive = !this.isHelpModeActive;
         
         if (this.isHelpModeActive) {
