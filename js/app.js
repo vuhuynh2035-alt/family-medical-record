@@ -829,10 +829,7 @@ function setupEventListeners() {
             if (data.treatment) document.getElementById('record-treatment').value = data.treatment;
             if (data.cost !== undefined) document.getElementById('record-cost').value = data.cost;
             if (data.type) {
-                const sel = document.getElementById('record-type');
-                for (let i = 0; i < sel.options.length; i++) {
-                    if (sel.options[i].value === data.type) sel.selectedIndex = i;
-                }
+                document.getElementById('record-type').value = data.type;
             }
             if (data.bp) document.getElementById('record-bp').value = data.bp;
             if (data.hr) document.getElementById('record-hr').value = data.hr;
