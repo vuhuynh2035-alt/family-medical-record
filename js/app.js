@@ -895,7 +895,7 @@ function setupEventListeners() {
         }
         const base64Images = checkedImgs;
         
-        const selectedModel = document.getElementById('select-report-ai').value;
+        const selectedModel = 'gemini';
         const btnGenerate = document.getElementById('btn-generate-report');
         const btnAutofill = document.getElementById('btn-autofill-info');
         const loading = document.getElementById('ocr-loading');
