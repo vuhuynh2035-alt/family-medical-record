@@ -597,10 +597,11 @@ function setupEventListeners() {
     document.getElementById('records-list').addEventListener('click', async (e) => {
         const btnEdit = e.target.closest('.btn-edit-record');
         if (btnEdit) {
-            const id = btnEdit.dataset.id;
-            const record = currentRecords.find(r => r.id === id);
-            if (record) {
-                document.getElementById('record-id').value = record.id;
+            try {
+                const id = btnEdit.dataset.id;
+                const record = currentRecords.find(r => r.id === id);
+                if (record) {
+                    document.getElementById('record-id').value = record.id;
                 document.getElementById('record-date').value = record.date;
                 document.getElementById('record-type').value = record.type;
                 document.getElementById('record-hospital').value = record.hospital;
@@ -634,8 +635,12 @@ function setupEventListeners() {
                     if (images.length > 0) {
                         for (let imgData of images) {
                             if (imgData.startsWith('img_')) {
-                                const base64 = await ImageStore.getImage(imgData);
-                                addImageToPreview(base64, imgData);
+                                try {
+                                    const base64 = await ImageStore.getImage(imgData);
+                                    if(base64) addImageToPreview(base64, imgData);
+                                } catch(err) {
+                                    console.error("Lỗi khi tải ảnh đính kèm:", err);
+                                }
                             } else {
                                 addImageToPreview(imgData); // Legacy base64
                             }
@@ -655,10 +660,14 @@ function setupEventListeners() {
                     });
                 }
                 
-                document.getElementById('btn-delete-record-modal').classList.remove('hidden');
-                document.getElementById('btn-delete-record-modal').dataset.id = record.id;
-                
-                openModal('modal-record');
+                    document.getElementById('btn-delete-record-modal').classList.remove('hidden');
+                    document.getElementById('btn-delete-record-modal').dataset.id = record.id;
+                    
+                    openModal('modal-record');
+                }
+            } catch (err) {
+                console.error("Lỗi khi mở form sửa:", err);
+                alert("Đã xảy ra lỗi khi mở hồ sơ: " + err.message);
             }
             return;
         }
@@ -958,6 +967,18 @@ function setupEventListeners() {
         html2pdf().set(opt).from(element).save();
     });
 
+    document.getElementById('btn-download-record-pdf').addEventListener('click', () => {
+        const element = document.getElementById('view-record-content');
+        const opt = {
+            margin:       0.5,
+            filename:     'Chi_Tiet_Ho_So.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    });
+
     // Report Editor Modal Logic
     document.getElementById('btn-view-ai-report').addEventListener('click', () => {
         const reportData = document.getElementById('record-comprehensive-report-data').value;
@@ -1106,7 +1127,11 @@ function addImageToPreview(src, id = null) {
         e.preventDefault();
         wrapper.remove();
         if (container.querySelectorAll('img').length === 0) {
-            document.getElementById('btn-trigger-ocr').disabled = true;
+            if (document.getElementById('btn-trigger-ocr')) {
+                document.getElementById('btn-trigger-ocr').disabled = true;
+            } else if (document.getElementById('btn-process-ai')) {
+                document.getElementById('btn-process-ai').disabled = true;
+            }
             container.style.display = 'none';
         }
     };
@@ -1116,7 +1141,11 @@ function addImageToPreview(src, id = null) {
     wrapper.appendChild(delBtn);
     container.appendChild(wrapper);
     container.style.display = 'flex';
-    document.getElementById('btn-trigger-ocr').disabled = false;
+    if (document.getElementById('btn-trigger-ocr')) {
+        document.getElementById('btn-trigger-ocr').disabled = false;
+    } else if (document.getElementById('btn-process-ai')) {
+        document.getElementById('btn-process-ai').disabled = false;
+    }
 }
 
 function openModal(modalId) {
