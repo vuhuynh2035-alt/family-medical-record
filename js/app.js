@@ -1285,6 +1285,27 @@ function setupEventListeners() {
                     addDynamicFieldRow(f.key, f.value, f.isAbnormal);
                 });
             }
+            
+            if (data.reminders && data.reminders.length > 0) {
+                let reminderCount = 0;
+                data.reminders.forEach(r => {
+                    if (r.title && r.date) {
+                        DataManager.saveReminder({
+                            memberId: currentMemberId,
+                            title: r.title,
+                            date: r.date,
+                            time: r.time || "08:00",
+                            note: r.note || ""
+                        });
+                        reminderCount++;
+                    }
+                });
+                if (reminderCount > 0) {
+                    showToast(`Đã tự động tạo ${reminderCount} nhắc nhở từ hồ sơ bệnh án.`, 'success');
+                    checkReminders(); // Cập nhật lại chuông thông báo
+                }
+            }
+
             autofillOk = true;
         } else {
             console.error("Lỗi khi điền form từ ảnh:", autofillResult.reason);

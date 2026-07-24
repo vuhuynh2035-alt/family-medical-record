@@ -214,9 +214,15 @@ TUYỆT ĐỐI CHỈ TRẢ VỀ JSON, KHÔNG THÊM BẤT KỲ ĐOẠN VĂN BẢN
 - "treatment": Phương án điều trị hoặc đơn thuốc chi tiết.
 - "note": Lời khuyên của bác sĩ (kiêng cữ, ăn uống...).
 - "cost": Tổng chi phí (chỉ lấy con số, ví dụ 500000. Nếu không thấy, trả về 0).
-- "dynamicFields": Mảng các chỉ số xét nghiệm chi tiết hoặc chuyên sâu. Mỗi phần tử là một object có "key" (Tên chỉ số, vd: "Glucose", "AST"), "value" (Kết quả kèm đơn vị, vd: "5.5 mmol/L"), và "isAbnormal" (boolean: true nếu kết quả nằm ngoài khoảng tham chiếu bình thường/bị đánh dấu bất thường, false nếu bình thường). Nếu không có, để mảng rỗng [].
+- "dynamicFields": Mảng các chỉ số xét nghiệm chi tiết hoặc chuyên sâu. Mỗi phần tử là một object có "key" (Tên chỉ số, vd: "Glucose", "AST"), "value" (Kết quả kèm đơn vị, vd: "5.5 mmol/L"), và "isAbnormal" (boolean: true nếu bất thường, false nếu bình thường). Nếu không có, để mảng rỗng [].
+- "reminders": Mảng các nhắc nhở cần tạo (tái khám, lịch uống thuốc, tiêm chủng...). Bạn hãy tự động tính toán ngày tháng dựa vào ngày khám bệnh và lời dặn của bác sĩ. Mỗi phần tử là một object có:
+  + "title": Tóm tắt nhắc nhở (vd: "Tái khám nội tiết", "Uống thuốc sáng").
+  + "date": Ngày hẹn (định dạng YYYY-MM-DD). Cố gắng tính toán ngày chính xác từ ngày khám nếu bác sĩ hẹn "sau 7 ngày" hay "sau 1 tháng".
+  + "time": Giờ nhắc nhở (định dạng HH:MM, mặc định "08:00" nếu không có giờ cụ thể).
+  + "note": Ghi chú hoặc lời dặn chi tiết của bác sĩ.
+  Nếu không có bất kỳ lời dặn dò, hẹn tái khám hay đơn thuốc nào, để mảng rỗng [].
 
-Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy để chuỗi rỗng "" (hoặc 0 đối với số).`;
+Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy để chuỗi rỗng "" (hoặc 0 đối với số, [] đối với mảng).`;
 
         // temperature = 0: đây là tác vụ trích xuất/phân loại dữ liệu (không phải viết văn), nên
         // ưu tiên tuyệt đối tính nhất quán — cùng 1 ảnh đọc nhiều lần nên ra cùng 1 kết quả, thay
