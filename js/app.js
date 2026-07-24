@@ -3,13 +3,32 @@ let currentRecords = [];
 let deferredPrompt;
 
 // PWA Service Worker Registration
+let newWorker;
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
             console.log('Service Worker registered', reg);
+            reg.addEventListener('updatefound', () => {
+                newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        const updateToast = document.getElementById('update-toast');
+                        if (updateToast) {
+                            updateToast.classList.remove('hidden');
+                        }
+                    }
+                });
+            });
         }).catch(err => {
             console.log('Service Worker registration failed: ', err);
         });
+    });
+    
+    let refreshing;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        window.location.reload();
+        refreshing = true;
     });
 }
 
@@ -35,6 +54,15 @@ document.addEventListener('DOMContentLoaded', () => {
     initDashboard();
     setupEventListeners();
     checkReminders();
+    
+    const btnUpdateApp = document.getElementById('btn-update-app');
+    if (btnUpdateApp) {
+        btnUpdateApp.addEventListener('click', () => {
+            if (newWorker) {
+                newWorker.postMessage('SKIP_WAITING');
+            }
+        });
+    }
     
     // Load Settings
     const settings = DataManager.getSettings();

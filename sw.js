@@ -16,3 +16,10 @@ self.addEventListener('fetch', (e) => {
     })
   );
 });
+
+// Xử lý thông điệp yêu cầu cập nhật bản mới
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
