@@ -243,9 +243,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settings.openaiApiKey) document.getElementById('input-openai-key').value = settings.openaiApiKey;
     if (settings.anthropicApiKey) document.getElementById('input-anthropic-key').value = settings.anthropicApiKey;
     if (settings.activeProvider) document.getElementById('input-ai-provider').value = settings.activeProvider;
-    if (settings.geminiModel) document.getElementById('input-gemini-model').value = settings.geminiModel;
-    if (document.getElementById('input-openai-model')) document.getElementById('input-openai-model').value = settings.openaiModel || '';
-    if (document.getElementById('input-anthropic-model')) document.getElementById('input-anthropic-model').value = settings.anthropicModel || '';
+    if (settings.geminiModel) {
+        const select = document.getElementById('input-gemini-model');
+        if (!Array.from(select.options).some(opt => opt.value === settings.geminiModel)) {
+            const opt = document.createElement('option');
+            opt.value = settings.geminiModel;
+            opt.innerText = settings.geminiModel;
+            select.appendChild(opt);
+        }
+        select.value = settings.geminiModel;
+    }
+    if (settings.openaiModel) {
+        const select = document.getElementById('input-openai-model');
+        if (select && !Array.from(select.options).some(opt => opt.value === settings.openaiModel)) {
+            const opt = document.createElement('option');
+            opt.value = settings.openaiModel;
+            opt.innerText = settings.openaiModel;
+            select.appendChild(opt);
+        }
+        if (select) select.value = settings.openaiModel;
+    }
+    if (settings.anthropicModel) {
+        const select = document.getElementById('input-anthropic-model');
+        if (select && !Array.from(select.options).some(opt => opt.value === settings.anthropicModel)) {
+            const opt = document.createElement('option');
+            opt.value = settings.anthropicModel;
+            opt.innerText = settings.anthropicModel;
+            select.appendChild(opt);
+        }
+        if (select) select.value = settings.anthropicModel;
+    }
     if (modelUpgraded) {
         showToast(`Model AI (Gemini) đã được tự động cập nhật sang "${settings.geminiModel}" vì phiên bản cũ đã ngừng hoạt động. Bạn có thể đổi lại trong Cài đặt nếu muốn.`);
     }
@@ -306,14 +333,33 @@ function setupEventListeners() {
         // Add current model to dropdown if it doesn't exist
         if (settings.geminiModel) {
             const select = document.getElementById('input-gemini-model');
-            let exists = Array.from(select.options).some(opt => opt.value === settings.geminiModel);
-            if (!exists) {
+            if (!Array.from(select.options).some(opt => opt.value === settings.geminiModel)) {
                 const opt = document.createElement('option');
                 opt.value = settings.geminiModel;
                 opt.innerText = settings.geminiModel;
                 select.appendChild(opt);
             }
             select.value = settings.geminiModel;
+        }
+        if (settings.openaiModel) {
+            const select = document.getElementById('input-openai-model');
+            if (select && !Array.from(select.options).some(opt => opt.value === settings.openaiModel)) {
+                const opt = document.createElement('option');
+                opt.value = settings.openaiModel;
+                opt.innerText = settings.openaiModel;
+                select.appendChild(opt);
+            }
+            if (select) select.value = settings.openaiModel;
+        }
+        if (settings.anthropicModel) {
+            const select = document.getElementById('input-anthropic-model');
+            if (select && !Array.from(select.options).some(opt => opt.value === settings.anthropicModel)) {
+                const opt = document.createElement('option');
+                opt.value = settings.anthropicModel;
+                opt.innerText = settings.anthropicModel;
+                select.appendChild(opt);
+            }
+            if (select) select.value = settings.anthropicModel;
         }
         updatePinUIState();
         openModal('modal-settings');
@@ -357,6 +403,109 @@ function setupEventListeners() {
             showToast(`Đã tải thành công ${foundCount} mô hình AI hỗ trợ sinh văn bản từ tài khoản của bạn!`);
         } catch (e) {
             alert('Lỗi: ' + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải danh sách';
+        }
+    });
+    
+    document.getElementById('btn-fetch-openai-models')?.addEventListener('click', async () => {
+        const key = document.getElementById('input-openai-key').value.trim();
+        if (!key) return alert('Vui lòng nhập OpenAI API Key trước!');
+        
+        const btn = document.getElementById('btn-fetch-openai-models');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">hourglass_empty</span>Đang tải...';
+        
+        try {
+            const res = await fetch('https://api.openai.com/v1/models', {
+                headers: { 'Authorization': `Bearer ${key}` }
+            });
+            if (!res.ok) throw new Error('API Key không hợp lệ hoặc lỗi mạng');
+            const data = await res.json();
+            
+            const select = document.getElementById('input-openai-model');
+            const currentSelected = select.value || DataManager.getOpenAIModel();
+            select.innerHTML = '';
+            
+            let foundCount = 0;
+            const models = data.data.sort((a, b) => b.created - a.created); // Sort by created desc
+            models.forEach(m => {
+                if (m.id.includes('gpt') || m.id.includes('o1') || m.id.includes('o3')) {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.innerText = m.id;
+                    select.appendChild(opt);
+                    foundCount++;
+                }
+            });
+            
+            if (Array.from(select.options).some(opt => opt.value === currentSelected)) {
+                select.value = currentSelected;
+            } else if (currentSelected) {
+                const opt = document.createElement('option');
+                opt.value = currentSelected;
+                opt.innerText = currentSelected;
+                select.appendChild(opt);
+                select.value = currentSelected;
+            }
+            showToast(`Đã tải thành công ${foundCount} mô hình ChatGPT từ tài khoản của bạn!`);
+        } catch (e) {
+            alert('Lỗi: ' + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải danh sách';
+        }
+    });
+
+    document.getElementById('btn-fetch-anthropic-models')?.addEventListener('click', async () => {
+        const key = document.getElementById('input-anthropic-key').value.trim();
+        if (!key) return alert('Vui lòng nhập Anthropic API Key trước!');
+        
+        const btn = document.getElementById('btn-fetch-anthropic-models');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">hourglass_empty</span>Đang tải...';
+        
+        try {
+            const res = await fetch('https://api.anthropic.com/v1/models', {
+                headers: { 
+                    'x-api-key': key,
+                    'anthropic-version': '2023-06-01',
+                    'anthropic-dangerous-direct-browser-access': 'true'
+                }
+            });
+            if (!res.ok) throw new Error('API Key không hợp lệ hoặc bị lỗi mạng/CORS');
+            const data = await res.json();
+            
+            const select = document.getElementById('input-anthropic-model');
+            const currentSelected = select.value || DataManager.getAnthropicModel();
+            select.innerHTML = '';
+            
+            let foundCount = 0;
+            // anthropic returns { data: [{ type: "model", id: "...", display_name: "...", created_at: "..." }] }
+            const models = data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            models.forEach(m => {
+                if (m.id.includes('claude')) {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.innerText = m.display_name ? `${m.display_name} (${m.id})` : m.id;
+                    select.appendChild(opt);
+                    foundCount++;
+                }
+            });
+            
+            if (Array.from(select.options).some(opt => opt.value === currentSelected)) {
+                select.value = currentSelected;
+            } else if (currentSelected) {
+                const opt = document.createElement('option');
+                opt.value = currentSelected;
+                opt.innerText = currentSelected;
+                select.appendChild(opt);
+                select.value = currentSelected;
+            }
+            showToast(`Đã tải thành công ${foundCount} mô hình Claude từ tài khoản của bạn!`);
+        } catch (e) {
+            alert('Lỗi lấy model Claude: ' + e.message + '. (Lưu ý: API Anthropic có thể chặn trình duyệt).');
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải danh sách';

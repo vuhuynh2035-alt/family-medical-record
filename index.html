@@ -286,17 +286,37 @@
                 <div class="form-group">
                     <label>OpenAI API Key (Chỉ cần nếu chọn ChatGPT)</label>
                     <input type="password" id="input-openai-key" class="neumorphic-input" placeholder="sk-...">
-                    <input type="text" id="input-openai-model" class="neumorphic-input" style="margin-top: 8px;" placeholder="Tên model (để trống = dùng mặc định gpt-4o)">
+                    <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
+                        <div style="flex: 1;">
+                            <select id="input-openai-model" class="neumorphic-input" style="font-weight: 500;">
+                                <option value="gpt-4o">gpt-4o (Khuyên dùng)</option>
+                                <option value="gpt-4o-mini">gpt-4o-mini</option>
+                            </select>
+                        </div>
+                        <button id="btn-fetch-openai-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
+                            <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải danh sách
+                        </button>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>Anthropic API Key (Chỉ cần nếu chọn Claude)</label>
                     <input type="password" id="input-anthropic-key" class="neumorphic-input" placeholder="sk-ant-...">
-                    <input type="text" id="input-anthropic-model" class="neumorphic-input" style="margin-top: 8px;" placeholder="Tên model (để trống = dùng mặc định claude-3-5-sonnet-20240620)">
+                    <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
+                        <div style="flex: 1;">
+                            <select id="input-anthropic-model" class="neumorphic-input" style="font-weight: 500;">
+                                <option value="claude-3-5-sonnet-20240620">claude-3.5-sonnet (Khuyên dùng)</option>
+                                <option value="claude-3-haiku-20240307">claude-3-haiku</option>
+                            </select>
+                        </div>
+                        <button id="btn-fetch-anthropic-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
+                            <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải danh sách
+                        </button>
+                    </div>
                 </div>
 
                 <div class="help-text" style="margin-top: 15px;">
-                    Lưu ý: OpenAI và Anthropic thường xuyên ra model mới hơn — nếu bạn biết tên model mới nhất (vd: xem trên trang tài liệu API của OpenAI/Anthropic), có thể nhập trực tiếp vào 2 ô "Tên model" ở trên để dùng thay vì chờ bản cập nhật ứng dụng. Riêng Gemini có nút "Tải danh sách" bên dưới để tự lấy danh sách model đang hoạt động từ chính tài khoản của bạn.
+                    Lưu ý: Bạn có thể nhấn nút "Tải danh sách" ở từng mục để tự động lấy các model mới nhất đang hoạt động từ tài khoản của mình (cần nhập API Key trước).
                 </div>
 
                 <div class="help-text" style="margin-top: 10px;">
