@@ -27,7 +27,7 @@
                         <span class="material-symbols-rounded" style="font-size: 28px; font-weight: 800; font-variation-settings: 'wght' 800;">add</span>
                     </div>
                     <h1 style="color: white; margin: 0;">Health Care</h1>
-                    <span class="version-tag" style="color: rgba(255, 255, 255, 0.8);">v1.7.15</span>
+                    <span class="version-tag" style="color: rgba(255, 255, 255, 0.8);">v1.7.16</span>
                 </div>
                 <div class="header-actions">
                     <button id="btn-install-app" class="icon-btn header-btn hidden" title="Cài đặt Ứng dụng">
@@ -184,20 +184,6 @@
                             <input type="time" id="reminder-time" class="neumorphic-input" required>
                         </div>
                     </div>
-                    <div class="form-group-row">
-                        <div class="form-group">
-                            <label>Chiều cao (cm)</label>
-                            <input type="number" id="member-height" class="neumorphic-input" placeholder="VD: 170">
-                        </div>
-                        <div class="form-group">
-                            <label>Cân nặng (kg)</label>
-                            <input type="number" step="0.1" id="member-weight" class="neumorphic-input" placeholder="VD: 65.5">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Tiền sử bệnh / Dị ứng</label>
-                        <textarea id="member-conditions" class="neumorphic-input" rows="2" placeholder="Nhập các bệnh lý mãn tính, dị ứng thuốc..."></textarea>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
@@ -333,9 +319,19 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label>Chiều cao (cm)</label>
+                            <input type="number" id="member-height" class="neumorphic-input" placeholder="VD: 170">
+                        </div>
+                        <div class="form-group">
+                            <label>Cân nặng (kg)</label>
+                            <input type="number" step="0.1" id="member-weight" class="neumorphic-input" placeholder="VD: 65.5">
+                        </div>
+                    </div>
                     <div class="form-group full-width">
-                        <label>Bệnh lý nền (nếu có)</label>
-                        <textarea id="member-conditions" class="neumorphic-input" rows="3" placeholder="Ví dụ: Tiểu đường type 2, Cao huyết áp..."></textarea>
+                        <label>Bệnh lý nền / Dị ứng (nếu có)</label>
+                        <textarea id="member-conditions" class="neumorphic-input" rows="3" placeholder="Ví dụ: Tiểu đường type 2, dị ứng thuốc..."></textarea>
                     </div>
                     <div class="form-group full-width">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -587,9 +583,9 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="js/data.js?v=1.7.15"></script>
-    <script src="js/ai.js?v=1.7.15"></script>
-    <script src="js/components.js?v=1.7.15"></script>
-    <script src="js/app.js?v=1.7.15"></script>
+    <script src="js/data.js?v=1.7.16"></script>
+    <script src="js/ai.js?v=1.7.16"></script>
+    <script src="js/components.js?v=1.7.16"></script>
+    <script src="js/app.js?v=1.7.16"></script>
 </body>
 </html>
