@@ -27,7 +27,7 @@
                         <span class="material-symbols-rounded" style="font-size: 28px; font-weight: 800; font-variation-settings: 'wght' 800;">add</span>
                     </div>
                     <h1 style="color: white; margin: 0;">Health Care</h1>
-                    <span class="version-tag" style="color: rgba(255, 255, 255, 0.8);">v1.7.13</span>
+                    <span class="version-tag" style="color: rgba(255, 255, 255, 0.8);">v1.7.14</span>
                 </div>
                 <div class="header-actions">
                     <button id="btn-install-app" class="icon-btn header-btn hidden" title="Cài đặt Ứng dụng">
@@ -149,12 +149,14 @@
         <div class="modal-content neumorphic-modal">
             <div class="modal-header">
                 <h3><span class="material-symbols-rounded" style="color: #f39c12;">notifications_active</span> Nhắc hẹn & Thông báo</h3>
-                <button class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
             </div>
             <div class="modal-body">
                 <div id="notifications-list" class="notifications-list" style="display: flex; flex-direction: column; gap: 15px;">
                     <!-- Notifications rendered by JS -->
                 </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-start;">
+                <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
             </div>
         </div>
     </div>
@@ -164,7 +166,6 @@
         <div class="modal-content neumorphic-modal">
             <div class="modal-header">
                 <h3>Lên lịch nhắc hẹn</h3>
-                <button class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
             </div>
             <div class="modal-body">
                 <form id="form-reminder">
@@ -199,7 +200,8 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
                 <button type="submit" form="form-reminder" class="primary-btn neumorphic-btn">Lưu hẹn</button>
             </div>
         </div>
@@ -210,7 +212,6 @@
         <div class="modal-content neumorphic-modal">
             <div class="modal-header">
                 <h3>Cài đặt Đa Trí Tuệ Nhân Tạo (Multi-AI)</h3>
-                <button class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
             </div>
             <div class="modal-body">
                 <p class="modal-desc" style="margin-bottom: 20px;">Hệ thống sử dụng Gemini (Flash) mặc định để quét ảnh nhanh. Bạn có thể chọn AI chuyên gia khác để tư vấn y khoa chuyên sâu.</p>
@@ -285,7 +286,8 @@
                     Lưu ý: Khôi phục dữ liệu sẽ ghi đè toàn bộ hồ sơ và cài đặt hiện tại của bạn trên máy này.
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
                 <button id="btn-save-settings" class="primary-btn neumorphic-btn">Lưu cài đặt</button>
             </div>
         </div>
@@ -296,7 +298,6 @@
         <div class="modal-content neumorphic-modal">
             <div class="modal-header">
                 <h3 id="modal-member-title">Thêm thành viên</h3>
-                <button class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
             </div>
             <div class="modal-body">
                 <form id="form-member">
@@ -349,7 +350,8 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
                 <button type="submit" form="form-member" class="primary-btn neumorphic-btn">Lưu thông tin</button>
             </div>
         </div>
@@ -360,7 +362,6 @@
         <div class="modal-content neumorphic-modal modal-large">
             <div class="modal-header">
                 <h3 id="modal-record-title">Hồ sơ Y khoa (EMR)</h3>
-                <button class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
             </div>
             <div class="modal-body">
                 <div class="ai-ocr-section neumorphic-panel">
@@ -487,15 +488,17 @@
                         </div>
                     </div>
 
-                    <div style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 15px; align-items: center;">
-                        <button type="button" id="btn-view-ai-report" class="secondary-btn neumorphic-btn magic-btn hidden" style="margin-right: auto; border: 1px solid #f39c12; color: #d35400;">
-                            <span class="material-symbols-rounded" style="vertical-align:middle;">description</span> Xem Báo cáo Đánh giá (AI)
-                        </button>
-                        <input type="hidden" id="record-comprehensive-report-data">
-                        
-                        <button type="button" id="btn-delete-record-modal" class="neumorphic-btn danger hidden">Xóa Hồ Sơ</button>
-                        <button type="button" class="neumorphic-btn close-modal">Hủy</button>
-                        <button type="submit" class="neumorphic-btn primary-btn magic-btn">Lưu Hồ Sơ</button>
+                    <div style="margin-top: 25px; display: flex; justify-content: space-between; align-items: center;">
+                        <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <button type="button" id="btn-view-ai-report" class="secondary-btn neumorphic-btn magic-btn hidden" style="border: 1px solid #f39c12; color: #d35400;">
+                                <span class="material-symbols-rounded" style="vertical-align:middle;">description</span> Xem Báo cáo Đánh giá (AI)
+                            </button>
+                            <input type="hidden" id="record-comprehensive-report-data">
+                            
+                            <button type="button" id="btn-delete-record-modal" class="neumorphic-btn danger hidden">Xóa Hồ Sơ</button>
+                            <button type="submit" class="neumorphic-btn primary-btn magic-btn">Lưu Hồ Sơ</button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -584,9 +587,9 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="js/data.js?v=1.7.13"></script>
-    <script src="js/ai.js?v=1.7.13"></script>
-    <script src="js/components.js?v=1.7.13"></script>
-    <script src="js/app.js?v=1.7.13"></script>
+    <script src="js/data.js?v=1.7.14"></script>
+    <script src="js/ai.js?v=1.7.14"></script>
+    <script src="js/components.js?v=1.7.14"></script>
+    <script src="js/app.js?v=1.7.14"></script>
 </body>
 </html>
