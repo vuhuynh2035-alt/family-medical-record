@@ -39,10 +39,8 @@ body {
 
 /* Glassmorphism Header */
 .glass-header {
-    background: rgba(230, 238, 245, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    background: #2980b9; /* Solid blue */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -57,17 +55,45 @@ body {
     margin: 0 auto;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.header-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.header-btn:active {
+    transform: translateY(0);
+}
+
 .logo {
     display: flex;
     align-items: center;
     gap: 15px;
 }
 
-.logo-icon {
-    font-size: 36px;
-    background: var(--primary-blue-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.logo h1 {
+    font-size: 24px;
+    font-weight: 700;
 }
 
 .logo-text h1 {
