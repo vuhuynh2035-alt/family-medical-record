@@ -218,7 +218,15 @@ Yêu cầu định dạng báo cáo (Sử dụng Markdown rõ ràng, đẹp mắ
 
 Chú ý: Trình bày nội dung cực kỳ chuyên nghiệp, dễ đọc, xuống dòng rõ ràng, sử dụng bullet points \`-\` hoặc in đậm \`**\` để làm nổi bật thông tin quan trọng.`;
 
-        let result = await this.callGeminiAPI(prompt, base64Files, false, overrideModel);
+        let result = "";
+        if (overrideModel === 'chatgpt') {
+            throw new Error("ChatGPT hiện chưa được hỗ trợ đọc tệp đính kèm trong tính năng này. Vui lòng chọn Gemini.");
+        } else if (overrideModel === 'claude') {
+            throw new Error("Claude hiện chưa được hỗ trợ đọc tệp đính kèm trong tính năng này. Vui lòng chọn Gemini.");
+        } else {
+            // overrideModel is 'gemini', use default model from settings
+            result = await this.callGeminiAPI(prompt, base64Files, false, null);
+        }
         // Clean markdown block wrapper if AI mistakenly wraps standard text in ```markdown
         let cleanResult = result.trim();
         if (cleanResult.startsWith("```")) {
