@@ -753,6 +753,7 @@ function setupEventListeners() {
                 addImageToPreview(base64);
                 const percent = Math.round(((i + 1) / total) * 100);
                 btn.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải... ${percent}%`;
+                await new Promise(r => setTimeout(r, 50)); // Force DOM repaint
             }
             document.getElementById('btn-process-ai').disabled = false;
             e.target.value = '';
