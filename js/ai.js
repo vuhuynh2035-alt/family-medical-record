@@ -10,7 +10,8 @@
  */
 const AIService = {
     // Thời gian chờ tối đa cho một lời gọi API trước khi tự hủy (tránh treo UI vô thời hạn)
-    DEFAULT_TIMEOUT_MS: 60000,
+    // Tăng lên 150s (2.5 phút) vì đọc nhiều trang PDF/Ảnh mất rất nhiều thời gian xử lý
+    DEFAULT_TIMEOUT_MS: 150000,
 
     /**
      * fetch() có kèm timeout tự động hủy request bằng AbortController.

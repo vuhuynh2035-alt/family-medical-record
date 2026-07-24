@@ -1148,7 +1148,7 @@ function setupEventListeners() {
                             await new Promise(r => setTimeout(r, 50));
                             
                             const page = await pdf.getPage(pageNum);
-                            const viewport = page.getViewport({ scale: 2.0 });
+                            const viewport = page.getViewport({ scale: 1.5 });
                             const canvas = document.createElement('canvas');
                             const context = canvas.getContext('2d');
                             canvas.height = viewport.height;
