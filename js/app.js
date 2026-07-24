@@ -237,14 +237,7 @@ function setupEventListeners() {
     // Notifications Modal
     document.getElementById('btn-notifications').addEventListener('click', () => openNotifications());
 
-    // Seed Data Button
-    document.getElementById('btn-seed-data').addEventListener('click', () => {
-        if (confirm("Hành động này sẽ tạo thêm dữ liệu mẫu (các thành viên mặc định và hồ sơ) vào ứng dụng. Bạn có chắc chắn muốn nạp?")) {
-            DataManager.forceSeedMockData();
-            initDashboard();
-            alert("Đã nạp dữ liệu mẫu thành công!");
-        }
-    });
+
 
     // Member Modal
     document.getElementById('btn-add-member').addEventListener('click', () => {
