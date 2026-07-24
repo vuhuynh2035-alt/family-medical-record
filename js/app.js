@@ -862,52 +862,74 @@ function setupEventListeners() {
     });
 
     // 2. Kết luận & Phân tích (Generate Report)
-    document.getElementById('btn-generate-report').addEventListener('click', (e) => {
+    document.getElementById('btn-generate-report').addEventListener('click', async (e) => {
         e.preventDefault();
-        const imgs = document.querySelectorAll('#ocr-preview-container img');
-        if (imgs.length === 0) return;
-        
-        // Reset modal state
-        document.getElementById('report-result-container').classList.add('hidden');
-        document.getElementById('report-content-html').innerHTML = '';
-        
-        openModal('modal-ai-report');
-    });
-
-    document.getElementById('btn-run-report').addEventListener('click', async () => {
         const imgs = document.querySelectorAll('#ocr-preview-container img');
         if (imgs.length === 0) return;
         const base64Images = Array.from(imgs).map(img => img.dataset.pdfData || img.src);
         
         const selectedModel = document.getElementById('select-report-ai').value;
-        const btnRun = document.getElementById('btn-run-report');
-        const loading = document.getElementById('report-loading');
-        const resultContainer = document.getElementById('report-result-container');
-        const contentHtml = document.getElementById('report-content-html');
+        const btnGenerate = document.getElementById('btn-generate-report');
+        const btnAutofill = document.getElementById('btn-autofill-info');
+        const loading = document.getElementById('ocr-loading');
+        const loadingText = document.getElementById('ocr-loading-text');
+        const loadingPercent = document.getElementById('ocr-loading-percent');
+        const loadingBar = document.getElementById('ocr-loading-bar');
 
-        btnRun.disabled = true;
-        resultContainer.classList.add('hidden');
+        btnGenerate.disabled = true;
+        btnAutofill.disabled = true;
         loading.classList.remove('hidden');
+        loadingBar.style.width = '0%';
+        loadingPercent.innerText = '0%';
+        loadingText.innerText = `Đang kết nối ${selectedModel} để phân tích...`;
+        
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            if (progress < 90) {
+                progress += Math.random() * 5;
+                if (progress > 90) progress = 90;
+                loadingBar.style.width = progress + '%';
+                loadingPercent.innerText = Math.round(progress) + '%';
+            }
+        }, 1000);
         
         try {
             const reportMarkdown = await AIService.generateComprehensiveReport(base64Images, selectedModel);
-            contentHtml.innerHTML = marked.parse(reportMarkdown);
-            resultContainer.classList.remove('hidden');
             
-            // Tự động lưu vào textarea ẩn để lát Save chung với Hồ sơ
+            clearInterval(progressInterval);
+            loadingBar.style.width = '100%';
+            loadingPercent.innerText = '100%';
+            loadingText.innerText = 'Hoàn tất phân tích!';
+            
+            // Lưu vào form
             document.getElementById('record-comprehensive-report-data').value = reportMarkdown;
             document.getElementById('btn-view-ai-report').classList.remove('hidden');
             
+            // Mở trực tiếp trình xem
+            const preview = document.getElementById('report-preview-mode');
+            const editor = document.getElementById('report-edit-mode');
+            preview.innerHTML = marked.parse(reportMarkdown);
+            editor.value = reportMarkdown;
+            preview.classList.remove('hidden');
+            editor.classList.add('hidden');
+            document.getElementById('btn-save-report-editor').classList.add('hidden');
+            openModal('modal-ai-report-editor');
+            
         } catch (err) {
+            clearInterval(progressInterval);
+            loadingBar.style.width = '0%';
+            loadingPercent.innerText = 'Lỗi';
+            loadingText.innerText = 'Phân tích thất bại';
             alert("Lỗi khi tạo báo cáo: " + err.message);
         } finally {
-            btnRun.disabled = false;
-            loading.classList.add('hidden');
+            btnGenerate.disabled = false;
+            btnAutofill.disabled = false;
+            setTimeout(() => { loading.classList.add('hidden'); }, 3000);
         }
     });
 
     document.getElementById('btn-download-pdf').addEventListener('click', () => {
-        const element = document.getElementById('report-pdf-content');
+        const element = document.getElementById('report-preview-mode');
         const opt = {
             margin:       0.5,
             filename:     'Bao_Cao_Y_Khoa.pdf',

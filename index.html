@@ -379,9 +379,16 @@
                         <button id="btn-autofill-info" class="primary-btn neumorphic-btn magic-btn" style="background: linear-gradient(135deg, #27ae60, #2ecc71);" disabled>
                             <span class="material-symbols-rounded" style="vertical-align: middle;">text_snippet</span> Điền form
                         </button>
-                        <button id="btn-generate-report" class="primary-btn neumorphic-btn" style="background: linear-gradient(135deg, #f39c12, #e67e22);" disabled>
-                            <span class="material-symbols-rounded" style="vertical-align: middle;">psychiatry</span> Kết luận
-                        </button>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <select id="select-report-ai" class="form-input" style="padding: 6px; width: 120px; font-size: 13px;">
+                                <option value="gemini">Gemini</option>
+                                <option value="chatgpt">ChatGPT</option>
+                                <option value="claude">Claude</option>
+                            </select>
+                            <button id="btn-generate-report" class="primary-btn neumorphic-btn" style="background: linear-gradient(135deg, #f39c12, #e67e22);" disabled>
+                                <span class="material-symbols-rounded" style="vertical-align: middle;">psychiatry</span> Kết luận
+                            </button>
+                        </div>
                     </div>
                     <div id="ocr-preview-container" style="display: none; margin-top: 15px; gap: 10px; overflow-x: auto; padding-bottom: 10px; white-space: nowrap;">
                         <!-- Images will be injected here -->
@@ -517,7 +524,10 @@
                 <button class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
             </div>
             <div class="modal-body">
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <button type="button" id="btn-download-pdf" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
+                        <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">picture_as_pdf</span> Tải xuống PDF
+                    </button>
                     <button type="button" id="btn-toggle-report-edit" class="secondary-btn neumorphic-btn" style="font-size: 13px;">
                         <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">edit</span> Chỉnh sửa
                     </button>
@@ -603,46 +613,6 @@
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
                 <button type="button" class="secondary-btn neumorphic-btn close-modal">Hủy</button>
                 <button type="button" id="btn-save-crop" class="primary-btn neumorphic-btn">Cắt & Lưu</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Phân tích kết luận (AI Report Modal) -->
-    <div id="modal-ai-report" class="modal">
-        <div class="modal-content" style="max-width: 800px; width: 95%;">
-            <div class="modal-header">
-                <h3>Phân tích & Kết luận Y khoa</h3>
-                <button class="icon-btn close-modal" data-target="modal-ai-report"><span class="material-symbols-rounded">close</span></button>
-            </div>
-            <div class="modal-body">
-                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
-                    <label>Chọn AI phân tích:</label>
-                    <select id="select-report-ai" class="form-input" style="width: 200px;">
-                        <option value="gemini">Google Gemini</option>
-                        <option value="chatgpt">ChatGPT (GPT-4o)</option>
-                        <option value="claude">Claude 3.5 Sonnet</option>
-                    </select>
-                    <button id="btn-run-report" class="primary-btn magic-btn" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
-                        <span class="material-symbols-rounded">psychiatry</span> Chạy phân tích
-                    </button>
-                </div>
-                
-                <div id="report-loading" class="hidden" style="padding: 20px; text-align: center; color: var(--primary-blue);">
-                    <div style="font-size: 24px; animation: pulse 1.5s infinite;"><span class="material-symbols-rounded">psychiatry</span></div>
-                    <div id="report-loading-text" style="margin-top: 10px; font-weight: 500;">AI đang đọc hồ sơ và tổng hợp đánh giá...</div>
-                </div>
-
-                <div id="report-result-container" class="hidden">
-                    <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-                        <button id="btn-download-pdf" class="secondary-btn">
-                            <span class="material-symbols-rounded">picture_as_pdf</span> Tải xuống PDF
-                        </button>
-                    </div>
-                    <!-- The content inside here will be exported to PDF -->
-                    <div id="report-pdf-content" style="padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); color: #333;">
-                        <div id="report-content-html" class="markdown-body"></div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
