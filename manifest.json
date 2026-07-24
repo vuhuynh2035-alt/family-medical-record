@@ -1,0 +1,16 @@
+{
+  "name": "Family Health Manager",
+  "short_name": "Health",
+  "description": "Quản lý hồ sơ sức khỏe gia đình",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#e0e5ec",
+  "icons": [
+    {
+      "src": "favicon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
