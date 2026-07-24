@@ -725,7 +725,8 @@ textarea.neumorphic-input {
 }
 
 /* Glossy Back/Close Button */
-button.icon-btn.close-modal {
+button.icon-btn.close-modal,
+button.icon-btn.btn-back-blue {
     background: radial-gradient(circle at 50% 20%, #4fc3f7, #0277bd);
     color: white !important;
     border: 3px solid white;
@@ -744,14 +745,16 @@ button.icon-btn.close-modal {
     align-items: center;
     transition: all 0.2s ease;
 }
-button.icon-btn.close-modal:active {
+button.icon-btn.close-modal:active,
+button.icon-btn.btn-back-blue:active {
     transform: scale(0.95);
     box-shadow: 
         0 2px 4px rgba(0,0,0,0.2), 
         inset 0 -2px 4px rgba(0,0,0,0.2), 
         inset 0 2px 4px rgba(255,255,255,0.7);
 }
-button.icon-btn.close-modal span {
+button.icon-btn.close-modal span,
+button.icon-btn.btn-back-blue span {
     font-size: 26px;
     font-weight: 800;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
