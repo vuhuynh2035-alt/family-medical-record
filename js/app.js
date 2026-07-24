@@ -744,18 +744,23 @@ function setupEventListeners() {
         if (e.target.files && e.target.files.length > 0) {
             const btn = document.getElementById('btn-select-ocr-img');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải...';
+            const total = e.target.files.length;
+            btn.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải... 0%`;
             btn.disabled = true;
             
-            for (let i = 0; i < e.target.files.length; i++) {
+            for (let i = 0; i < total; i++) {
                 const base64 = await DataManager.fileToBase64(e.target.files[i]);
                 addImageToPreview(base64);
+                const percent = Math.round(((i + 1) / total) * 100);
+                btn.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải... ${percent}%`;
             }
             document.getElementById('btn-process-ai').disabled = false;
             e.target.value = '';
             
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 500);
         }
     });
 
