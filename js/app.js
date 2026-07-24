@@ -204,9 +204,12 @@ function setupEventListeners() {
             const a = document.createElement('a');
             a.href = url;
             const now = new Date();
-            const dateStr = now.toISOString().split('T')[0];
-            const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-            a.download = `family_medical_backup_${dateStr}_${timeStr}.json`;
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yy = String(now.getFullYear()).slice(-2);
+            const hour = String(now.getHours()).padStart(2, '0');
+            const minute = String(now.getMinutes()).padStart(2, '0');
+            a.download = `medical_backup_${dd}${mm}${yy}${hour}${minute}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
