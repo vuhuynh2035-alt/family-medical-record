@@ -9,6 +9,14 @@ let currentRecords = [];
 let deferredPrompt;
 let cropper = null;
 
+// Cấu hình worker cho pdf.js (dùng để tách từng trang PDF thành ảnh trước khi gửi AI đọc —
+// xem trong xử lý #record-image-input bên dưới). Đặt ở đây (file .js ngoài, cùng gốc 'self')
+// thay vì <script> nội tuyến trong index.html, vì Content-Security-Policy của trang không cho
+// phép chạy script nội tuyến — đặt bằng script nội tuyến sẽ bị trình duyệt âm thầm chặn.
+if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
 /**
  * Hiển thị một thông báo nhỏ, không chặn thao tác (toast), tự biến mất sau vài giây.
  * Dùng cho các phản hồi mang tính thông tin (vd: "Đã lưu cài đặt") thay vì alert() gây gián
@@ -222,10 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPinLockListeners();
     updatePinUIState();
     UI.enhanceA11y(document); // Gán aria-label cho các nút chỉ có icon (tĩnh trong index.html)
-    
-    if (typeof HelpService !== 'undefined') {
-        HelpService.init();
-    }
 
     const btnUpdateApp = document.getElementById('btn-update-app');
     if (btnUpdateApp) {

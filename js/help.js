@@ -3,24 +3,22 @@ const HelpService = {
     
     init() {
         this.btnHelp = document.getElementById('btn-help');
+        this.backdrop = document.getElementById('help-backdrop');
+        this.layer = document.getElementById('help-layer');
         this.btnWorkflow = document.getElementById('btn-workflow-guide');
         this.modalWorkflow = document.getElementById('modal-workflow-guide');
         this.workflowContent = document.getElementById('workflow-guide-content');
-        
-        if (this.btnHelp) {
-            this.btnHelp.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.toggleHelpMode();
-            });
-        }
-        
-        if (this.btnWorkflow) {
-            this.btnWorkflow.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.showWorkflowGuide();
-            });
-        }
 
+        if (this.btnHelp) {
+            this.btnHelp.addEventListener('click', () => this.toggleHelpMode());
+        }
+        if (this.backdrop) {
+            this.backdrop.addEventListener('click', () => this.toggleHelpMode()); // Click outside to close
+        }
+        if (this.btnWorkflow) {
+            this.btnWorkflow.addEventListener('click', () => this.showWorkflowGuide());
+        }
+        
         // Modal close button
         if (this.modalWorkflow) {
             const closeBtn = this.modalWorkflow.querySelector('.close-modal');
@@ -42,72 +40,63 @@ const HelpService = {
         this.isHelpModeActive = !this.isHelpModeActive;
         
         if (this.isHelpModeActive) {
-            if (this.btnWorkflow) this.btnWorkflow.classList.remove('hidden');
+            this.backdrop.classList.remove('hidden');
+            this.layer.classList.remove('hidden');
+            this.btnWorkflow.classList.remove('hidden');
             this.renderHelpElements();
         } else {
-            if (this.btnWorkflow) this.btnWorkflow.classList.add('hidden');
-            this.cleanup();
+            this.backdrop.classList.add('hidden');
+            this.layer.classList.add('hidden');
+            this.btnWorkflow.classList.add('hidden');
+            this.layer.innerHTML = '';
         }
-    },
-
-    cleanup() {
-        if (this.helpCanvas && this.helpCanvas.parentNode) {
-            this.helpCanvas.parentNode.removeChild(this.helpCanvas);
-        }
-        if (this.helpLayer && this.helpLayer.parentNode) {
-            this.helpLayer.parentNode.removeChild(this.helpLayer);
-        }
-        this.helpCanvas = null;
-        this.helpLayer = null;
     },
 
     renderHelpElements() {
-        this.cleanup(); // Clear previous
+        this.layer.innerHTML = ''; // Clear previous
+        this.backdrop.innerHTML = ''; // Clear previous canvas
         
+        // Find active view
         const activeView = document.querySelector('.view.active');
         if (!activeView) return;
 
+        // Find all elements with data-help in this view
         const elements = activeView.querySelectorAll('[data-help-title]');
         
-        // 1. Create Canvas
-        this.helpCanvas = document.createElement('canvas');
-        this.helpCanvas.width = window.innerWidth;
-        this.helpCanvas.height = window.innerHeight;
-        this.helpCanvas.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9998; cursor: pointer;';
-        
-        // Clicking the canvas turns off help mode
-        this.helpCanvas.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleHelpMode();
-        });
-        
-        document.body.appendChild(this.helpCanvas);
+        // Create canvas for the dark overlay with transparent holes
+        const canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
+        canvas.style.pointerEvents = 'none'; // let backdrop div handle clicks
+        this.backdrop.appendChild(canvas);
 
-        const ctx = this.helpCanvas.getContext('2d');
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)'; 
-        ctx.fillRect(0, 0, this.helpCanvas.width, this.helpCanvas.height);
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Dark overlay color
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         ctx.globalCompositeOperation = 'destination-out';
         
-        // 2. Create Layer for Tooltips
-        this.helpLayer = document.createElement('div');
-        this.helpLayer.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; pointer-events: none;';
-        document.body.appendChild(this.helpLayer);
-
         elements.forEach(el => {
+            // Ignore hidden elements (e.g. tabs that are not visible)
             if (el.offsetParent === null) return;
             
             const rect = el.getBoundingClientRect();
             const title = el.getAttribute('data-help-title');
             const desc = el.getAttribute('data-help-desc');
+
             const padding = 6;
             
-            // Draw hole
+            // Draw transparent hole in canvas for the element
             const x = rect.left - padding;
             const y = rect.top - padding;
             const w = rect.width + padding * 2;
             const h = rect.height + padding * 2;
-            const r = 8;
+            const r = 8; // border radius
             
             ctx.fillStyle = 'rgba(255, 255, 255, 1)';
             ctx.beginPath();
@@ -122,23 +111,28 @@ const HelpService = {
             ctx.quadraticCurveTo(x, y, x + r, y);
             ctx.fill();
 
-            // Highlight Box
+            // 1. Create Glowing Box
             const box = document.createElement('div');
             box.className = 'help-highlight-box';
+            // Dùng chung biến `padding` đã khai báo ở trên (không khai báo `const padding` lần 2
+            // trong cùng scope — bản gốc bị lỗi "Identifier 'padding' has already been declared",
+            // khiến TOÀN BỘ file help.js không parse được, nút trợ giúp "?" không hoạt động).
             box.style.top = (rect.top - padding) + 'px';
             box.style.left = (rect.left - padding) + 'px';
             box.style.width = (rect.width + padding * 2) + 'px';
             box.style.height = (rect.height + padding * 2) + 'px';
-            this.helpLayer.appendChild(box);
+            
+            this.layer.appendChild(box);
 
-            // Tooltip
+            // 2. Create Tooltip
             const tooltip = document.createElement('div');
             tooltip.className = 'help-tooltip';
             tooltip.innerHTML = `
                 <div class="help-tooltip-title"><span class="material-symbols-rounded">info</span> ${title}</div>
                 <div class="help-tooltip-desc">${desc}</div>
             `;
-            this.helpLayer.appendChild(tooltip);
+            
+            this.layer.appendChild(tooltip);
 
             // Calculate position for tooltip
             let tooltipTop = 0;

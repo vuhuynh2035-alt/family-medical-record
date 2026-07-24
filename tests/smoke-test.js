@@ -53,6 +53,11 @@ const STUB_JS = {
   dompurify: `window.DOMPurify = { sanitize: (h) => String(h).replace(/<script[\\s\\S]*?<\\/script>/gi,'').replace(/ on\\w+="[^"]*"/gi,'') };`,
   cropper: `window.Cropper = function(img) { this.destroy = () => {}; this.getCroppedCanvas = () => { const c = document.createElement('canvas'); c.width=10;c.height=10; return c; }; };`,
   html2pdf: `window.html2pdf = function() { const c = { set: () => c, from: () => c, save: () => Promise.resolve() }; return c; };`,
+  // pdf.js (thêm ở Phase 7 để tách trang PDF nhiều trang thành ảnh trước khi gửi AI đọc).
+  // Không có kịch bản nào ở dưới tải lên file PDF thật, nên chỉ cần stub tối thiểu để
+  // dòng `pdfjsLib.GlobalWorkerOptions.workerSrc = ...` trong index.html không ném lỗi
+  // ReferenceError khi script CDN thật bị chặn (abort) trong môi trường test offline.
+  pdfjs: `window.pdfjsLib = { GlobalWorkerOptions: {}, getDocument: () => ({ promise: Promise.reject(new Error('pdf.js stub: không hỗ trợ trong môi trường test')) }) };`,
 };
 
 async function withStubbedNetwork(page) {
@@ -64,6 +69,7 @@ async function withStubbedNetwork(page) {
     if (url.includes('cropper.min.js')) return route.fulfill({ contentType: 'application/javascript', body: STUB_JS.cropper });
     if (url.includes('cropper.min.css')) return route.fulfill({ contentType: 'text/css', body: '' });
     if (url.includes('html2pdf')) return route.fulfill({ contentType: 'application/javascript', body: STUB_JS.html2pdf });
+    if (url.includes('pdf.js') || url.includes('pdf.min.js') || url.includes('pdf.worker')) return route.fulfill({ contentType: 'application/javascript', body: STUB_JS.pdfjs });
     if (url.includes('fonts.g')) return route.fulfill({ contentType: 'text/css', body: '' });
     if (url.includes('ui-avatars.com')) return route.fulfill({ contentType: 'image/gif', body: Buffer.from('R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==', 'base64') });
     if (url.includes('generativelanguage.googleapis.com')) {
@@ -293,16 +299,46 @@ function check(name, condition) {
 
   await page.click('#btn-settings');
   await page.waitForTimeout(150);
-  await page.fill('#input-openai-model', 'gpt-5.2');
-  await page.fill('#input-anthropic-model', 'claude-opus-4-6');
+  // Từ Phase 7 (v1.14.5), 2 ô này đã đổi từ <input> văn bản tự do thành <select> liệt kê
+  // sẵn các model phổ biến (nút "Tải danh sách" mới sẽ nạp thêm option động từ API key
+  // thật của người dùng — không kiểm thử được offline). Ở đây chọn 1 option có sẵn khác
+  // với option mặc định để xác nhận việc lưu lựa chọn hoạt động đúng.
+  await page.selectOption('#input-openai-model', 'gpt-4o-mini');
+  await page.selectOption('#input-anthropic-model', 'claude-3-haiku-20240307');
   await page.click('#btn-save-settings');
   await page.waitForTimeout(150);
   const savedModels = await page.evaluate(() => {
     const s = DataManager.getSettings();
     return { openai: s.openaiModel, anthropic: s.anthropicModel };
   });
-  check('Lưu tên model OpenAI tùy chỉnh thành công', savedModels.openai === 'gpt-5.2');
-  check('Lưu tên model Anthropic tùy chỉnh thành công', savedModels.anthropic === 'claude-opus-4-6');
+  check('Lưu lựa chọn model OpenAI thành công', savedModels.openai === 'gpt-4o-mini');
+  check('Lưu lựa chọn model Anthropic thành công', savedModels.anthropic === 'claude-3-haiku-20240307');
+  // #btn-save-settings tự đóng modal-settings (gọi closeModal('modal-settings') trong app.js).
+
+  console.log('\n[Hệ thống Hướng dẫn sử dụng (Help/Tour) — js/help.js]');
+  // Bug đã sửa ở Phase 7: renderHelpElements() từng khai báo trùng `const padding` trong
+  // cùng scope, khiến toàn bộ help.js lỗi cú pháp và không nạp được (nút "?" không phản hồi).
+  // Lưu ý: 2 lần page.reload() ở các bước PIN/model phía trên đã đưa app về lại view mặc định
+  // (Trang chủ - Dashboard), nên không cần điều hướng thêm — Dashboard cũng có sẵn phần tử
+  // gắn data-help-title (ví dụ nút "Thêm thành viên") để kiểm thử.
+  const helpServiceLoaded = await page.evaluate(() => typeof HelpService !== 'undefined');
+  check('js/help.js nạp thành công, không lỗi cú pháp (HelpService tồn tại trên window)', helpServiceLoaded);
+
+  await page.click('#btn-help');
+  await page.waitForTimeout(200);
+  const helpModeActive = await page.evaluate(() => !document.getElementById('help-backdrop').classList.contains('hidden'));
+  check('Bấm nút "?" bật được chế độ Hướng dẫn (help-backdrop hiển thị)', helpModeActive);
+
+  const highlightCount = await page.evaluate(() => document.querySelectorAll('.help-highlight-box').length);
+  check('Chế độ Hướng dẫn khoanh vùng được ít nhất 1 phần tử trên Trang chủ', highlightCount > 0);
+
+  // help-backdrop phủ toàn màn hình (position: fixed, z-index cao) khi đang bật, nên che luôn
+  // nút "?" — đúng theo thiết kế "bấm ra ngoài để đóng" (xem HelpService.init() trong help.js),
+  // vì vậy đóng bằng cách bấm vào chính lớp phủ thay vì bấm lại nút "?".
+  await page.click('#help-backdrop');
+  await page.waitForTimeout(200);
+  const helpModeClosed = await page.evaluate(() => document.getElementById('help-backdrop').classList.contains('hidden'));
+  check('Bấm ra ngoài (help-backdrop) tắt được chế độ Hướng dẫn', helpModeClosed);
 
   console.log(`\n[Lỗi console/pageerror bắt được: ${consoleErrors.length}]`);
   consoleErrors.forEach(e => console.log('  ! ' + e));

@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=1.14.10">
+    <link rel="stylesheet" href="css/style.css?v=1.14.5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 </head>
 <body>
@@ -63,7 +63,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.14.10</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.14.5</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -771,9 +771,13 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
+    <!-- Lưu ý: KHÔNG đặt pdfjsLib.GlobalWorkerOptions.workerSrc = '...' bằng <script> nội tuyến
+         (inline) ở đây — trang này dùng Content-Security-Policy nghiêm ngặt không cho phép chạy
+         script nội tuyến (script-src không có 'unsafe-inline', xem thẻ <meta http-equiv="Content-
+         Security-Policy"> ở đầu file). Dòng gán này đã được chuyển vào js/app.js (script ngoài,
+         cùng gốc 'self' nên được phép chạy) để không bị trình duyệt âm thầm chặn — nếu không,
+         pdfjsLib.GlobalWorkerOptions.workerSrc sẽ không bao giờ được gán trong trình duyệt thật,
+         khiến tính năng tách trang PDF nhiều trang (Phase 7) không hoạt động. -->
     <!-- Help System UI -->
     <div id="help-backdrop" class="help-backdrop hidden"></div>
     <div id="help-layer" class="help-layer hidden"></div>
@@ -794,10 +798,10 @@
         </div>
     </div>
 
-    <script src="js/data.js?v=1.14.10"></script>
-    <script src="js/ai.js?v=1.14.10"></script>
-    <script src="js/components.js?v=1.14.10"></script>
-    <script src="js/help.js?v=1.14.10"></script>
-    <script src="js/app.js?v=1.14.10"></script>
+    <script src="js/data.js?v=1.14.5"></script>
+    <script src="js/ai.js?v=1.14.5"></script>
+    <script src="js/components.js?v=1.14.5"></script>
+    <script src="js/help.js?v=1.14.5"></script>
+    <script src="js/app.js?v=1.14.5"></script>
 </body>
 </html>

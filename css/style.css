@@ -904,7 +904,6 @@ input::placeholder {
     top: 0; left: 0; width: 100vw; height: 100vh;
     z-index: 9000;
     transition: opacity 0.3s;
-    background-color: rgba(255, 0, 0, 0.5) !important;
 }
 
 .help-layer {
