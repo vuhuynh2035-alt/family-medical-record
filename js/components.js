@@ -122,14 +122,8 @@ const UI = {
         records.forEach(record => {
             const images = record.originalImages || (record.originalImage ? [record.originalImage] : []);
             let imgBtn = '';
-            if (images.length === 1) {
-                imgBtn = `<button class="icon-btn neumorphic-btn btn-view-img" data-img="${images[0]}" title="Xem ảnh gốc"><span class="material-symbols-rounded">image</span></button>`;
-            } else if (images.length > 1) {
-                imgBtn = `<div style="display:flex; gap: 5px;">`;
-                images.forEach((img, idx) => {
-                    imgBtn += `<button class="icon-btn neumorphic-btn btn-view-img" data-img="${img}" title="Xem ảnh ${idx + 1}" style="position:relative;"><span class="material-symbols-rounded">image</span><span style="position:absolute; top:-5px; right:-5px; background:var(--primary-blue); color:white; font-size:9px; font-weight:bold; padding:2px 4px; border-radius:10px;">${idx+1}</span></button>`;
-                });
-                imgBtn += `</div>`;
+            if (images.length > 0) {
+                imgBtn = `<span title="Có ${images.length} tệp đính kèm" style="color: var(--text-muted); display: flex; align-items: center; font-size: 13px; margin-right: 10px;"><span class="material-symbols-rounded" style="font-size: 16px; margin-right: 3px;">attach_file</span>${images.length}</span>`;
             }
             const aiBtn = `<button class="icon-btn neumorphic-btn btn-ai-assessment" data-id="${record.id}" title="AI Phân tích tình trạng"><span class="material-symbols-rounded ai-sparkle">psychiatry</span></button>`;
             const searchBtn = `<button class="icon-btn neumorphic-btn btn-search-disease" data-disease="${record.disease}" title="Tra cứu chuyên sâu về bệnh này trên mạng"><span class="material-symbols-rounded" style="color: #9b59b6;">travel_explore</span></button>`;

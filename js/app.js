@@ -742,11 +742,15 @@ function setupEventListeners() {
 
     document.getElementById('record-image-input').addEventListener('change', async (e) => {
         if (e.target.files && e.target.files.length > 0) {
-            const btn = document.getElementById('btn-select-ocr-img');
-            const originalText = btn.innerHTML;
+            const btnAutofill = document.getElementById('btn-autofill-info');
+            const btnGenerate = document.getElementById('btn-generate-report');
+            const originalAutofillText = btnAutofill.innerHTML;
+            const originalGenerateText = btnGenerate.innerHTML;
             const total = e.target.files.length;
-            btn.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải... 0%`;
-            btn.disabled = true;
+            
+            btnAutofill.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải... 0%`;
+            btnAutofill.disabled = true;
+            btnGenerate.disabled = true;
             
             for (let i = 0; i < total; i++) {
                 try {
@@ -758,20 +762,21 @@ function setupEventListeners() {
                     console.error("Lỗi khi tải ảnh:", err);
                 }
                 const percent = Math.round(((i + 1) / total) * 100);
-                btn.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải... ${percent}%`;
+                btnAutofill.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải... ${percent}%`;
                 await new Promise(r => setTimeout(r, 50)); // Force DOM repaint
             }
-            document.getElementById('btn-process-ai').disabled = false;
+            btnAutofill.disabled = false;
+            btnGenerate.disabled = false;
             e.target.value = '';
             
             setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                btnAutofill.innerHTML = originalAutofillText;
             }, 500);
         }
     });
 
-    document.getElementById('btn-process-ai').addEventListener('click', async (e) => {
+    // 1. Tự động điền form (Autofill Info)
+    document.getElementById('btn-autofill-info').addEventListener('click', async (e) => {
         e.preventDefault();
         const imgs = document.querySelectorAll('#ocr-preview-container img');
         if (imgs.length === 0) return;
@@ -783,108 +788,134 @@ function setupEventListeners() {
             return;
         }
 
-        const btn = document.getElementById('btn-process-ai');
+        const btn = document.getElementById('btn-autofill-info');
         const loading = document.getElementById('ocr-loading');
         const loadingText = document.getElementById('ocr-loading-text');
         const loadingPercent = document.getElementById('ocr-loading-percent');
         const loadingBar = document.getElementById('ocr-loading-bar');
         
         btn.disabled = true;
+        document.getElementById('btn-generate-report').disabled = true;
         loading.classList.remove('hidden');
         loadingBar.style.width = '0%';
         loadingPercent.innerText = '0%';
-        
-        const activeModel = DataManager.getGeminiModel() || 'AI';
-        loadingText.innerText = `Đang kết nối ${activeModel} xử lý toàn diện...`;
+        loadingText.innerText = `Đang trích xuất dữ liệu form...`;
 
         let progress = 0;
         const progressInterval = setInterval(() => {
             if (progress < 95) {
-                progress += Math.random() * 8;
+                progress += Math.random() * 10;
                 if (progress > 95) progress = 95;
                 loadingBar.style.width = progress + '%';
                 loadingPercent.innerText = Math.round(progress) + '%';
-                
-                if (progress > 20 && progress < 50) loadingText.innerText = 'AI đang quét và trích xuất dữ liệu form...';
-                else if (progress >= 50 && progress < 80) loadingText.innerText = 'AI đang phân tích sâu và viết báo cáo y khoa...';
-                else if (progress >= 80) loadingText.innerText = 'Đang hoàn thiện kết quả...';
             }
-        }, 800);
+        }, 500);
 
         try {
-            // Chạy song song 2 tác vụ để tiết kiệm thời gian
-            const [data, report] = await Promise.all([
-                AIService.extractDataFromImage(base64Images).catch(e => {
-                    console.warn("Lỗi trích xuất form:", e);
-                    return null; // Ignore form extract error if report succeeds
-                }),
-                AIService.generateComprehensiveReport(base64Images).catch(e => {
-                    console.warn("Lỗi tạo báo cáo:", e);
-                    return null;
-                })
-            ]);
+            const data = await AIService.extractDataFromImage(base64Images);
             
             clearInterval(progressInterval);
             loadingBar.style.width = '100%';
             loadingPercent.innerText = '100%';
-            loadingText.innerText = 'Hoàn tất!';
+            loadingText.innerText = 'Hoàn tất điền form!';
             
-            await new Promise(r => setTimeout(r, 600)); // Đợi hiệu ứng 100%
+            await new Promise(r => setTimeout(r, 600)); 
             
-            let successMsg = "Xử lý thành công!\n";
-            
-            if (data) {
-                if (data.date) document.getElementById('record-date').value = data.date;
-                if (data.hospital) document.getElementById('record-hospital').value = data.hospital;
-                if (data.doctor) document.getElementById('record-doctor').value = data.doctor;
-                if (data.disease) document.getElementById('record-disease').value = data.disease;
-                if (data.treatment) document.getElementById('record-treatment').value = data.treatment;
-                if (data.cost !== undefined) document.getElementById('record-cost').value = data.cost;
-                if (data.type) {
-                    const sel = document.getElementById('record-type');
-                    for (let i = 0; i < sel.options.length; i++) {
-                        if (sel.options[i].value === data.type) sel.selectedIndex = i;
-                    }
+            if (data.date) document.getElementById('record-date').value = data.date;
+            if (data.hospital) document.getElementById('record-hospital').value = data.hospital;
+            if (data.doctor) document.getElementById('record-doctor').value = data.doctor;
+            if (data.disease) document.getElementById('record-disease').value = data.disease;
+            if (data.treatment) document.getElementById('record-treatment').value = data.treatment;
+            if (data.cost !== undefined) document.getElementById('record-cost').value = data.cost;
+            if (data.type) {
+                const sel = document.getElementById('record-type');
+                for (let i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value === data.type) sel.selectedIndex = i;
                 }
-                // New EMR fields
-                if (data.bp) document.getElementById('record-bp').value = data.bp;
-                if (data.hr) document.getElementById('record-hr').value = data.hr;
-                if (data.temp) document.getElementById('record-temp').value = data.temp;
-                if (data.spo2) document.getElementById('record-spo2').value = data.spo2;
-                if (data.symptoms) document.getElementById('record-symptoms').value = data.symptoms;
-                if (data.labs) document.getElementById('record-labs').value = data.labs;
-                if (data.note) document.getElementById('record-note').value = data.note;
-                
-                document.getElementById('dynamic-fields-container').innerHTML = '';
-                if (data.dynamicFields && data.dynamicFields.length > 0) {
-                    data.dynamicFields.forEach(f => {
-                        addDynamicFieldRow(f.key, f.value);
-                    });
-                }
-                successMsg += "- Đã điền thông tin form tự động.\n";
             }
+            if (data.bp) document.getElementById('record-bp').value = data.bp;
+            if (data.hr) document.getElementById('record-hr').value = data.hr;
+            if (data.temp) document.getElementById('record-temp').value = data.temp;
+            if (data.spo2) document.getElementById('record-spo2').value = data.spo2;
+            if (data.symptoms) document.getElementById('record-symptoms').value = data.symptoms;
+            if (data.labs) document.getElementById('record-labs').value = data.labs;
+            if (data.note) document.getElementById('record-note').value = data.note;
             
-            if (report) {
-                document.getElementById('record-comprehensive-report-data').value = report;
-                document.getElementById('btn-view-ai-report').classList.remove('hidden');
-                successMsg += "- Đã tạo Báo cáo Đánh giá (Nhấn nút Xem Báo Cáo ở dưới cùng).";
+            document.getElementById('dynamic-fields-container').innerHTML = '';
+            if (data.dynamicFields && data.dynamicFields.length > 0) {
+                data.dynamicFields.forEach(f => {
+                    addDynamicFieldRow(f.key, f.value);
+                });
             }
-
-            if (!data && !report) {
-                throw new Error("Cả 2 tác vụ AI đều thất bại, vui lòng thử lại.");
-            }
-
-            alert(successMsg);
+            alert("Đã điền thông tin form thành công!");
         } catch (err) {
             clearInterval(progressInterval);
             loadingBar.style.width = '0%';
             loadingPercent.innerText = 'Lỗi';
-            loadingText.innerText = 'Xử lý thất bại';
+            loadingText.innerText = 'Trích xuất thất bại';
             alert(err.message);
         } finally {
             btn.disabled = false;
+            document.getElementById('btn-generate-report').disabled = false;
             setTimeout(() => { loading.classList.add('hidden'); }, 3000);
         }
+    });
+
+    // 2. Kết luận & Phân tích (Generate Report)
+    document.getElementById('btn-generate-report').addEventListener('click', (e) => {
+        e.preventDefault();
+        const imgs = document.querySelectorAll('#ocr-preview-container img');
+        if (imgs.length === 0) return;
+        
+        // Reset modal state
+        document.getElementById('report-result-container').classList.add('hidden');
+        document.getElementById('report-content-html').innerHTML = '';
+        
+        openModal('modal-ai-report');
+    });
+
+    document.getElementById('btn-run-report').addEventListener('click', async () => {
+        const imgs = document.querySelectorAll('#ocr-preview-container img');
+        if (imgs.length === 0) return;
+        const base64Images = Array.from(imgs).map(img => img.dataset.pdfData || img.src);
+        
+        const selectedModel = document.getElementById('select-report-ai').value;
+        const btnRun = document.getElementById('btn-run-report');
+        const loading = document.getElementById('report-loading');
+        const resultContainer = document.getElementById('report-result-container');
+        const contentHtml = document.getElementById('report-content-html');
+
+        btnRun.disabled = true;
+        resultContainer.classList.add('hidden');
+        loading.classList.remove('hidden');
+        
+        try {
+            const reportMarkdown = await AIService.generateComprehensiveReport(base64Images, selectedModel);
+            contentHtml.innerHTML = marked.parse(reportMarkdown);
+            resultContainer.classList.remove('hidden');
+            
+            // Tự động lưu vào textarea ẩn để lát Save chung với Hồ sơ
+            document.getElementById('record-comprehensive-report-data').value = reportMarkdown;
+            document.getElementById('btn-view-ai-report').classList.remove('hidden');
+            
+        } catch (err) {
+            alert("Lỗi khi tạo báo cáo: " + err.message);
+        } finally {
+            btnRun.disabled = false;
+            loading.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('btn-download-pdf').addEventListener('click', () => {
+        const element = document.getElementById('report-pdf-content');
+        const opt = {
+            margin:       0.5,
+            filename:     'Bao_Cao_Y_Khoa.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
     });
 
     // Report Editor Modal Logic

@@ -1,13 +1,13 @@
 const AIService = {
     // API endpoint cho model gemini-1.5-flash (Nhanh và tốt cho OCR/Vision)
     // Có thể dùng gemini-3.5-pro nếu cần suy luận y khoa sâu hơn, flash cho tác vụ cơ bản.
-    async callGeminiAPI(prompt, base64Images = null, isJson = false, usePro = false) {
+    async callGeminiAPI(prompt, base64Images = null, isJson = false, overrideModel = null) {
         const apiKey = DataManager.getGeminiApiKey();
         if (!apiKey) {
             throw new Error("Vui lòng thiết lập API Key trong phần Cài đặt trước khi sử dụng tính năng này.");
         }
 
-        let model = DataManager.getGeminiModel();
+        let model = overrideModel || DataManager.getGeminiModel();
         // Không ép buộc tên model nữa, dùng chính xác model người dùng đã chọn
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
@@ -174,7 +174,7 @@ Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy đ�
     },
 
     // 1.5. Khám Tổng Quát / Đa chuyên khoa (Comprehensive Report)
-    async generateComprehensiveReport(base64Files) {
+    async generateComprehensiveReport(base64Files, overrideModel = null) {
         const prompt = `Bạn là một hội đồng y khoa bác sĩ chuyên gia. Dưới đây là nhiều trang kết quả khám bệnh (dưới dạng ảnh hoặc tài liệu PDF) của một bệnh nhân, có thể đến từ nhiều chuyên khoa khác nhau (ví dụ: tim mạch, hô hấp, xét nghiệm máu...).
 Hãy đọc cẩn thận toàn bộ các tài liệu này và tổng hợp thành một "Báo cáo Đánh giá Sức khỏe Toàn diện", phân chia rõ ràng theo từng hạng mục.
 
@@ -187,10 +187,11 @@ Yêu cầu định dạng báo cáo (Sử dụng Markdown rõ ràng, đẹp mắ
    - Kết luận / Chẩn đoán của hạng mục đó.
    - Hướng điều trị / Đơn thuốc / Lời khuyên cụ thể cho hạng mục đó.
 3. Phần Tổng Kết & Lời Khuyên Chung: Khuyên bệnh nhân nên làm gì tiếp theo, chế độ sinh hoạt, dinh dưỡng.
+4. Tài Liệu Tham Khảo: Cung cấp các đường link tham khảo đáng tin cậy về loại bệnh mắc phải, các phác đồ điều trị chuẩn y khoa hiện nay để bệnh nhân tự tìm hiểu thêm.
 
 Chú ý: Trình bày nội dung cực kỳ chuyên nghiệp, dễ đọc, xuống dòng rõ ràng, sử dụng bullet points \`-\` hoặc in đậm \`**\` để làm nổi bật thông tin quan trọng.`;
 
-        let result = await this.callGeminiAPI(prompt, base64Files, false);
+        let result = await this.callGeminiAPI(prompt, base64Files, false, overrideModel);
         // Clean markdown block wrapper if AI mistakenly wraps standard text in ```markdown
         let cleanResult = result.trim();
         if (cleanResult.startsWith("```")) {
