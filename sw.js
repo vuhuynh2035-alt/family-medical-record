@@ -1,7 +1,13 @@
-const SW_VERSION = 'v1.7.23';
+const SW_VERSION = 'v1.7.24';
 
 self.addEventListener('install', (e) => {
-  self.skipWaiting();
+  // Không tự động gọi self.skipWaiting() để tránh tự động tải lại trang gây khó chịu
+});
+
+self.addEventListener('message', (e) => {
+  if (e.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (e) => {
