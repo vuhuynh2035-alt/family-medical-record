@@ -779,10 +779,20 @@ function setupEventListeners() {
     // 1. Tự động điền form (Autofill Info)
     document.getElementById('btn-autofill-info').addEventListener('click', async (e) => {
         e.preventDefault();
-        const imgs = document.querySelectorAll('#ocr-preview-container img');
-        if (imgs.length === 0) return;
+        const checkedImgs = Array.from(document.querySelectorAll('#ocr-preview-container > div')).filter(div => {
+            const cb = div.querySelector('.ai-select-checkbox');
+            return !cb || cb.checked;
+        }).map(div => {
+            const img = div.querySelector('img');
+            return img ? (img.dataset.pdfData || img.src) : null;
+        }).filter(src => src);
         
-        const base64Images = Array.from(imgs).map(img => img.dataset.pdfData || img.src);
+        if (checkedImgs.length === 0) {
+            alert("Vui lòng chọn ít nhất một ảnh để phân tích!");
+            return;
+        }
+        
+        const base64Images = checkedImgs;
         
         if (!DataManager.getGeminiApiKey()) {
             alert("Vui lòng vào cài đặt nhập API Key của Gemini trước!");
@@ -862,9 +872,19 @@ function setupEventListeners() {
     // 2. Kết luận & Phân tích (Generate Report)
     document.getElementById('btn-generate-report').addEventListener('click', async (e) => {
         e.preventDefault();
-        const imgs = document.querySelectorAll('#ocr-preview-container img');
-        if (imgs.length === 0) return;
-        const base64Images = Array.from(imgs).map(img => img.dataset.pdfData || img.src);
+        const checkedImgs = Array.from(document.querySelectorAll('#ocr-preview-container > div')).filter(div => {
+            const cb = div.querySelector('.ai-select-checkbox');
+            return !cb || cb.checked;
+        }).map(div => {
+            const img = div.querySelector('img');
+            return img ? (img.dataset.pdfData || img.src) : null;
+        }).filter(src => src);
+
+        if (checkedImgs.length === 0) {
+            alert("Vui lòng chọn ít nhất một ảnh để phân tích!");
+            return;
+        }
+        const base64Images = checkedImgs;
         
         const selectedModel = document.getElementById('select-report-ai').value;
         const btnGenerate = document.getElementById('btn-generate-report');
@@ -1046,6 +1066,20 @@ function addImageToPreview(src, id = null) {
     img.style.maxHeight = '100px';
     img.style.borderRadius = '8px';
     
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'ai-select-checkbox';
+    checkbox.checked = true;
+    checkbox.style.position = 'absolute';
+    checkbox.style.top = '5px';
+    checkbox.style.left = '5px';
+    checkbox.style.width = '20px';
+    checkbox.style.height = '20px';
+    checkbox.style.cursor = 'pointer';
+    checkbox.style.zIndex = '10';
+    checkbox.style.accentColor = 'var(--primary-blue)';
+    checkbox.title = 'Chọn ảnh này để AI phân tích';
+    
     const delBtn = document.createElement('button');
     delBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 14px;">close</span>';
     delBtn.className = 'icon-btn';
@@ -1078,6 +1112,7 @@ function addImageToPreview(src, id = null) {
     };
     
     wrapper.appendChild(img);
+    wrapper.appendChild(checkbox);
     wrapper.appendChild(delBtn);
     container.appendChild(wrapper);
     container.style.display = 'flex';
