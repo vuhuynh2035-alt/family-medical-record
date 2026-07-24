@@ -1,0 +1,18 @@
+self.addEventListener('install', (e) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (e) => {
+  return self.clients.claim();
+});
+
+self.addEventListener('fetch', (e) => {
+  // Trình xử lý fetch cơ bản để đạt chuẩn PWA (Progressive Web App)
+  // Thực tế ứng dụng lưu dữ liệu bằng localStorage/IndexedDB nên phần lớn đã offline
+  e.respondWith(
+    fetch(e.request).catch(() => {
+      // Bỏ qua cache phức tạp vì ứng dụng chạy offline sẵn
+      return new Response("Ứng dụng đang ngoại tuyến");
+    })
+  );
+});

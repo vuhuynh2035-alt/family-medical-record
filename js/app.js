@@ -1,5 +1,34 @@
 let currentMemberId = null;
 let currentRecords = [];
+let deferredPrompt;
+
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+            console.log('Service Worker registered', reg);
+        }).catch(err => {
+            console.log('Service Worker registration failed: ', err);
+        });
+    });
+}
+
+// Handle PWA Install Prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn = document.getElementById('btn-install-app');
+    if (installBtn) {
+        installBtn.classList.remove('hidden');
+        installBtn.addEventListener('click', () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                deferredPrompt = null;
+                installBtn.classList.add('hidden');
+            });
+        });
+    }
+});
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
