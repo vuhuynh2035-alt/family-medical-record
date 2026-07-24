@@ -46,11 +46,41 @@ const HelpService = {
         
         if (this.isHelpModeActive) {
             this.backdrop.classList.remove('hidden');
+            
+            // Force inline styles to override any potential external interference (e.g. adblockers)
+            this.backdrop.style.setProperty('display', 'block', 'important');
+            this.backdrop.style.setProperty('position', 'fixed', 'important');
+            this.backdrop.style.setProperty('top', '0', 'important');
+            this.backdrop.style.setProperty('left', '0', 'important');
+            this.backdrop.style.setProperty('width', '100vw', 'important');
+            this.backdrop.style.setProperty('height', '100vh', 'important');
+            this.backdrop.style.setProperty('z-index', '9999', 'important');
+            this.backdrop.style.setProperty('pointer-events', 'auto', 'important');
+            
+            const comp = window.getComputedStyle(this.backdrop);
+            console.log("Backdrop Diagnostics:", {
+                inDOM: document.body.contains(this.backdrop),
+                display: comp.display,
+                width: comp.width,
+                height: comp.height,
+                zIndex: comp.zIndex,
+                pointerEvents: comp.pointerEvents,
+                opacity: comp.opacity
+            });
+
             this.layer.classList.remove('hidden');
             this.btnWorkflow.classList.remove('hidden');
             this.renderHelpElements();
         } else {
             this.backdrop.classList.add('hidden');
+            this.backdrop.style.removeProperty('display');
+            this.backdrop.style.removeProperty('position');
+            this.backdrop.style.removeProperty('top');
+            this.backdrop.style.removeProperty('left');
+            this.backdrop.style.removeProperty('width');
+            this.backdrop.style.removeProperty('height');
+            this.backdrop.style.removeProperty('z-index');
+            this.backdrop.style.removeProperty('pointer-events');
             this.layer.classList.add('hidden');
             this.btnWorkflow.classList.add('hidden');
             this.layer.innerHTML = '';
