@@ -202,9 +202,19 @@ Chú ý: Trình bày nội dung cực kỳ chuyên nghiệp, dễ đọc, xuốn
 
     // 2. Health Assessment
     async generateHealthAssessment(recordData, memberProfile) {
-        const prompt = `Bạn là một bác sĩ gia đình tận tâm, thân thiện. Dựa vào hồ sơ dưới đây, hãy đưa ra nhận xét sức khỏe và lời khuyên y tế.
-Trình bày định dạng Markdown, ngắn gọn (3-4 đoạn).
-*LƯU Ý QUAN TRỌNG VỀ XƯNG HÔ:* Tên bệnh nhân có thể là các danh xưng trong gia đình (Ba, Mẹ, Vợ, Chồng, Anh, Em...). Tuyệt đối không tự ý ghép thêm từ "Bác", "Chú", "Cô" vào trước các danh xưng này (Ví dụ: Không gọi là "Bác Ba", "Cô Mẹ"). Hãy xưng là "Bác sĩ" và gọi bệnh nhân là "bạn", hoặc gọi trực tiếp bằng danh xưng gia đình đó một cách lịch sự (ví dụ: "Chào Ba của bạn", "Đối với tình trạng của Mẹ...").
+        let extraInfo = '';
+        if (recordData.bp || recordData.hr || recordData.temp || recordData.spo2) {
+            extraInfo += `\n- Sinh hiệu: HA ${recordData.bp || '-'}, Nhịp tim ${recordData.hr || '-'}, Nhiệt độ ${recordData.temp || '-'}, SpO2 ${recordData.spo2 || '-'}%`;
+        }
+        if (recordData.symptoms) extraInfo += `\n- Triệu chứng: ${recordData.symptoms}`;
+        if (recordData.labs) extraInfo += `\n- Cận lâm sàng: ${recordData.labs}`;
+        if (recordData.dynamicFields && recordData.dynamicFields.length > 0) {
+            extraInfo += `\n- Chỉ số chi tiết: ` + recordData.dynamicFields.map(f => `${f.key}: ${f.value} ${f.isAbnormal ? '(Bất thường)' : ''}`).join(', ');
+        }
+
+        const prompt = `Bạn là một bác sĩ gia đình tận tâm, thân thiện. Dựa vào hồ sơ dưới đây, hãy đưa ra nhận xét chuyên sâu về sức khỏe và lời khuyên y tế chi tiết.
+Trình bày bằng định dạng Markdown rõ ràng, dễ đọc.
+*LƯU Ý QUAN TRỌNG VỀ XƯNG HÔ:* Tên bệnh nhân có thể là các danh xưng trong gia đình (Ba, Mẹ, Vợ, Chồng, Anh, Em...). Tuyệt đối không tự ý ghép thêm từ "Bác", "Chú", "Cô" vào trước các danh xưng này (Ví dụ: Không gọi là "Bác Ba", "Cô Mẹ"). Hãy xưng là "Bác sĩ" và gọi bệnh nhân là "bạn", hoặc gọi trực tiếp bằng danh xưng gia đình đó một cách lịch sự.
 
 [Thông tin Bệnh nhân]
 - Tên: ${memberProfile.name}
@@ -218,12 +228,13 @@ Trình bày định dạng Markdown, ngắn gọn (3-4 đoạn).
 - Bác sĩ: ${recordData.doctor || "Chưa rõ"}
 - Chẩn đoán: ${recordData.disease}
 - Phân loại: ${recordData.type === 'routine' ? 'Khám định kỳ' : recordData.type === 'mild' ? 'Bệnh nhẹ' : recordData.type === 'severe' ? 'Bệnh nặng' : 'Bệnh mãn tính'}
-- Phương án điều trị / Thuốc: ${recordData.treatment}
+- Phương án điều trị / Thuốc: ${recordData.treatment}${extraInfo}
 
-Vui lòng đưa ra nhận xét:
-1. Đánh giá sơ bộ về tình trạng hiện tại dựa trên chẩn đoán và bệnh lý nền.
-2. Lời khuyên về cách sinh hoạt, ăn uống hoặc uống thuốc theo toa.
-3. Những lưu ý cần theo dõi thêm.`;
+Vui lòng phân tích và đưa ra nhận xét:
+1. Đánh giá chi tiết về tình trạng hiện tại dựa trên chẩn đoán, triệu chứng, kết quả cận lâm sàng và bệnh lý nền.
+2. Phân tích các chỉ số xét nghiệm/sinh hiệu bất thường (nếu có) và giải thích ý nghĩa của chúng.
+3. Lời khuyên cụ thể về cách sinh hoạt, chế độ dinh dưỡng, vận động để cải thiện tình trạng.
+4. Những dấu hiệu nguy hiểm cần theo dõi thêm và khi nào cần đi tái khám.`;
 
         const provider = DataManager.getActiveProvider();
         if (provider === 'openai') {
