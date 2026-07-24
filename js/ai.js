@@ -138,7 +138,7 @@ const AIService = {
     // 1. OCR & Data Extraction
     async extractDataFromImage(base64Images) {
         const prompt = `Bạn là một trợ lý y tế chuyên nghiệp. Hãy đọc toàn bộ các hình ảnh đính kèm (phiếu kết quả xét nghiệm, hồ sơ khám bệnh, đơn thuốc, phim X-quang, v.v.) và tổng hợp trích xuất các thông tin sau. Nếu có nhiều ảnh, hãy kết hợp thông tin một cách logic.
-Trích xuất dữ liệu thành cấu trúc JSON nghiêm ngặt (không có markdown formatting, chỉ trả về JSON thuần túy) với các key sau:
+TUYỆT ĐỐI CHỈ TRẢ VỀ JSON, KHÔNG THÊM BẤT KỲ ĐOẠN VĂN BẢN HAY LỜI CHÀO NÀO KHÁC. Trích xuất dữ liệu thành cấu trúc JSON nghiêm ngặt với các key sau:
 - "date": Ngày khám bệnh (định dạng YYYY-MM-DD). Nếu không có, hãy để chuỗi rỗng "".
 - "hospital": Tên bệnh viện hoặc phòng khám.
 - "doctor": Tên bác sĩ điều trị.
@@ -159,10 +159,11 @@ Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy đ�
 
         let result = await this.callGeminiAPI(prompt, base64Images, true);
         try {
-            // Làm sạch dữ liệu: Đôi khi các mô hình mới tự thêm markdown ```json ... ``` dù đã yêu cầu trả về JSON thuần túy
             let cleanResult = result.trim();
-            if (cleanResult.startsWith("```")) {
-                cleanResult = cleanResult.replace(/^```(json)?\s*/i, "").replace(/\s*```$/i, "");
+            const startIndex = cleanResult.indexOf('{');
+            const endIndex = cleanResult.lastIndexOf('}');
+            if (startIndex !== -1 && endIndex !== -1) {
+                cleanResult = cleanResult.substring(startIndex, endIndex + 1);
             }
             const jsonData = JSON.parse(cleanResult);
             return jsonData;
