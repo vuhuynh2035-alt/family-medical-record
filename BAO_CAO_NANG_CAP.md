@@ -1,0 +1,91 @@
+# Báo cáo Rà soát & Nâng cấp — Family Health Manager (v1.8.8 → v1.12.0)
+
+Đã đọc toàn bộ mã nguồn (index.html, css/style.css, js/data.js, js/ai.js, js/components.js, js/app.js, sw.js, manifest.json — khoảng 3.900 dòng), xác minh lại từng lỗi bằng cách chạy thử ứng dụng trong trình duyệt (Playwright) trước và sau khi sửa, rồi mới nâng cấp. Toàn bộ thay đổi giữ nguyên tính năng và giao diện hiện có — không có "kiến trúc build" hay khung (framework) mới nào được thêm vào, vì ứng dụng vốn chạy trực tiếp bằng thẻ `<script>` không qua bước biên dịch.
+
+## 1. Lỗi nghiêm trọng đã sửa (làm hỏng tính năng)
+
+1. **Lưu lịch hẹn bị lỗi hoàn toàn.** Form lịch hẹn đọc giá trị từ `#reminder-note`, nhưng HTML không có phần tử này → mỗi lần bấm "Lưu hẹn" đều ném lỗi JavaScript, hộp thoại không đóng, dữ liệu không được lưu. Đã thêm lại ô "Ghi chú" còn thiếu trong `index.html`.
+2. **Tab "Thống kê" luôn trống trơn.** `renderStatistics()` tìm phần tử `#stats-grid`/`#stats-chart`, nhưng HTML chỉ có `#stats-content` → hàm thoát sớm, không vẽ gì cả. Đã tách lại HTML thành `#stats-cards` + `#stats-chart` và sửa hàm vẽ tương ứng.
+3. **Bộ lọc "Loại khám" luôn báo lỗi khi chọn.** Mã gọi `Components.getTypeInfo(...)` nhưng object thực tế trong ứng dụng tên là `UI`, không tồn tại `Components` → chọn bất kỳ loại khám nào (khác "Tất cả") đều ném lỗi. Ngoài ra danh sách lựa chọn của bộ lọc chưa từng được điền dữ liệu, nên trước đó người dùng còn không thể chọn được gì. Đã sửa tham chiếu sai và điền động danh sách lựa chọn theo dữ liệu thực tế.
+4. **Ô gợi ý "Loại khám" (autocomplete) luôn trống.** `<datalist id="record-type-list">` chưa từng được điền dữ liệu. Đã điền sẵn danh mục chuẩn + các loại người dùng từng nhập.
+5. **Tính năng "Nhận xét AI" và "Tra cứu chuyên sâu" luôn lỗi khi dùng Gemini (nhà cung cấp mặc định).** Mã gọi `callGeminiAPI(prompt, null, false, true)` — tham số thứ 4 lẽ ra là tên model lại bị truyền nhầm giá trị `true`, khiến URL gọi API trở thành `.../models/true:generateContent` và luôn lỗi 404. Đã sửa lại lời gọi.
+6. **Ảnh đại diện bị vỡ (ảnh hỏng).** Mã tham chiếu tệp cục bộ `assets/default-avatar.png`, nhưng thư mục `assets/` không tồn tại trong dự án. Đã thay bằng ảnh chữ cái đầu tự sinh (nhất quán với cách các thẻ thành viên khác đã hiển thị).
+7. **Nội dung nhiều dòng (triệu chứng, điều trị, kết quả xét nghiệm) mất định dạng xuống dòng khi xem chi tiết hồ sơ.** Regex `/\\n/g` tìm chuỗi ký tự "\n" theo nghĩa đen, trong khi textarea sinh ra ký tự xuống dòng thật — nên `.replace()` gần như không bao giờ khớp. Đã sửa để nhận diện đúng ký tự xuống dòng thật.
+8. **Service Worker có thể làm hỏng cả trang lẫn các lời gọi API khi mạng chập chờn.** Trình xử lý `fetch` cũ bắt TOÀN BỘ request (kể cả gọi AI, tải ảnh, script từ CDN) và khi lỗi mạng thì trả về một đoạn văn bản giả — khiến script tải lỗi bị vỡ thành lỗi cú pháp, hoặc lời gọi AI Gemini/OpenAI/Claude nhận "phản hồi" rác thay vì thông báo lỗi mạng rõ ràng. Đã giới hạn lại: chỉ áp dụng trang dự phòng ngoại tuyến cho việc điều hướng trang, không can thiệp vào các request khác. Cũng gộp lại 2 listener `message` bị đăng ký trùng lặp.
+
+## 2. Bảo mật & an toàn dữ liệu y tế
+
+- **Chống XSS lưu trữ (stored XSS):** trước đây tên thành viên, biệt danh, chẩn đoán, ghi chú, các trường tùy chỉnh... được chèn thẳng vào `innerHTML` mà không mã hóa ký tự đặc biệt. Nếu ai đó (kể cả vô tình) gõ một đoạn có ký tự `<`, `"`... vào các trường này, nó có thể phá vỡ giao diện hoặc thực thi mã. Đã thêm hàm `UI.escapeHtml()` và áp dụng nhất quán cho mọi dữ liệu người dùng nhập trước khi hiển thị. Đã kiểm thử thực tế bằng cách nhập tên `Tester <img src=x onerror="alert(...)">` — xác nhận không còn bị thực thi.
+- **Khử trùng nội dung do AI trả về:** báo cáo/markdown do AI sinh ra trước đây được đưa thẳng vào `innerHTML` qua `marked.parse()` mà không lọc. Đã thêm thư viện DOMPurify và tạo hàm `UI.renderMarkdown()` để luôn khử trùng trước khi hiển thị, phòng trường hợp phản hồi AI (hoặc một phản hồi bị can thiệp) chứa mã độc.
+- **Đính chính thông tin sai về bảo mật:** phần Cài đặt tuyên bố API Key "được mã hóa" khi lưu — thực tế không hề có mã hóa nào (lưu dạng văn bản thường trong Local Storage). Đã sửa lại nội dung cho trung thực, đồng thời khuyến cáo người dùng không dùng chung thiết bị với người lạ.
+
+## 3. Nâng cấp kiến trúc & chất lượng mã nguồn
+
+- Thêm chú thích JSDoc mô tả mục đích cho `DataManager`, `AIService`, `UI` và các hàm tiện ích mới.
+- Thêm timeout tự động (60 giây) cho mọi lời gọi API AI (Gemini/OpenAI/Claude) bằng `AbortController`, tránh treo giao diện vô thời hạn khi mạng có vấn đề.
+- Gom các đoạn mã lặp lại (vẽ biểu đồ cột thống kê, tạo placeholder ảnh đại diện) thành hàm dùng chung; loại bỏ đoạn mã chết (`createBarRow` trước đây được định nghĩa nhưng không dùng tới).
+- Thống kê theo loại khám giờ nhóm động theo nhãn chuẩn hoá thực tế (qua `getTypeInfo`) thay vì so khớp cứng 4 khoá cũ (`routine/mild/severe/chronic`) vốn không còn khớp với dữ liệu tự do người dùng nhập ngày nay — trước đây dù sửa được lỗi hiển thị thì biểu đồ vẫn luôn ra toàn số 0.
+- Dọn CSS: gỡ 2 class không còn được dùng (`.logo-text h1`, `.version`), thêm khung focus rõ ràng cho điều hướng bàn phím, thêm chế độ responsive nhỏ cho màn hình rất hẹp.
+
+## 4. Cải thiện giao diện & trải nghiệm (UI/UX)
+
+- Thay một số `alert()` gây gián đoạn (lưu cài đặt thành công, tải danh sách model AI thành công, điền form AI thành công) bằng thông báo dạng "toast" nhẹ nhàng, tự biến mất. Các hộp thoại xác nhận xoá dữ liệu vẫn giữ nguyên `confirm()`/`alert()` để đảm bảo người dùng đọc kỹ trước khi xoá.
+- Thêm `aria-label`, `role="dialog"`, khung focus cho các nút chỉ có icon và các hộp thoại — hỗ trợ tốt hơn cho người dùng dùng bàn phím/trình đọc màn hình.
+- Thêm `<meta name="description">`, `theme-color` đồng bộ giữa trang web và `manifest.json`, bổ sung `id`/`scope`/`orientation`/`purpose` còn thiếu trong `manifest.json` theo chuẩn PWA hiện hành.
+
+## 5. Đã kiểm thử
+
+Chạy ứng dụng trong trình duyệt thật (Chromium, qua Playwright) trước và sau khi sửa, với các thư viện CDN (marked, DOMPurify, Cropper, html2pdf) được giả lập để kiểm thử được toàn bộ luồng mà không cần mạng ngoài. Đã xác minh trực tiếp: lưu lịch hẹn thành công, tab thống kê hiển thị đúng, bộ lọc/loại khám hoạt động không còn báo lỗi, URL gọi Gemini API đúng tên model, nội dung nhiều dòng hiển thị đúng `<br>`, và dữ liệu có ký tự đặc biệt/HTML không còn bị thực thi khi hiển thị. Không phát sinh lỗi console mới nào ngoài các lỗi do môi trường kiểm thử cách ly mạng (favicon/âm thanh không tải được trong sandbox — không liên quan đến mã nguồn).
+
+## 6. Phase 3 (v1.10.0) — Cải tiến theo yêu cầu bổ sung
+
+Sau bản v1.9.0, người dùng yêu cầu làm tiếp toàn bộ các cải tiến đề xuất, gồm:
+
+- **Khóa PIN cho ứng dụng.** Thêm màn hình khóa (`#lock-screen`) hiện ra khi mở app nếu đã bật PIN trong Cài đặt. PIN được băm bằng `SHA-256` (Web Crypto API) trước khi lưu — **đây là lớp ngăn chặn ở giao diện (deterrent), không phải mã hóa thật sự cho dữ liệu**, vì toàn bộ dữ liệu vẫn nằm trong Local Storage/IndexedDB dạng đọc được nếu ai đó truy cập trực tiếp vào trình duyệt/thiết bị. Đã ghi rõ điều này trong giao diện để không gây hiểu lầm về mức độ bảo mật. Hỗ trợ đặt/đổi/tắt PIN, khóa thủ công bằng nút trên header.
+- **Sửa & mở rộng Lịch hẹn.** Thêm chức năng **sửa lịch hẹn đã tạo** (trước đây chỉ tạo mới hoặc xoá). Ô tìm kiếm hồ sơ khám mở rộng để khớp thêm theo **triệu chứng, kết quả xét nghiệm, ghi chú** — trước đây chỉ khớp theo tên bệnh/bác sĩ/bệnh viện.
+- **Hiển thị tuổi tự động** tính từ ngày sinh (hỗ trợ cả trường hợp chỉ có năm sinh) ngay tại trang hồ sơ thành viên.
+- **Nhắc nhở sao lưu định kỳ.** Ứng dụng không có máy chủ, toàn bộ dữ liệu chỉ nằm trên một thiết bị — nếu xoá trình duyệt/mất máy sẽ mất dữ liệu vĩnh viễn. Đã thêm banner nhắc sao lưu định kỳ (mặc định nhắc lại sau một khoảng thời gian nếu chưa xuất dữ liệu), có thể "Sao lưu ngay" hoặc "Để sau".
+- **Content-Security-Policy (CSP).** Thêm CSP nghiêm ngặt (`script-src` không cho phép mã inline) để giảm rủi ro nếu có lỗ hổng XSS phát sinh sau này. Vì CSP chặn hoàn toàn `onclick="..."` gắn trực tiếp trong HTML, đã rà soát và loại bỏ toàn bộ các đoạn `onclick` còn sót, thay bằng `addEventListener` chuẩn. `style-src` vẫn cho phép inline vì ứng dụng dùng rất nhiều thuộc tính `style=""` trực tiếp — refactor toàn bộ sang CSS ngoài nằm ngoài phạm vi đợt này.
+- **Bộ kiểm thử hồi quy** (`tests/smoke-test.js`): kịch bản Playwright độc lập, tự dựng server tĩnh + giả lập toàn bộ thư viện CDN để chạy offline, kiểm tra tự động ~20 luồng chính (escape XSS, tuổi, thống kê, lưu hồ sơ, tìm kiếm mở rộng, lịch hẹn tạo/sửa, khóa PIN...). Nên chạy lại bộ này sau mỗi lần chỉnh sửa `index.html`/`css`/`js`.
+
+## 7. Phase 4 (v1.10.0) — Gộp nút quét AI & xử lý hồ sơ chỉ có kết quả xét nghiệm
+
+Theo yêu cầu tiếp theo của người dùng:
+
+1. **Gộp 2 nút "Điền form" và "Kết luận" trong mục Quét thông minh bằng AI thành 1 nút duy nhất** (`Điền form & Kết luận`). Trước đây phải bấm lần lượt 2 nút, gọi AI 2 lần tuần tự. Nay chỉ cần bấm 1 lần: ứng dụng gọi đồng thời (song song, không chờ tuần tự) 2 yêu cầu AI độc lập — trích xuất dữ liệu điền form và tạo báo cáo đánh giá tổng hợp — dùng `Promise.allSettled` để nếu một trong hai yêu cầu bị lỗi (hết quota, mạng chập chờn...) thì yêu cầu còn lại vẫn hiển thị kết quả bình thường thay vì mất trắng cả hai.
+2. **Phát hiện thêm 1 lỗi tiềm ẩn khi rà soát:** hàm bật/tắt trạng thái khóa (disabled) của các nút quét AI tham chiếu tới các id phần tử **không hề tồn tại trong HTML** (`btn-trigger-ocr`, `btn-process-ai` — có vẻ là tàn dư từ một phiên bản giao diện cũ trước đó). Hệ quả: logic bật nút sau khi chọn ảnh / tắt nút khi xoá hết ảnh chưa từng hoạt động đúng trên các nút quét AI thật (`btn-autofill-info`/`btn-generate-report`). Đã sửa toàn bộ 4 vị trí liên quan để tham chiếu đúng nút `btn-scan-analyze` hiện tại.
+3. **Bỏ bắt buộc nhập "Chẩn đoán bệnh (Kết luận chính)".** Trước đây trường này có thuộc tính `required`, nên với các hồ sơ chỉ là **phiếu kết quả xét nghiệm** (chưa có kết luận/chẩn đoán chính thức của bác sĩ), AI không trích xuất được nội dung cho trường này → trình duyệt chặn không cho lưu hồ sơ bằng thông báo xác nhận mặc định, gây khó hiểu. Đã bỏ `required`, cập nhật nhãn & placeholder để làm rõ trường này có thể để trống.
+4. **Tính năng "Tra cứu chuyên sâu" (AI) hoạt động cả khi chưa có chẩn đoán.** Trước đây nút tra cứu chỉ dùng trường "Chẩn đoán" làm từ khoá — nếu để trống thì bấm vào không có phản ứng gì. Đã sửa để tự động lùi về dùng kết quả xét nghiệm / triệu chứng / loại khám làm cơ sở tra cứu khi chưa có chẩn đoán chính thức, đồng thời điều chỉnh nội dung prompt gửi AI để không mặc định coi thông tin đầu vào là một chẩn đoán đã xác nhận.
+5. Đã bổ sung ca kiểm thử tương ứng vào `tests/smoke-test.js` (lưu hồ sơ không có chẩn đoán, bật/tắt nút quét theo ảnh, bấm 1 nút vừa điền form vừa mở báo cáo đánh giá) và chạy lại toàn bộ 20 kiểm tra — tất cả đều đạt (`20 đạt / 0 lỗi`), không phát sinh lỗi console mới.
+
+## 8. Phase 5 (v1.11.0) — Luôn cuộn về đầu trang khi chuyển màn hình
+
+Trước đây, do đây là ứng dụng 1 trang (SPA — chuyển "trang" thực chất chỉ là ẩn/hiện các khối trong cùng 1 tài liệu HTML), trình duyệt không tự cuộn lại như khi điều hướng trang thật. Hệ quả: nếu đang cuộn dở ở Trang chủ rồi bấm vào 1 thành viên, hoặc đang cuộn dở ở tab "Lịch sử khám" rồi đổi sang tab "Thống kê", hoặc đóng 1 hộp thoại (modal) đang cuộn dở rồi mở lại — màn hình mới vẫn hiển thị đúng ngay tại vị trí cuộn cũ thay vì bắt đầu từ đầu, gây khó hiểu. Đã sửa để mọi lần chuyển màn hình đều tự động về đầu trang:
+
+- Chuyển giữa Trang chủ ↔ Chi tiết thành viên (`switchView()`).
+- Đổi tab trong trang chi tiết thành viên (Hồ sơ / Lịch sử khám / Thống kê / Lịch hẹn).
+- Mỗi lần mở một hộp thoại bất kỳ (`openModal()`) — nội dung hộp thoại luôn hiển thị từ đầu, kể cả khi mở lại đúng hộp thoại vừa đóng lúc đang cuộn dở.
+
+Đã bổ sung 4 ca kiểm thử tương ứng vào `tests/smoke-test.js` và chạy lại toàn bộ — **24 đạt / 0 lỗi**, không phát sinh lỗi console mới.
+
+## 9. Phase 6 (v1.12.0) — Tăng độ nhất quán & minh bạch của kết quả AI
+
+Người dùng phản ánh: đọc 3 phiếu xét nghiệm máu có nội dung tương tự nhau nhưng AI trả về kết quả và phân loại khác nhau; thậm chí đọc lại đúng 1 file cũng cho 2 báo cáo khác nhau ở 2 lần bấm. Đã rà soát và xử lý ở 3 lớp nguyên nhân:
+
+1. **Nhiệt độ sinh nội dung (temperature) chưa phù hợp với tác vụ trích xuất số liệu.** Các mô hình ngôn ngữ về bản chất mang tính xác suất — cùng 1 đầu vào có thể cho đầu ra khác nhau giữa các lần gọi nếu tham số `temperature` (độ "ngẫu nhiên") không được đặt thấp. Trước đây toàn bộ lời gọi Gemini (từ trích xuất dữ liệu, tạo báo cáo, đến tư vấn sức khỏe) đều dùng chung 1 mức `temperature = 0.2`. Đã tách riêng: **trích xuất dữ liệu từ ảnh (điền form) dùng `temperature = 0`** (ưu tiên tuyệt đối tính nhất quán, không "sáng tạo"), **tạo báo cáo đánh giá tổng hợp dùng `temperature = 0.1`**. Điều này giảm đáng kể (dù không thể triệt tiêu 100% — xem mục 3) sự khác biệt giữa các lần đọc cùng 1 tài liệu.
+2. **Trường "Phân loại khám" (type) trước đây để AI tự do đặt câu chữ**, nên cùng một loại khám có thể được AI diễn đạt khác nhau giữa các lần gọi (vd: "Xét nghiệm máu" vs "Bệnh lý cấp tính (Nhẹ)" cho cùng 1 loại hồ sơ). Đã sửa prompt bắt buộc AI chỉn chọn ĐÚNG NGUYÊN VĂN 1 trong 7 nhãn cố định có sẵn (khớp với danh sách gợi ý tự động trong app) thay vì tự đặt câu chữ mới mỗi lần.
+3. **Giới hạn thực tế cần lưu ý (không thể khắc phục hoàn toàn bằng mã nguồn):** ngay cả với `temperature = 0`, các mô hình ngôn ngữ lớn chạy trên hạ tầng suy luận theo lô (batch inference) của nhà cung cấp vẫn có thể cho kết quả khác nhau đôi chút giữa các lần gọi do đặc tính tính toán dấu phẩy động không kết hợp (floating-point non-determinism) — đây là giới hạn chung của ngành, không riêng ứng dụng này. Với ảnh chụp thực tế (mờ, nghiêng, chữ viết tay khó đọc), AI cũng có thể "đọc" khác nhau giữa các lần nếu nội dung mơ hồ. Vì vậy đã thêm dòng lưu ý ngay tại mục "Quét thông minh bằng AI": *"AI có thể đọc sai hoặc thiếu sót... vui lòng kiểm tra và chỉnh sửa lại thông tin trước khi lưu — đây là công cụ hỗ trợ, không thay thế chẩn đoán của bác sĩ."*
+4. **Phát hiện & tự sửa 1 vấn đề cấu hình nghiêm trọng:** model Gemini mặc định của ứng dụng (`gemini-1.5-flash`) đã bị Google chính thức ngừng hỗ trợ (decommissioned). Với người dùng chưa từng vào Cài đặt đổi model, mọi lời gọi AI có thể đang dùng 1 model không còn hoạt động ổn định/đã lỗi thời rất nhiều so với các model hiện nay — ảnh hưởng trực tiếp tới độ chính xác. Đã:
+   - Đổi model mặc định cho người dùng mới sang `gemini-3.1-pro` (model đời mới hơn nhiều, có điểm chính xác y khoa (MedQA) cao nhất trong 3 nhà cung cấp AI mà ứng dụng hỗ trợ theo một nghiên cứu đăng trên *Nature Medicine* — xem phần trả lời câu hỏi "AI nào tốt nhất về y khoa" bên dưới).
+   - Thêm cơ chế **tự động nâng cấp** cho người dùng cũ đang kẹt ở model đã ngừng hoạt động (`gemini-1.5-flash`, `gemini-1.5-pro`, `gemini-1.5-flash-8b`, các bản `gemini-2.0-flash*`) — tự chuyển sang model mặc định mới khi mở app, kèm thông báo rõ ràng, có thể đổi lại trong Cài đặt bất cứ lúc nào.
+   - Cải thiện thông báo lỗi: nếu 1 model bị ngừng hỗ trợ trong tương lai gây lỗi "model not found", ứng dụng giờ hướng dẫn cụ thể vào Cài đặt bấm "Tải danh sách" để tự lấy model còn hoạt động từ tài khoản của người dùng, thay vì hiển thị thông báo lỗi kỹ thuật khó hiểu.
+   - Cho phép người dùng **tự nhập tên model** cho ChatGPT/Claude (trước đây cố định cứng `gpt-4o` và `claude-3-5-sonnet-20240620` trong mã nguồn — cả hai đều đã khá cũ) — để có thể chuyển sang model mới hơn ngay khi biết tên, không cần chờ bản cập nhật ứng dụng.
+
+Đã bổ sung 3 ca kiểm thử (tự nâng cấp model cũ, lưu tên model OpenAI/Anthropic tùy chỉnh) và chạy lại toàn bộ — **27 đạt / 0 lỗi**.
+
+### Trả lời: "AI nào xử lý tốt nhất về y khoa hiện nay?"
+
+Theo một nghiên cứu đăng trên tạp chí *Nature Medicine* (đánh giá mù bởi bác sĩ lâm sàng trên 1.800 câu hỏi y khoa thực tế), cả 3 mô hình AI hàng đầu hiện nay — **GPT-5.2** (OpenAI), **Gemini 3.1 Pro** (Google) và **Claude Opus 4.6** (Anthropic) — đều thuộc nhóm dẫn đầu và vượt trội hơn hẳn các công cụ AI y khoa chuyên biệt (OpenEvidence, UpToDate) trên benchmark lâm sàng thực tế. Riêng trên bài kiểm tra kiến thức y khoa MedQA, Gemini 3.1 Pro đạt độ chính xác cao nhất (97,4%). Đây đều là 3 nhà cung cấp mà ứng dụng này đã hỗ trợ sẵn — nên về lý thuyết bạn có thể dùng bất kỳ cái nào cho tính năng "Nhận xét tình trạng"/"Tra cứu chuyên sâu" (văn bản thuần). Tuy nhiên, riêng tính năng đọc ảnh/PDF (OCR trích xuất dữ liệu, tạo báo cáo tổng hợp) hiện **chỉ Gemini được hỗ trợ đọc file đính kèm** trong ứng dụng này, nên với luồng chính (quét phiếu xét nghiệm) thì Gemini vẫn là lựa chọn khả dụng duy nhất — và theo nghiên cứu trên, đây cũng đang là lựa chọn có độ chính xác y khoa cao nhất trong 3 bên.
+
+## Danh sách file đã thay đổi (tính đến v1.12.0)
+`index.html`, `css/style.css`, `js/data.js`, `js/ai.js`, `js/components.js`, `js/app.js`, `sw.js`, `manifest.json`, `tests/smoke-test.js`.
