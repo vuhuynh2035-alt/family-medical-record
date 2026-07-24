@@ -247,6 +247,18 @@ function setupEventListeners() {
         e.target.value = ''; // Reset input
     });
 
+    // Wipe Data Button
+    const btnWipeData = document.getElementById('btn-wipe-data');
+    if (btnWipeData) {
+        btnWipeData.addEventListener('click', () => {
+            if (confirm("CẢNH BÁO: Bấm OK sẽ xóa VĨNH VIỄN toàn bộ hồ sơ khám bệnh, thông tin thành viên và hình ảnh trên máy này (Các cài đặt API Key sẽ được giữ nguyên). Bạn có chắc chắn muốn xóa sạch?")) {
+                DataManager.wipeAllDataKeepSettings();
+                alert("Đã xóa sạch dữ liệu thành công! Ứng dụng sẽ tải lại.");
+                window.location.reload();
+            }
+        });
+    }
+
     // Notifications Modal
     document.getElementById('btn-notifications').addEventListener('click', () => openNotifications());
 

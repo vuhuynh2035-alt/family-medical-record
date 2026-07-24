@@ -192,9 +192,22 @@ const DataManager = {
 
             return true;
         } catch (e) {
-            console.error("Import failed:", e);
-            throw new Error("Dữ liệu không hợp lệ hoặc bị lỗi.");
+            console.error("Lỗi khi nạp dữ liệu:", e);
+            alert("File không hợp lệ hoặc bị lỗi.");
+            return false;
         }
+    },
+
+    // ---- WIPE ALL DATA (KEEP SETTINGS) ----
+    wipeAllDataKeepSettings() {
+        const settings = localStorage.getItem('family_settings');
+        localStorage.clear();
+        if (settings) {
+            localStorage.setItem('family_settings', settings);
+        }
+        // IndexedDB is managed by ImageStore, we can clear it by deleting the database or clearing the store.
+        // For simplicity, we just delete the database entirely and it will be recreated on next reload.
+        indexedDB.deleteDatabase("FamilyMedicalDB");
     }
 };
 

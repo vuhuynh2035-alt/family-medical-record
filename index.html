@@ -27,7 +27,7 @@
                         <span class="material-symbols-rounded" style="font-size: 28px; font-weight: 800; font-variation-settings: 'wght' 800;">add</span>
                     </div>
                     <h1 style="color: white; margin: 0;">Health Care</h1>
-                    <span class="version-tag" style="color: rgba(255, 255, 255, 0.8);">v1.7.10</span>
+                    <span class="version-tag" style="color: rgba(255, 255, 255, 0.8);">v1.7.11</span>
                 </div>
                 <div class="header-actions">
                     <button id="btn-install-app" class="icon-btn header-btn hidden" title="Cài đặt Ứng dụng">
@@ -262,13 +262,23 @@
 
                 <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
                 <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">save</span> Sao Lưu & Khôi Phục Dữ Liệu</h4>
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <button id="btn-export-data" type="button" class="secondary-btn neumorphic-btn" style="flex: 1; padding: 12px; font-weight: bold;">
-                        <span class="material-symbols-rounded" style="vertical-align: text-bottom; font-size: 20px;">download</span> Tạo Bản Sao Lưu
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Lưu trữ toàn bộ hồ sơ y tế thành một file dự phòng, hoặc khôi phục dữ liệu từ file.</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btn-export-data" class="primary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <span class="material-symbols-rounded">download</span> Tạo Bản Sao Lưu
+                        </button>
+                        <button id="btn-import-data" class="secondary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <span class="material-symbols-rounded">upload</span> Khôi Phục Dữ Liệu
+                        </button>
+                    </div>
+                    
+                    <h4 style="margin: 15px 0 5px; color: #e74c3c;">Khôi phục Cài đặt gốc</h4>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Xóa sạch toàn bộ hồ sơ y tế, thành viên và hình ảnh trên thiết bị này. Các cài đặt API Key sẽ được giữ lại.</p>
+                    <button id="btn-wipe-data" class="neumorphic-btn" style="width: 100%; background: #fff1f0; color: #e74c3c; border: 1px solid #ffccc7; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; border-radius: 8px; cursor: pointer;">
+                        <span class="material-symbols-rounded">delete_forever</span> Xóa sạch Dữ liệu Y tế
                     </button>
-                    <button id="btn-import-data" type="button" class="secondary-btn neumorphic-btn" style="flex: 1; padding: 12px; font-weight: bold; border: 1px solid #27ae60; color: #27ae60;">
-                        <span class="material-symbols-rounded" style="vertical-align: text-bottom; font-size: 20px;">upload</span> Khôi Phục Dữ Liệu
-                    </button>
+                    
                     <input type="file" id="input-import-data" accept=".json" hidden>
                 </div>
                 <div class="help-text" style="margin-top: 10px; color: var(--danger);">
@@ -574,9 +584,9 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="js/data.js?v=1.7.10"></script>
-    <script src="js/ai.js?v=1.7.10"></script>
-    <script src="js/components.js?v=1.7.10"></script>
-    <script src="js/app.js?v=1.7.10"></script>
+    <script src="js/data.js?v=1.7.11"></script>
+    <script src="js/ai.js?v=1.7.11"></script>
+    <script src="js/components.js?v=1.7.11"></script>
+    <script src="js/app.js?v=1.7.11"></script>
 </body>
 </html>
