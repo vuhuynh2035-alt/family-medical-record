@@ -1,6 +1,7 @@
 let currentMemberId = null;
 let currentRecords = [];
 let deferredPrompt;
+let cropper = null;
 
 // PWA Service Worker Registration
 let newWorker;
@@ -285,11 +286,49 @@ function setupEventListeners() {
     document.getElementById('btn-upload-avatar').addEventListener('click', () => {
         document.getElementById('member-avatar-input').click();
     });
-    document.getElementById('member-avatar-input').addEventListener('change', async (e) => {
+    document.getElementById('member-avatar-input').addEventListener('change', (e) => {
         if (e.target.files && e.target.files[0]) {
-            const base64 = await DataManager.fileToBase64(e.target.files[0]);
-            document.getElementById('member-avatar-preview').src = base64;
+            const file = e.target.files[0];
+            const url = URL.createObjectURL(file);
+            const imageToCrop = document.getElementById('image-to-crop');
+            imageToCrop.src = url;
+            
+            openModal('modal-crop');
+            
+            if (cropper) {
+                cropper.destroy();
+            }
+            
+            setTimeout(() => {
+                cropper = new Cropper(imageToCrop, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 1,
+                    restore: false,
+                    guides: true,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false,
+                });
+            }, 100);
+            
+            e.target.value = '';
         }
+    });
+
+    document.getElementById('btn-save-crop').addEventListener('click', () => {
+        if (!cropper) return;
+        const canvas = cropper.getCroppedCanvas({
+            width: 300,
+            height: 300
+        });
+        
+        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+        document.getElementById('member-avatar-preview').src = base64;
+        closeModal('modal-crop');
     });
 
     // Custom Fields
