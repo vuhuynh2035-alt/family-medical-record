@@ -742,11 +742,20 @@ function setupEventListeners() {
 
     document.getElementById('record-image-input').addEventListener('change', async (e) => {
         if (e.target.files && e.target.files.length > 0) {
+            const btn = document.getElementById('btn-select-ocr-img');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải...';
+            btn.disabled = true;
+            
             for (let i = 0; i < e.target.files.length; i++) {
                 const base64 = await DataManager.fileToBase64(e.target.files[i]);
                 addImageToPreview(base64);
             }
             document.getElementById('btn-process-ai').disabled = false;
+            e.target.value = '';
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
     });
 
