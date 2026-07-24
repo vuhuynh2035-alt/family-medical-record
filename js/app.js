@@ -957,6 +957,12 @@ function setupEventListeners() {
 
     document.getElementById('btn-download-pdf').addEventListener('click', () => {
         const element = document.getElementById('report-preview-mode');
+        
+        const originalMaxHeight = element.style.maxHeight;
+        const originalOverflow = element.style.overflowY;
+        element.style.maxHeight = 'none';
+        element.style.overflowY = 'visible';
+
         const opt = {
             margin:       0.5,
             filename:     'Bao_Cao_Y_Khoa.pdf',
@@ -964,7 +970,11 @@ function setupEventListeners() {
             html2canvas:  { scale: 2 },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
-        html2pdf().set(opt).from(element).save();
+        
+        html2pdf().set(opt).from(element).save().then(() => {
+            element.style.maxHeight = originalMaxHeight;
+            element.style.overflowY = originalOverflow;
+        });
     });
 
     document.getElementById('btn-download-record-pdf').addEventListener('click', () => {
