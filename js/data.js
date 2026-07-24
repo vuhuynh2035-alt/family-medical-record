@@ -136,16 +136,28 @@ const DataManager = {
     // Helper to read file as Base64 for avatar / OCR image
     fileToBase64(file) {
         return new Promise((resolve, reject) => {
-            if (file.type === 'application/pdf') {
+            if (!file) return resolve('');
+            
+            const fallbackReader = () => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 reader.onload = () => resolve(reader.result);
-                reader.onerror = (e) => reject(e);
-                return;
+                reader.onerror = (e) => resolve(''); // DO NOT REJECT, resolve empty to prevent app crash
+            };
+
+            if (file.type === 'application/pdf') {
+                return fallbackReader();
+            }
+            
+            let objectUrl;
+            try {
+                objectUrl = URL.createObjectURL(file);
+            } catch (err) {
+                console.error("URL.createObjectURL failed:", err);
+                return fallbackReader();
             }
             
             const img = new Image();
-            const objectUrl = URL.createObjectURL(file);
             img.onload = () => {
                 try {
                     const canvas = document.createElement('canvas');
@@ -170,24 +182,18 @@ const DataManager = {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     const compressed = canvas.toDataURL('image/jpeg', 0.8);
-                    URL.revokeObjectURL(objectUrl);
+                    
+                    try { URL.revokeObjectURL(objectUrl); } catch(e){}
                     resolve(compressed);
                 } catch (err) {
                     console.error("Image compression error:", err);
-                    URL.revokeObjectURL(objectUrl);
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = e => reject(e);
+                    try { URL.revokeObjectURL(objectUrl); } catch(e){}
+                    fallbackReader();
                 }
             };
             img.onerror = (e) => {
-                URL.revokeObjectURL(objectUrl);
-                // Fallback to basic FileReader
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = err => reject(err);
+                try { URL.revokeObjectURL(objectUrl); } catch(e){}
+                fallbackReader();
             };
             img.src = objectUrl;
         });

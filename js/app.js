@@ -749,8 +749,14 @@ function setupEventListeners() {
             btn.disabled = true;
             
             for (let i = 0; i < total; i++) {
-                const base64 = await DataManager.fileToBase64(e.target.files[i]);
-                addImageToPreview(base64);
+                try {
+                    const base64 = await DataManager.fileToBase64(e.target.files[i]);
+                    if (base64) {
+                        addImageToPreview(base64);
+                    }
+                } catch (err) {
+                    console.error("Lỗi khi tải ảnh:", err);
+                }
                 const percent = Math.round(((i + 1) / total) * 100);
                 btn.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải... ${percent}%`;
                 await new Promise(r => setTimeout(r, 50)); // Force DOM repaint
