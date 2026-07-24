@@ -160,16 +160,43 @@ Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy đ�
         let result = await this.callGeminiAPI(prompt, base64Images, true);
         try {
             let cleanResult = result.trim();
-            const startIndex = cleanResult.indexOf('{');
-            const endIndex = cleanResult.lastIndexOf('}');
-            if (startIndex !== -1 && endIndex !== -1) {
-                cleanResult = cleanResult.substring(startIndex, endIndex + 1);
+            // Try parsing directly first
+            try {
+                let parsed = JSON.parse(cleanResult);
+                return Array.isArray(parsed) ? parsed[0] : parsed;
+            } catch (directErr) {
+                // Fallback: extract JSON from markdown if wrapped
+                const firstBrace = cleanResult.indexOf('{');
+                const lastBrace = cleanResult.lastIndexOf('}');
+                const firstBracket = cleanResult.indexOf('[');
+                const lastBracket = cleanResult.lastIndexOf(']');
+                
+                let extractObj = "";
+                let extractArr = "";
+                if (firstBrace !== -1 && lastBrace !== -1) {
+                    extractObj = cleanResult.substring(firstBrace, lastBrace + 1);
+                }
+                if (firstBracket !== -1 && lastBracket !== -1) {
+                    extractArr = cleanResult.substring(firstBracket, lastBracket + 1);
+                }
+                
+                // Prefer the one that parses successfully
+                try {
+                    if (extractArr) {
+                        let parsed = JSON.parse(extractArr);
+                        return Array.isArray(parsed) ? parsed[0] : parsed;
+                    }
+                } catch(e) {}
+                
+                if (extractObj) {
+                    let parsed = JSON.parse(extractObj);
+                    return parsed;
+                }
+                throw new Error("No valid JSON found");
             }
-            const jsonData = JSON.parse(cleanResult);
-            return jsonData;
         } catch (e) {
             console.error("Lỗi parse JSON từ AI:", result);
-            throw new Error("Không thể trích xuất dữ liệu. AI trả về định dạng không đúng.");
+            throw new Error("Không thể trích xuất dữ liệu. AI trả về định dạng không đúng. Chi tiết: " + result.substring(0, 100));
         }
     },
 
