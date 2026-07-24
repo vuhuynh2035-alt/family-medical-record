@@ -207,9 +207,10 @@ const UI = {
                         </tr>`;
             record.dynamicFields.forEach((f, idx) => {
                 const bg = idx % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent';
+                const color = f.isAbnormal ? '#e74c3c' : 'var(--primary-blue)';
                 html += `<tr style="background: ${bg}; border-bottom: 1px solid rgba(0,0,0,0.05);">
                             <td style="padding: 12px;">${f.key}</td>
-                            <td style="padding: 12px; font-weight: 600; color: var(--primary-blue);">${f.value}</td>
+                            <td style="padding: 12px; font-weight: 600; color: ${color};">${f.value}</td>
                          </tr>`;
             });
             html += `</table>`;

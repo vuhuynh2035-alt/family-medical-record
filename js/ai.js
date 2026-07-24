@@ -153,7 +153,7 @@ TUYỆT ĐỐI CHỈ TRẢ VỀ JSON, KHÔNG THÊM BẤT KỲ ĐOẠN VĂN BẢN
 - "treatment": Phương án điều trị hoặc đơn thuốc chi tiết.
 - "note": Lời khuyên của bác sĩ (kiêng cữ, ăn uống...).
 - "cost": Tổng chi phí (chỉ lấy con số, ví dụ 500000. Nếu không thấy, trả về 0).
-- "dynamicFields": Mảng các chỉ số xét nghiệm chi tiết hoặc chuyên sâu. Mỗi phần tử là một object có "key" (Tên chỉ số, vd: "Glucose", "AST") và "value" (Kết quả kèm đơn vị, vd: "5.5 mmol/L"). Nếu không có, để mảng rỗng [].
+- "dynamicFields": Mảng các chỉ số xét nghiệm chi tiết hoặc chuyên sâu. Mỗi phần tử là một object có "key" (Tên chỉ số, vd: "Glucose", "AST"), "value" (Kết quả kèm đơn vị, vd: "5.5 mmol/L"), và "isAbnormal" (boolean: true nếu kết quả nằm ngoài khoảng tham chiếu bình thường/bị đánh dấu bất thường, false nếu bình thường). Nếu không có, để mảng rỗng [].
 
 Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy để chuỗi rỗng "" (hoặc 0 đối với số).`;
 

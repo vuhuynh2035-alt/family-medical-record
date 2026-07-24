@@ -561,8 +561,9 @@ function setupEventListeners() {
         dynamicFieldRows.forEach(row => {
             const k = row.querySelector('.dynamic-field-key').value.trim();
             const v = row.querySelector('.dynamic-field-value').value.trim();
+            const isAbnormal = row.querySelector('.dynamic-field-abnormal') ? row.querySelector('.dynamic-field-abnormal').checked : false;
             if(k) {
-                dynamicFields.push({ key: k, value: v });
+                dynamicFields.push({ key: k, value: v, isAbnormal: isAbnormal });
             }
         });
         recordData.dynamicFields = dynamicFields;
@@ -650,7 +651,7 @@ function setupEventListeners() {
                 document.getElementById('dynamic-fields-container').innerHTML = '';
                 if (record.dynamicFields && record.dynamicFields.length > 0) {
                     record.dynamicFields.forEach(f => {
-                        addDynamicFieldRow(f.key, f.value);
+                        addDynamicFieldRow(f.key, f.value, f.isAbnormal);
                     });
                 }
                 
@@ -844,7 +845,7 @@ function setupEventListeners() {
             document.getElementById('dynamic-fields-container').innerHTML = '';
             if (data.dynamicFields && data.dynamicFields.length > 0) {
                 data.dynamicFields.forEach(f => {
-                    addDynamicFieldRow(f.key, f.value);
+                    addDynamicFieldRow(f.key, f.value, f.isAbnormal);
                 });
             }
             alert("Đã điền thông tin form thành công!");
@@ -1115,7 +1116,7 @@ function loadMemberDetail(id) {
     switchView('view-member-detail');
 }
 
-function addDynamicFieldRow(key = '', value = '') {
+function addDynamicFieldRow(key = '', value = '', isAbnormal = false) {
     const container = document.getElementById('dynamic-fields-container');
     const row = document.createElement('div');
     row.className = 'form-group-row dynamic-field-row';
@@ -1125,8 +1126,11 @@ function addDynamicFieldRow(key = '', value = '') {
             <input type="text" class="neumorphic-input dynamic-field-key" placeholder="Tên chỉ số (vd: Glucose)" value="${key}">
         </div>
         <div class="form-group" style="flex: 1; margin-bottom: 0;">
-            <input type="text" class="neumorphic-input dynamic-field-value" placeholder="Kết quả (vd: 5.5 mmol/L)" value="${value}">
+            <input type="text" class="neumorphic-input dynamic-field-value" placeholder="Kết quả (vd: 5.5 mmol/L)" value="${value}" style="${isAbnormal ? 'color: #e74c3c; font-weight: bold;' : ''}">
         </div>
+        <label style="display:flex; align-items:center; gap:3px; font-size:12px; margin:0 5px; cursor:pointer;" title="Đánh dấu nếu kết quả bất thường">
+            <input type="checkbox" class="dynamic-field-abnormal" ${isAbnormal ? 'checked' : ''}> Đỏ
+        </label>
         <button type="button" class="icon-btn danger btn-remove-dynamic-field" style="padding: 10px; margin-top: 5px;">
             <span class="material-symbols-rounded">delete</span>
         </button>
