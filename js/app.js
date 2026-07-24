@@ -1094,6 +1094,7 @@ function setupEventListeners() {
 function switchView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
+    window.scrollTo(0, 0);
 }
 
 function addImageToPreview(src, id = null) {
@@ -1186,7 +1187,12 @@ function addImageToPreview(src, id = null) {
 }
 
 function openModal(modalId) {
-    document.getElementById(modalId).classList.remove('hidden');
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('hidden');
+        const content = modal.querySelector('.modal-content');
+        if (content) content.scrollTo(0, 0);
+    }
 }
 
 function closeModal(modalId) {

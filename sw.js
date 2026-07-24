@@ -1,4 +1,4 @@
-const SW_VERSION = 'v1.8.10';
+const SW_VERSION = 'v1.8.11';
 
 self.addEventListener('install', (e) => {
   // Không tự động gọi self.skipWaiting() để tránh tự động tải lại trang gây khó chịu
