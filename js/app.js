@@ -222,6 +222,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPinLockListeners();
     updatePinUIState();
     UI.enhanceA11y(document); // Gán aria-label cho các nút chỉ có icon (tĩnh trong index.html)
+    
+    if (typeof HelpService !== 'undefined') {
+        HelpService.init();
+    }
 
     const btnUpdateApp = document.getElementById('btn-update-app');
     if (btnUpdateApp) {
