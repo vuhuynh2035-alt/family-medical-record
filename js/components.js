@@ -231,7 +231,7 @@ const UI = {
                 <h3>${displayName}</h3>
                 <div class="member-stats">
                     <span class="stat-badge">${totalRecords} hồ sơ</span>
-                    <span class="stat-badge">Gần nhất: ${this.escapeHtml(lastVisit)}</span>
+                    <span class="stat-badge">${this.escapeHtml(lastVisit)}</span>
                 </div>
             `;
             grid.appendChild(card);
