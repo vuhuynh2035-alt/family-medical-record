@@ -109,7 +109,10 @@ async function registerBiometric() {
         const createCredentialOptions = {
             publicKey: {
                 challenge: challenge,
-                rp: { name: "Family Medical Record" },
+                rp: { 
+                    name: "Family Medical Record",
+                    id: window.location.hostname
+                },
                 user: {
                     id: userId,
                     name: "user",
@@ -120,7 +123,7 @@ async function registerBiometric() {
                     { alg: -257, type: "public-key" }
                 ],
                 authenticatorSelection: {
-                    authenticatorAttachment: "platform",
+                    // Loại bỏ authenticatorAttachment: "platform" để hỗ trợ các thiết bị ngoại vi như Webcam USB dùng Windows Hello Face
                     userVerification: "required"
                 },
                 timeout: 60000
@@ -151,6 +154,7 @@ async function loginBiometric(silentFail = false) {
         const getCredentialOptions = {
             publicKey: {
                 challenge: challenge,
+                rpId: window.location.hostname,
                 allowCredentials: [{
                     id: rawId,
                     type: 'public-key'
