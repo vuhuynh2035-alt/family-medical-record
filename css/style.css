@@ -329,12 +329,13 @@ body {
 
 /* Profile Tab */
 .profile-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
 }
 
 .profile-item {
+    flex: 1 1 200px;
     background: var(--bg-color);
     padding: 15px;
     border-radius: var(--radius-sm);

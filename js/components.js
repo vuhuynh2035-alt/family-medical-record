@@ -281,7 +281,7 @@ const UI = {
                     <p>${member.height ? this.escapeHtml(member.height) + ' cm' : '--'} / ${member.weight ? this.escapeHtml(member.weight) + ' kg' : '--'}</p>
                 </div>
                 ${customFieldsHTML}
-                <div class="profile-item" style="grid-column: 1 / -1;">
+                <div class="profile-item">
                     <label>Tiền sử bệnh / Dị ứng</label>
                     <p>${this.escapeHtml(member.conditions) || 'Không có ghi nhận'}</p>
                 </div>
