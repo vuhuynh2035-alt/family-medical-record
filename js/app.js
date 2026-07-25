@@ -875,6 +875,38 @@ function setupEventListeners() {
         });
     });
 
+    // Evaluate Health Trend Action
+    document.getElementById('btn-evaluate-trend').addEventListener('click', async () => {
+        if (!currentMemberId) return;
+        const records = DataManager.getRecords(currentMemberId);
+        if (!records || records.length === 0) {
+            alert('Thành viên này chưa có hồ sơ khám bệnh nào để đánh giá.');
+            return;
+        }
+
+        const member = DataManager.getMembers().find(m => m.id === currentMemberId);
+        const activeProvider = DataManager.getActiveProvider();
+        const pName = activeProvider === 'openai' ? 'ChatGPT' : (activeProvider === 'anthropic' ? 'Claude' : 'Gemini');
+        
+        document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">auto_awesome</span> ${pName} Đánh giá xu hướng sức khỏe`;
+        openModal('modal-ai-assessment');
+        const loading = document.getElementById('ai-assessment-loading');
+        const content = document.getElementById('ai-assessment-content');
+        
+        loading.innerHTML = `<span class="loading-spinner"></span> ${pName} đang phân tích toàn bộ lịch sử khám bệnh...`;
+        loading.classList.remove('hidden');
+        content.innerHTML = '';
+        
+        try {
+            const mdText = await AIService.evaluateHealthTrend(records, member);
+            loading.classList.add('hidden');
+            content.innerHTML = UI.renderMarkdown(mdText);
+        } catch (err) {
+            loading.classList.add('hidden');
+            content.innerHTML = `<p style="color:var(--danger);">Lỗi khi liên hệ AI: ${err.message}</p>`;
+        }
+    });
+
     // Record Modal & Actions
     document.getElementById('btn-add-record').addEventListener('click', () => {
         document.getElementById('form-record').reset();
@@ -1389,7 +1421,9 @@ function setupEventListeners() {
 
     document.getElementById('btn-download-assessment-pdf').addEventListener('click', () => {
         const element = document.getElementById('ai-assessment-content');
-        const titleText = document.querySelector('#modal-ai-assessment .modal-header h3').innerText.trim().replace('psychiatry', '').trim() || 'AI_Assessment';
+        // Xóa text của các icon có thể xuất hiện trong h3 để làm tên file sạch
+        let rawTitle = document.querySelector('#modal-ai-assessment .modal-header h3').innerText.trim();
+        const titleText = rawTitle.replace(/psychiatry|travel_explore|auto_awesome/g, '').trim() || 'AI_Assessment';
         const opt = {
             margin:       0.5,
             filename:     `${titleText}.pdf`.replace(/\s+/g, '_'),

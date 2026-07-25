@@ -358,6 +358,59 @@ Vui lòng phân tích và đưa ra nhận xét:
         }
     },
 
+    // Đánh giá xu hướng sức khỏe từ toàn bộ hồ sơ
+    async evaluateHealthTrend(records, memberProfile) {
+        // Sắp xếp records theo thời gian tăng dần
+        const sortedRecords = [...records].sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        let recordsText = '';
+        sortedRecords.forEach((recordData, index) => {
+            let extraInfo = '';
+            if (recordData.bp || recordData.hr || recordData.temp || recordData.spo2) {
+                extraInfo += `\n- Sinh hiệu: HA ${recordData.bp || '-'}, Nhịp tim ${recordData.hr || '-'}, Nhiệt độ ${recordData.temp || '-'}, SpO2 ${recordData.spo2 || '-'}%`;
+            }
+            if (recordData.symptoms) extraInfo += `\n- Triệu chứng: ${recordData.symptoms}`;
+            if (recordData.labs) extraInfo += `\n- Cận lâm sàng: ${recordData.labs}`;
+            if (recordData.dynamicFields && recordData.dynamicFields.length > 0) {
+                extraInfo += `\n- Chỉ số chi tiết: ` + recordData.dynamicFields.map(f => `${f.key}: ${f.value} ${f.isAbnormal ? '(Bất thường)' : ''}`).join(', ');
+            }
+            recordsText += `
+--- Lần khám ${index + 1} (${recordData.date}) ---
+- Bệnh viện/Phòng khám: ${recordData.hospital}
+- Chẩn đoán: ${recordData.disease}
+- Phương án điều trị / Thuốc: ${recordData.treatment}${extraInfo}
+`;
+        });
+
+        const prompt = `Bạn là một bác sĩ gia đình tận tâm và chuyên gia phân tích dữ liệu y tế. Dưới đây là toàn bộ lịch sử khám bệnh của bệnh nhân từ trước đến nay, được sắp xếp theo thời gian tăng dần. Hãy phân tích và đưa ra đánh giá xu hướng sức khỏe tổng thể.
+Trình bày bằng định dạng Markdown rõ ràng, dễ đọc.
+*LƯU Ý QUAN TRỌNG VỀ XƯNG HÔ:* Tên bệnh nhân có thể là các danh xưng trong gia đình (Ba, Mẹ, Vợ, Chồng, Anh, Em...). Tuyệt đối không tự ý ghép thêm từ "Bác", "Chú", "Cô" vào trước các danh xưng này (Ví dụ: Không gọi là "Bác Ba", "Cô Mẹ"). Hãy xưng là "Bác sĩ" và gọi bệnh nhân là "bạn", hoặc gọi trực tiếp bằng danh xưng gia đình đó một cách lịch sự.
+
+[Thông tin Bệnh nhân]
+- Tên: ${memberProfile.name}
+- Ngày sinh: ${memberProfile.dob}
+- Nhóm máu: ${memberProfile.blood || "Chưa rõ"}
+- Bệnh lý nền: ${memberProfile.conditions || "Không có"}
+
+[Lịch sử khám bệnh]
+${recordsText}
+
+Vui lòng phân tích và xuất Báo cáo Đánh giá Xu hướng Sức khỏe gồm các phần sau:
+1. **Tổng kết chung:** Tóm tắt ngắn gọn tình trạng sức khỏe của bệnh nhân qua các đợt khám (ví dụ: đang tốt lên, giữ nguyên, hay xấu đi).
+2. **Biến động chỉ số:** So sánh sự thay đổi của các chỉ số sinh tồn (Huyết áp, Nhịp tim...) và các chỉ số xét nghiệm (nếu có) qua các lần khám. Nếu có chỉ số nào đang tăng dần/giảm dần, tiến sát hoặc vượt ngưỡng nguy hiểm, hãy nhấn mạnh và giải thích ảnh hưởng của nó đến sức khỏe. Có thể dùng bảng (table markdown) để so sánh các chỉ số nếu thấy cần thiết.
+3. **Phân tích bệnh lý:** Các bệnh lý nào thường xuyên lặp lại hoặc có xu hướng tiến triển? Nguyên nhân có thể do đâu?
+4. **Kế hoạch hành động:** Đưa ra lời khuyên thiết thực về cách theo dõi sức khỏe tại nhà, thay đổi chế độ dinh dưỡng, vận động, và lịch tái khám định kỳ để cải thiện tình hình sức khỏe hiện tại.`;
+
+        const provider = DataManager.getActiveProvider();
+        if (provider === 'openai') {
+            return await this.callOpenAI(prompt);
+        } else if (provider === 'anthropic') {
+            return await this.callAnthropic(prompt);
+        } else {
+            return await this.callGeminiAPI(prompt, null, false);
+        }
+    },
+
     // 3. Tra cứu chuyên sâu về bệnh
     async searchDiseaseInfo(diseaseName) {
         // Lưu ý: đầu vào có thể là một chẩn đoán chính thức ("Trào ngược dạ dày") HOẶC chỉ là
