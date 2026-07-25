@@ -156,7 +156,8 @@ const AIService = {
         };
         
         // Các model dòng o1/o3 của OpenAI không hỗ trợ tùy chỉnh temperature (bắt buộc phải là 1)
-        if (!model.startsWith('o1') && !model.startsWith('o3')) {
+        const lowerModel = model.toLowerCase();
+        if (!lowerModel.startsWith('o1') && !lowerModel.startsWith('o3')) {
             bodyObj.temperature = temperature;
         }
 
