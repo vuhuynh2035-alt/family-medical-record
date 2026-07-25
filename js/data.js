@@ -17,6 +17,8 @@
  */
 const DataManager = {
     // ---- UTILS ----
+    isDataChanged: false,
+
     generateId() {
         return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
     },
@@ -140,6 +142,7 @@ const DataManager = {
             members.push(memberData);
         }
         localStorage.setItem('family_members', JSON.stringify(members));
+        this.isDataChanged = true;
         return memberData;
     },
     deleteMember(id) {
@@ -148,6 +151,7 @@ const DataManager = {
         localStorage.setItem('family_members', JSON.stringify(members));
         // Xóa luôn hồ sơ của người này
         localStorage.removeItem(`family_records_m_${id}`);
+        this.isDataChanged = true;
     },
 
     // ---- MEDICAL RECORDS ----
@@ -169,12 +173,14 @@ const DataManager = {
         records.sort((a, b) => new Date(b.date) - new Date(a.date));
         
         localStorage.setItem(`family_records_m_${memberId}`, JSON.stringify(records));
+        this.isDataChanged = true;
         return recordData;
     },
     deleteRecord(memberId, recordId) {
         let records = this.getRecords(memberId);
         records = records.filter(r => r.id !== recordId);
         localStorage.setItem(`family_records_m_${memberId}`, JSON.stringify(records));
+        this.isDataChanged = true;
     },
 
     // ---- REMINDERS ----
@@ -440,6 +446,96 @@ const ImageStore = {
                     req.onerror = (e) => reject(e.target.error);
                 });
             };
+        });
+    }
+};
+
+// ---- AUTO BACKUP STORE (IndexedDB) ----
+const AutoBackupStore = {
+    dbName: 'MedicalRecordAutoBackupDB',
+    storeName: 'autobackups',
+    db: null,
+
+    init() {
+        return new Promise((resolve, reject) => {
+            if (this.db) { resolve(this.db); return; }
+            const request = indexedDB.open(this.dbName, 1);
+            request.onerror = (e) => reject(e.target.error);
+            request.onsuccess = (e) => {
+                this.db = e.target.result;
+                resolve(this.db);
+            };
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(this.storeName)) {
+                    db.createObjectStore(this.storeName, { keyPath: 'id' });
+                }
+            };
+        });
+    },
+
+    async saveAutoBackup(dataObj) {
+        await this.init();
+        const backups = await this.getAllAutoBackups();
+        
+        const newBackup = {
+            id: Date.now(),
+            dateString: new Date().toLocaleString('vi-VN'),
+            data: dataObj
+        };
+        
+        backups.push(newBackup);
+        backups.sort((a, b) => b.id - a.id); // Mới nhất lên đầu
+        
+        // Giữ tối đa 10 bản, xóa bản cũ
+        const toDelete = backups.slice(10);
+        
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readwrite');
+            const store = transaction.objectStore(this.storeName);
+            
+            // Xóa cũ
+            toDelete.forEach(b => store.delete(b.id));
+            
+            // Lưu mới
+            const req = store.put(newBackup);
+            req.onsuccess = () => resolve();
+            req.onerror = (e) => reject(e.target.error);
+        });
+    },
+
+    async getAllAutoBackups() {
+        await this.init();
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readonly');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.getAll();
+            request.onsuccess = (e) => {
+                const res = e.target.result || [];
+                res.sort((a, b) => b.id - a.id);
+                resolve(res);
+            };
+            request.onerror = (e) => reject(e.target.error);
+        });
+    },
+    
+    async getAutoBackupById(id) {
+        await this.init();
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readonly');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.get(Number(id));
+            request.onsuccess = (e) => resolve(e.target.result);
+            request.onerror = (e) => reject(e.target.error);
+        });
+    },
+
+    async wipeAll() {
+        await this.init();
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readwrite');
+            const store = transaction.objectStore(this.storeName);
+            store.clear().onsuccess = () => resolve();
         });
     }
 };

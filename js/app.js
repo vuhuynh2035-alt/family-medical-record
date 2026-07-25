@@ -877,8 +877,18 @@ function setupEventListeners() {
 
     const btnConfirmExit = document.getElementById('btn-confirm-exit');
     if (btnConfirmExit) {
-        btnConfirmExit.addEventListener('click', () => {
+        btnConfirmExit.addEventListener('click', async () => {
             try {
+                // AUTO BACKUP LOGIC
+                if (DataManager.isDataChanged) {
+                    try {
+                        const exportData = await DataManager.exportData();
+                        await AutoBackupStore.saveAutoBackup(exportData);
+                    } catch (err) {
+                        console.error('Lỗi khi sao lưu tự động:', err);
+                    }
+                }
+
                 // Trick để lừa trình duyệt cho phép đóng tab (hoạt động trên một số trình duyệt)
                 window.open(location.href, '_self', '');
                 window.close();
@@ -906,6 +916,53 @@ function setupEventListeners() {
                 }, 400);
             } catch(e) {
                 console.error(e);
+            }
+        });
+    }
+
+    // Auto Backup UI Logic
+    const btnShowAutoBackups = document.getElementById('btn-show-auto-backups');
+    if (btnShowAutoBackups) {
+        btnShowAutoBackups.addEventListener('click', async () => {
+            try {
+                const backups = await AutoBackupStore.getAllAutoBackups();
+                const listEl = document.getElementById('auto-backup-list');
+                if (backups.length === 0) {
+                    listEl.innerHTML = '<div class="empty-state">Chưa có bản sao lưu tự động nào. Hãy thử thêm dữ liệu và đóng ứng dụng để hệ thống tự động tạo bản sao.</div>';
+                } else {
+                    listEl.innerHTML = backups.map(b => `
+                        <div class="member-card neumorphic-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding: 15px;">
+                            <div>
+                                <div style="font-weight: 500;">Bản sao lưu tự động</div>
+                                <div style="font-size:12px; color:var(--text-muted);">${b.dateString}</div>
+                            </div>
+                            <button class="primary-btn neumorphic-btn btn-restore-auto" data-id="${b.id}" style="padding: 6px 12px; font-size:13px;">Khôi phục</button>
+                        </div>
+                    `).join('');
+                    
+                    listEl.querySelectorAll('.btn-restore-auto').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            const id = e.target.dataset.id;
+                            if (confirm('CẢNH BÁO: Hành động này sẽ GHI ĐÈ toàn bộ dữ liệu hiện tại (bao gồm cài đặt và hồ sơ) bằng bản sao lưu này. Không thể hoàn tác! Bạn có chắc chắn?')) {
+                                try {
+                                    const backup = await AutoBackupStore.getAutoBackupById(id);
+                                    if (backup && backup.data) {
+                                        const success = await DataManager.importData(backup.data);
+                                        if (success) {
+                                            alert('Đã khôi phục dữ liệu thành công!');
+                                            location.reload();
+                                        }
+                                    }
+                                } catch (err) {
+                                    alert('Lỗi khôi phục: ' + err.message);
+                                }
+                            }
+                        });
+                    });
+                }
+                openModal('modal-auto-backup');
+            } catch (err) {
+                alert('Không thể tải lịch sử sao lưu: ' + err.message);
             }
         });
     }

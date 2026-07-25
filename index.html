@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=1.14.18">
+    <link rel="stylesheet" href="css/style.css?v=1.14.19">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
@@ -45,11 +45,11 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=1.14.18"></script>
-    <script defer src="js/ai.js?v=1.14.18"></script>
-    <script defer src="js/components.js?v=1.14.18"></script>
-    <script defer src="js/help.js?v=1.14.18"></script>
-    <script defer src="js/app.js?v=1.14.18"></script>
+    <script defer src="js/data.js?v=1.14.19"></script>
+    <script defer src="js/ai.js?v=1.14.19"></script>
+    <script defer src="js/components.js?v=1.14.19"></script>
+    <script defer src="js/help.js?v=1.14.19"></script>
+    <script defer src="js/app.js?v=1.14.19"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -140,7 +140,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.14.18</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.14.19</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -415,7 +415,13 @@
                         </button>
                     </div>
                     
-                    <input type="file" id="input-import-data" accept=".json" hidden>
+                    <div style="margin-top: 5px;">
+                        <button id="btn-show-auto-backups" class="secondary-btn neumorphic-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <span class="material-symbols-rounded">history</span> Khôi phục từ bản lưu tự động
+                        </button>
+                    </div>
+                    
+                    <input type="file" id="input-import-data" accept=".json, .fhm" hidden>
                 </div>
                 <div class="help-text" style="margin-top: 10px; margin-bottom: 20px; color: var(--danger);">
                     Lưu ý: Khôi phục dữ liệu sẽ ghi đè toàn bộ hồ sơ và cài đặt hiện tại của bạn trên máy này.
@@ -982,6 +988,20 @@
             </div>
             <div class="modal-body" id="workflow-guide-content">
                 <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+    <div id="modal-auto-backup" class="modal-overlay hidden" style="z-index: 9005;">
+        <div class="modal-content neumorphic-panel" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Lịch sử sao lưu tự động</h3>
+                <button type="button" class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Hệ thống tự động lưu lại tối đa 10 bản ghi khi bạn Đóng ứng dụng (nếu có sự thay đổi dữ liệu).</p>
+                <div id="auto-backup-list" style="max-height: 60vh; overflow-y: auto;">
+                    <!-- Injected by JS -->
+                </div>
             </div>
         </div>
     </div>
