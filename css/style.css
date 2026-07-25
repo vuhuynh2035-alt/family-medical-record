@@ -320,11 +320,43 @@ body {
 
 .tab-pane {
     display: none;
+    /* Mặc định nếu click thì dùng fadeIn */
     animation: fadeIn 0.3s ease-out;
 }
 
 .tab-pane.active {
     display: block;
+}
+
+/* 3D Tab Transitions (vuốt ngang) */
+.tab-pane.active.rotate-in-next {
+    animation: rotateInNext 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.tab-pane.active.rotate-in-prev {
+    animation: rotateInPrev 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes rotateInNext {
+    0% {
+        opacity: 0;
+        transform: perspective(1000px) translateX(30px) rotateY(-30deg);
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(1000px) translateX(0) rotateY(0deg);
+    }
+}
+
+@keyframes rotateInPrev {
+    0% {
+        opacity: 0;
+        transform: perspective(1000px) translateX(-30px) rotateY(30deg);
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(1000px) translateX(0) rotateY(0deg);
+    }
 }
 
 /* Profile Tab */

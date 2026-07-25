@@ -1205,7 +1205,9 @@ function setupEventListeners() {
         btn.addEventListener('click', (e) => {
             // Remove active classes
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => {
+                p.classList.remove('active', 'rotate-in-next', 'rotate-in-prev');
+            });
 
             // Add active class
             btn.classList.add('active');
@@ -1217,6 +1219,65 @@ function setupEventListeners() {
             window.scrollTo(0, 0);
         });
     });
+
+    // Xử lý vuốt chuyển tab xoay vòng (3D Carousel effect)
+    const tabContents = document.querySelector('.tab-contents');
+    if (tabContents) {
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let touchStartY = 0;
+        let touchEndY = 0;
+        
+        tabContents.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, {passive: true});
+        
+        tabContents.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleTabSwipe();
+        }, {passive: true});
+        
+        function handleTabSwipe() {
+            const swipeThresholdX = 50; // Quét ít nhất 50px ngang mới tính
+            const swipeThresholdY = 50; // Quét quá 50px dọc thì bỏ qua (chắc là cuộn trang)
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            if (Math.abs(deltaX) > swipeThresholdX && Math.abs(deltaY) < swipeThresholdY) {
+                const tabs = Array.from(document.querySelectorAll('.tab-btn'));
+                if (tabs.length === 0) return;
+                
+                const activeIndex = tabs.findIndex(btn => btn.classList.contains('active'));
+                if (activeIndex === -1) return;
+                
+                let nextIndex = activeIndex;
+                let directionClass = '';
+                
+                if (deltaX < 0) {
+                    // Vuốt sang trái -> Trang tiếp theo
+                    nextIndex = (activeIndex + 1) % tabs.length;
+                    directionClass = 'rotate-in-next';
+                } else {
+                    // Vuốt sang phải -> Trang trước đó
+                    nextIndex = (activeIndex - 1 + tabs.length) % tabs.length;
+                    directionClass = 'rotate-in-prev';
+                }
+                
+                // Chuyển tab
+                tabs[nextIndex].click();
+                
+                // Gắn class hiệu ứng 3D
+                const targetPane = document.getElementById(tabs[nextIndex].dataset.target);
+                if (targetPane) {
+                    // Buộc trình duyệt reflow để chạy lại animation
+                    void targetPane.offsetWidth;
+                    targetPane.classList.add(directionClass);
+                }
+            }
+        }
+    }
 
     // Evaluate Health Trend Action
     document.getElementById('btn-evaluate-trend').addEventListener('click', async () => {
