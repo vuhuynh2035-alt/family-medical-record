@@ -2,21 +2,18 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Ứng dụng quản lý hồ sơ sức khỏe cho cả gia đình: lưu bệnh án, lịch hẹn tái khám và phân tích bằng AI, hoạt động cục bộ trên thiết bị của bạn.">
     <meta name="theme-color" content="#2980b9">
-    <!-- Content-Security-Policy: phòng thủ thêm một lớp chống XSS, giới hạn nguồn script/style/ảnh/
-         kết nối mạng được phép chỉ còn: chính trang này + các CDN/API thực sự được dùng trong app.
-         style-src cần 'unsafe-inline' vì giao diện dùng nhiều thuộc tính style="" nội tuyến;
-         script-src KHÔNG có 'unsafe-inline' — mọi xử lý sự kiện đã chuyển hết sang addEventListener. -->
+    <!-- Cập nhật Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;
+        script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
         font-src 'self' https://fonts.gstatic.com;
         img-src 'self' data: blob: https://ui-avatars.com https://upload.wikimedia.org;
         media-src 'self' https://actions.google.com;
-        connect-src 'self' https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com;
+        connect-src 'self' https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
         object-src 'none';
         base-uri 'self';
         form-action 'self';
@@ -33,7 +30,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=1.14.28">
+    <link rel="stylesheet" href="css/style.css?v=1.14.29">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
@@ -45,11 +42,11 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=1.14.28"></script>
-    <script defer src="js/ai.js?v=1.14.28"></script>
-    <script defer src="js/components.js?v=1.14.28"></script>
-    <script defer src="js/help.js?v=1.14.28"></script>
-    <script defer src="js/app.js?v=1.14.28"></script>
+    <script defer src="js/data.js?v=1.14.29"></script>
+    <script defer src="js/ai.js?v=1.14.29"></script>
+    <script defer src="js/components.js?v=1.14.29"></script>
+    <script defer src="js/help.js?v=1.14.29"></script>
+    <script defer src="js/app.js?v=1.14.29"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -140,7 +137,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.14.28</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.14.29</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -545,9 +542,6 @@
                                         <option value="gpt-4o-mini">gpt-4o-mini</option>
                                     </select>
                                 </div>
-                                <button id="btn-fetch-openai-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
-                                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải
-                                </button>
                             </div>
                         </div>
 
@@ -561,9 +555,6 @@
                                         <option value="claude-3-haiku-20240307">claude-3-haiku</option>
                                     </select>
                                 </div>
-                                <button id="btn-fetch-anthropic-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
-                                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải
-                                </button>
                             </div>
                         </div>
 
