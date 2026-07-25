@@ -228,6 +228,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initDashboard();
     setupEventListeners();
     setupPinLockListeners();
+    
+    // Set timer to automatically check reminders every 60 seconds
+    setInterval(() => {
+        checkReminders();
+    }, 60000);
     updatePinUIState();
     UI.enhanceA11y(document); // Gán aria-label cho các nút chỉ có icon (tĩnh trong index.html)
 
@@ -1443,6 +1448,10 @@ function setupEventListeners() {
     document.getElementById('btn-add-reminder').addEventListener('click', () => {
         document.getElementById('form-reminder').reset();
         document.getElementById('reminder-id').value = '';
+        document.getElementById('reminder-offset1-val').value = '';
+        document.getElementById('reminder-offset1-unit').value = 'minutes';
+        document.getElementById('reminder-offset2-val').value = '';
+        document.getElementById('reminder-offset2-unit').value = 'minutes';
         document.getElementById('modal-reminder-title').innerText = 'Tạo lịch hẹn mới';
         openModal('modal-reminder');
     });
@@ -1450,6 +1459,12 @@ function setupEventListeners() {
     // Dynamic Fields Logic
     document.getElementById('btn-add-dynamic-field').addEventListener('click', () => {
         addDynamicFieldRow();
+    });
+
+    // Bắt sự kiện tắt chuông báo thức
+    document.getElementById('btn-stop-alarm').addEventListener('click', () => {
+        stopLoudBell();
+        document.getElementById('modal-alarm').classList.add('hidden');
     });
 
     document.getElementById('form-reminder').addEventListener('submit', (e) => {
@@ -1462,13 +1477,17 @@ function setupEventListeners() {
             date: document.getElementById('reminder-date').value,
             time: document.getElementById('reminder-time').value,
             note: document.getElementById('reminder-note').value,
-            datetime
+            datetime,
+            offset1_val: document.getElementById('reminder-offset1-val').value,
+            offset1_unit: document.getElementById('reminder-offset1-unit').value,
+            offset2_val: document.getElementById('reminder-offset2-val').value,
+            offset2_unit: document.getElementById('reminder-offset2-unit').value,
+            notified_offsets: {} // Lưu trạng thái đã thông báo cho từng mốc (kể cả mốc 0 là đúng giờ)
         };
         // Nếu ngày giờ (mới) nằm trong tương lai, đảm bảo lịch hẹn được "gỡ" trạng thái đã nhắc
-        // trước đó — quan trọng khi sửa một lịch hẹn cũ đã qua hạn sang một ngày mới, để nó
-        // được nhắc lại đúng hạn thay vì bị coi là "đã qua" mãi mãi.
         if (new Date(datetime) > new Date()) {
             rmData.notified = false;
+            rmData.notified_offsets = {};
         }
         DataManager.saveReminder(rmData);
         closeModal('modal-reminder');
@@ -1722,41 +1741,106 @@ function applyFilters() {
 // --- REMINDERS LOGIC ---
 const ALARM_SOUND_URL = 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg'; 
 
+function getOffsetMs(val, unit) {
+    if (!val || !unit) return 0;
+    const v = parseInt(val);
+    if (isNaN(v) || v <= 0) return 0;
+    if (unit === 'minutes') return v * 60 * 1000;
+    if (unit === 'hours') return v * 60 * 60 * 1000;
+    if (unit === 'days') return v * 24 * 60 * 60 * 1000;
+    if (unit === 'weeks') return v * 7 * 24 * 60 * 60 * 1000;
+    return 0;
+}
+
 function checkReminders() {
     const allReminders = DataManager.getReminders();
     const now = new Date();
-    let hasNewNotification = false;
     let pendingCount = 0;
+    let alarmTriggered = null;
+    let modified = false;
 
     allReminders.forEach(rm => {
         const rmDate = new Date(rm.datetime);
-        if (now >= rmDate) {
-            if (!rm.notified) {
-                hasNewNotification = true;
-                DataManager.markReminderAsNotified(rm.id);
+        const offsets = [
+            { id: 'offset1', ms: getOffsetMs(rm.offset1_val, rm.offset1_unit) },
+            { id: 'offset2', ms: getOffsetMs(rm.offset2_val, rm.offset2_unit) },
+            { id: '0', ms: 0 }
+        ];
+
+        if (!rm.notified_offsets) rm.notified_offsets = {};
+        let hasPending = false;
+        
+        offsets.forEach(offset => {
+            if (offset.ms > 0 || offset.id === '0') {
+                const triggerTime = new Date(rmDate.getTime() - offset.ms);
+                if (now >= triggerTime) {
+                    if (!rm.notified_offsets[offset.id]) {
+                        alarmTriggered = rm;
+                        rm.notified_offsets[offset.id] = true;
+                        modified = true;
+                    }
+                } else {
+                    hasPending = true;
+                }
             }
-        } else {
+        });
+        
+        if (hasPending) {
             pendingCount++;
         }
     });
 
+    if (modified) {
+        localStorage.setItem('family_reminders', JSON.stringify(allReminders));
+    }
+
     UI.updateNotificationBadge(pendingCount);
 
-    if (hasNewNotification) {
-        playLoudBell();
-        alert("Bạn có lịch hẹn / nhắc nhở mới đã đến hạn! Vui lòng bấm vào biểu tượng Chuông ở góc phải để kiểm tra.");
+    if (alarmTriggered) {
+        showAlarmModal(alarmTriggered);
     }
 }
 
+let currentAlarmAudio = null;
+
 function playLoudBell() {
     try {
-        const audio = new Audio(ALARM_SOUND_URL);
-        audio.volume = 1.0;
-        audio.play().catch(e => console.log("Trình duyệt chặn tự động phát âm thanh.", e));
+        if (currentAlarmAudio) {
+            currentAlarmAudio.pause();
+            currentAlarmAudio.currentTime = 0;
+        }
+        currentAlarmAudio = new Audio(ALARM_SOUND_URL);
+        currentAlarmAudio.volume = 1.0;
+        currentAlarmAudio.loop = true; // Lặp liên tục
+        const playPromise = currentAlarmAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => console.log("Trình duyệt chặn tự động phát âm thanh.", e));
+        }
         if (navigator.vibrate) {
             navigator.vibrate([500, 200, 500, 200, 1000]);
         }
     } catch (err) {}
+}
+
+function stopLoudBell() {
+    if (currentAlarmAudio) {
+        currentAlarmAudio.pause();
+        currentAlarmAudio.currentTime = 0;
+        currentAlarmAudio = null;
+    }
+}
+
+function showAlarmModal(rm) {
+    document.getElementById('alarm-title').innerText = rm.title;
+    document.getElementById('alarm-time').innerText = new Date(rm.datetime).toLocaleString('vi-VN');
+    if (rm.note) {
+        document.getElementById('alarm-note-container').style.display = 'block';
+        document.getElementById('alarm-note').innerText = rm.note;
+    } else {
+        document.getElementById('alarm-note-container').style.display = 'none';
+    }
+    document.getElementById('modal-alarm').classList.remove('hidden');
+    playLoudBell();
 }
 
 function openNotifications() {
@@ -1853,6 +1937,10 @@ document.addEventListener('click', (e) => {
     document.getElementById('reminder-date').value = reminder.date || '';
     document.getElementById('reminder-time').value = reminder.time || '';
     document.getElementById('reminder-note').value = reminder.note || '';
+    document.getElementById('reminder-offset1-val').value = reminder.offset1_val || '';
+    document.getElementById('reminder-offset1-unit').value = reminder.offset1_unit || 'minutes';
+    document.getElementById('reminder-offset2-val').value = reminder.offset2_val || '';
+    document.getElementById('reminder-offset2-unit').value = reminder.offset2_unit || 'minutes';
     document.getElementById('modal-reminder-title').innerText = 'Sửa lịch hẹn';
     openModal('modal-reminder');
 });

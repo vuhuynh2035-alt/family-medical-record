@@ -233,6 +233,45 @@
                             <input type="time" id="reminder-time" class="neumorphic-input" required>
                         </div>
                     </div>
+                    
+                    <div class="form-group" style="background: rgba(41, 128, 185, 0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                        <label style="color: var(--primary-blue); display: flex; align-items: center; gap: 5px; margin-bottom: 10px;">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">notifications_active</span> Nhắc nhở trước hẹn (tùy chọn)
+                        </label>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Hệ thống mặc định sẽ nhắc nhở đúng giờ hẹn. Bạn có thể cài đặt thêm 2 lần nhắc nhở trước thời gian đó.</p>
+                        
+                        <div class="form-group-row" style="margin-bottom: 10px;">
+                            <div class="form-group" style="flex: 0 0 45%;">
+                                <label style="font-size: 13px;">Nhắc lần 1 (Số)</label>
+                                <input type="number" id="reminder-offset1-val" class="neumorphic-input" min="1" placeholder="Ví dụ: 15">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-size: 13px;">Đơn vị</label>
+                                <select id="reminder-offset1-unit" class="neumorphic-input">
+                                    <option value="minutes">Phút</option>
+                                    <option value="hours">Giờ</option>
+                                    <option value="days">Ngày</option>
+                                    <option value="weeks">Tuần</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group-row" style="margin-bottom: 0;">
+                            <div class="form-group" style="flex: 0 0 45%;">
+                                <label style="font-size: 13px;">Nhắc lần 2 (Số)</label>
+                                <input type="number" id="reminder-offset2-val" class="neumorphic-input" min="1" placeholder="Ví dụ: 1">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-size: 13px;">Đơn vị</label>
+                                <select id="reminder-offset2-unit" class="neumorphic-input">
+                                    <option value="minutes">Phút</option>
+                                    <option value="hours">Giờ</option>
+                                    <option value="days">Ngày</option>
+                                    <option value="weeks">Tuần</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Ghi chú (không bắt buộc)</label>
                         <textarea id="reminder-note" class="neumorphic-input" rows="2" placeholder="VD: Nhịn ăn trước khi xét nghiệm, mang theo sổ khám..."></textarea>
@@ -242,6 +281,28 @@
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
                 <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
                 <button type="submit" form="form-reminder" class="primary-btn neumorphic-btn">Lưu hẹn</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alarm Modal -->
+    <div id="modal-alarm" class="modal-overlay hidden" role="dialog" aria-modal="true" style="z-index: 10000; background: rgba(0,0,0,0.8);">
+        <div class="modal-content neumorphic-modal" style="text-align: center; border: 2px solid var(--primary-blue); box-shadow: 0 0 30px rgba(41, 128, 185, 0.5);">
+            <div class="modal-header" style="justify-content: center; background: rgba(41, 128, 185, 0.1); border-radius: 16px 16px 0 0;">
+                <h3 style="color: var(--primary-blue); display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0; font-size: 24px;">
+                    <span class="material-symbols-rounded" style="font-size: 32px; animation: ring 1s infinite;">notifications_active</span>
+                    ĐẾN HẠN NHẮC NHỞ!
+                </h3>
+            </div>
+            <div class="modal-body" style="padding: 30px 20px;">
+                <h2 id="alarm-title" style="margin-bottom: 15px; color: var(--text-dark);">Uống Thuốc</h2>
+                <p id="alarm-time" style="font-size: 18px; color: var(--primary-blue); font-weight: bold; margin-bottom: 15px;">14:30 - 25/10/2023</p>
+                <div id="alarm-note-container" style="background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none;">
+                    <p id="alarm-note" style="margin: 0; color: var(--text-muted); font-size: 15px;"></p>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: center;">
+                <button id="btn-stop-alarm" class="primary-btn neumorphic-btn" style="padding: 15px 40px; font-size: 18px; width: 100%;">TẮT CHUÔNG & ĐÓNG</button>
             </div>
         </div>
     </div>
