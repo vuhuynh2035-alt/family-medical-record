@@ -169,6 +169,7 @@ async function loginBiometric() {
         console.error(err);
         alert("Xác thực sinh trắc học thất bại: " + err.message);
     }
+}
 
 function showLockScreen() {
     const lockScreen = document.getElementById('lock-screen');
