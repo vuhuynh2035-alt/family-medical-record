@@ -35,6 +35,21 @@
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css?v=1.14.13">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+
+    <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DOMPurify: khử trùng (sanitize) HTML sinh ra từ Markdown của AI trước khi chèn vào trang -->
+    <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <!-- Local scripts -->
+    <script defer src="js/data.js?v=1.14.13"></script>
+    <script defer src="js/ai.js?v=1.14.13"></script>
+    <script defer src="js/components.js?v=1.14.13"></script>
+    <script defer src="js/help.js?v=1.14.13"></script>
+    <script defer src="js/app.js?v=1.14.13"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -45,10 +60,16 @@
             <h2>Nhập mã PIN</h2>
             <p class="help-text">Hồ sơ sức khỏe gia đình đã được khóa để bảo vệ riêng tư.</p>
             <form id="form-unlock">
-                <input type="password" id="input-unlock-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••" aria-label="Nhập mã PIN">
+                <input type="password" id="input-unlock-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" minlength="4" autocomplete="off" placeholder="••••" aria-label="Nhập mã PIN">
                 <div id="unlock-error" class="lock-error hidden" role="alert">Mã PIN không đúng, vui lòng thử lại.</div>
                 <button type="submit" class="primary-btn neumorphic-btn magic-btn" style="width:100%; justify-content:center; margin-top:15px;">Mở khóa</button>
             </form>
+            <div id="biometric-login-container" class="hidden" style="margin-top: 15px; text-align: center;">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Hoặc</p>
+                <button type="button" id="btn-biometric-login" class="secondary-btn neumorphic-btn" style="width:100%; justify-content:center; border-radius: 25px; padding: 12px;">
+                    <span class="material-symbols-rounded">fingerprint</span> Đăng nhập bằng Sinh trắc học
+                </button>
+            </div>
         </div>
     </div>
 
@@ -57,15 +78,15 @@
         <div class="lock-box neumorphic-modal" style="width: 90%; max-width: 400px; text-align: center;">
             <div class="lock-icon" style="background: var(--primary-blue); color: white;"><span class="material-symbols-rounded">security</span></div>
             <h2>Bảo mật dữ liệu</h2>
-            <p class="help-text">Để đảm bảo an toàn cho dữ liệu y tế, vui lòng tạo mã PIN 6 số. Mã này được dùng để mở ứng dụng và xác nhận khi xoá dữ liệu.</p>
+            <p class="help-text">Để đảm bảo an toàn cho dữ liệu y tế, vui lòng tạo mã PIN (từ 4-6 số). Mã này được dùng để mở ứng dụng và xác nhận khi xoá dữ liệu.</p>
             <form id="form-forced-pin-setup" style="margin-top: 20px;">
                 <div class="form-group" style="text-align: left;">
-                    <label>Mã PIN (6 chữ số)</label>
-                    <input type="password" id="input-forced-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••••" required>
+                    <label>Mã PIN (4-6 chữ số)</label>
+                    <input type="password" id="input-forced-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" minlength="4" autocomplete="off" placeholder="••••" required>
                 </div>
                 <div class="form-group" style="text-align: left; margin-top: 15px;">
                     <label>Xác nhận lại mã PIN</label>
-                    <input type="password" id="input-forced-confirm-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••••" required>
+                    <input type="password" id="input-forced-confirm-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" minlength="4" autocomplete="off" placeholder="••••" required>
                 </div>
                 <div id="forced-pin-error" class="lock-error hidden" role="alert" style="margin-top: 15px;"></div>
                 <button type="submit" class="primary-btn neumorphic-btn magic-btn" style="width:100%; justify-content:center; margin-top:15px;">Tạo mã PIN</button>
@@ -82,7 +103,7 @@
             <div class="modal-body">
                 <p style="margin-bottom: 15px;">Vui lòng nhập mã PIN để xác nhận thao tác này.</p>
                 <form id="form-confirm-pin">
-                    <input type="password" id="input-confirm-action-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••••" required>
+                    <input type="password" id="input-confirm-action-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" minlength="4" autocomplete="off" placeholder="••••" required>
                     <div id="confirm-pin-error" class="lock-error hidden" role="alert" style="margin-top: 10px;"></div>
                     <div style="display: flex; gap: 15px; margin-top: 15px;">
                         <button type="button" class="secondary-btn neumorphic-btn close-modal" style="flex: 1; justify-content: center;">Quay lại</button>
@@ -420,11 +441,11 @@
                 <div id="pin-setup-form" class="hidden" style="margin-top: 15px;">
                     <div class="form-group">
                         <label>Mã PIN mới (4-6 chữ số)</label>
-                        <input type="password" id="input-new-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••" autocomplete="off">
+                        <input type="password" id="input-new-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" minlength="4" placeholder="••••" autocomplete="off">
                     </div>
                     <div class="form-group">
                         <label>Nhập lại mã PIN</label>
-                        <input type="password" id="input-confirm-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••" autocomplete="off">
+                        <input type="password" id="input-confirm-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" minlength="4" placeholder="••••" autocomplete="off">
                     </div>
                     <div style="display:flex; gap:10px;">
                         <button type="button" id="btn-save-pin" class="primary-btn neumorphic-btn" style="flex:1; justify-content:center;">Lưu mã PIN</button>
@@ -433,6 +454,24 @@
                 </div>
 
                 <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
+
+                <div id="biometric-settings-container" class="hidden">
+                    <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">fingerprint</span> Đăng nhập bằng Sinh trắc học</h4>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                        Mở khóa ứng dụng nhanh chóng bằng Vân tay hoặc Khuôn mặt (yêu cầu thiết bị có hỗ trợ).
+                    </p>
+                    <div id="biometric-status-off">
+                        <button type="button" id="btn-enable-biometric" class="secondary-btn neumorphic-btn" style="width:100%; justify-content:center;">
+                            <span class="material-symbols-rounded">fingerprint</span> Bật Sinh trắc học
+                        </button>
+                    </div>
+                    <div id="biometric-status-on" class="hidden">
+                        <button type="button" id="btn-disable-biometric" class="neumorphic-btn danger" style="width:100%; justify-content:center; background:#fff1f0; border:1px solid #ffccc7;">
+                            Tắt Sinh trắc học
+                        </button>
+                    </div>
+                    <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
+                </div>
 
                 <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">smart_toy</span> Tùy chỉnh AI chuyên biệt</h4>
                 <p class="modal-desc" style="margin-bottom: 20px;">Bạn có thể chọn nhà cung cấp AI chuyên gia khác nhau cho từng tính năng.</p>
@@ -915,14 +954,7 @@
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- DOMPurify: khử trùng (sanitize) HTML sinh ra từ Markdown của AI trước khi chèn vào trang,
-         phòng chống XSS nếu nội dung AI trả về (hoặc bị can thiệp giữa đường truyền) chứa mã độc. -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Scripts đã được chuyển lên thẻ <head> và thêm thuộc tính defer để tối ưu tốc độ load -->
     <!-- Lưu ý: KHÔNG đặt pdfjsLib.GlobalWorkerOptions.workerSrc = '...' bằng <script> nội tuyến
          (inline) ở đây — trang này dùng Content-Security-Policy nghiêm ngặt không cho phép chạy
          script nội tuyến (script-src không có 'unsafe-inline', xem thẻ <meta http-equiv="Content-
@@ -949,11 +981,5 @@
             </div>
         </div>
     </div>
-
-    <script src="js/data.js?v=1.14.13"></script>
-    <script src="js/ai.js?v=1.14.13"></script>
-    <script src="js/components.js?v=1.14.13"></script>
-    <script src="js/help.js?v=1.14.13"></script>
-    <script src="js/app.js?v=1.14.13"></script>
 </body>
 </html>

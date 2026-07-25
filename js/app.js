@@ -60,7 +60,115 @@ function updatePinUIState() {
     const statusOff = document.getElementById('pin-status-off');
     if (statusOn) statusOn.classList.toggle('hidden', !pinOn);
     if (statusOff) statusOff.classList.toggle('hidden', pinOn);
+
+    // Biometric UI Update
+    if (window.PublicKeyCredential) {
+        document.getElementById('biometric-settings-container').classList.remove('hidden');
+        const biometricOn = !!settings.biometricCredentialId;
+        document.getElementById('biometric-status-on').classList.toggle('hidden', !biometricOn);
+        document.getElementById('biometric-status-off').classList.toggle('hidden', biometricOn);
+        
+        const bioLoginContainer = document.getElementById('biometric-login-container');
+        if (bioLoginContainer) {
+            bioLoginContainer.classList.toggle('hidden', !biometricOn || !pinOn);
+        }
+    }
 }
+
+// WebAuthn Helpers
+function bufferToBase64url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let str = '';
+    for (let charCode of bytes) {
+        str += String.fromCharCode(charCode);
+    }
+    const base64String = btoa(str);
+    return base64String.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+function base64urlToBuffer(base64url) {
+    const padding = '='.repeat((4 - base64url.length % 4) % 4);
+    const base64 = (base64url + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray.buffer;
+}
+
+async function registerBiometric() {
+    if (!window.PublicKeyCredential) {
+        alert("Trình duyệt hoặc thiết bị của bạn không hỗ trợ sinh trắc học.");
+        return;
+    }
+    try {
+        const challenge = crypto.getRandomValues(new Uint8Array(32));
+        const userId = crypto.getRandomValues(new Uint8Array(16));
+        
+        const createCredentialOptions = {
+            publicKey: {
+                challenge: challenge,
+                rp: { name: "Family Medical Record" },
+                user: {
+                    id: userId,
+                    name: "user",
+                    displayName: "Chủ sở hữu thiết bị"
+                },
+                pubKeyCredParams: [
+                    { alg: -7, type: "public-key" },
+                    { alg: -257, type: "public-key" }
+                ],
+                authenticatorSelection: {
+                    authenticatorAttachment: "platform",
+                    userVerification: "required"
+                },
+                timeout: 60000
+            }
+        };
+
+        const credential = await navigator.credentials.create(createCredentialOptions);
+        const credentialId = bufferToBase64url(credential.rawId);
+        
+        DataManager.saveSettings({ biometricCredentialId: credentialId });
+        updatePinUIState();
+        showToast("Đã bật sinh trắc học thành công!");
+    } catch (err) {
+        console.error(err);
+        alert("Không thể thiết lập sinh trắc học (có thể bạn đã hủy hoặc thiết bị không hỗ trợ): " + err.message);
+    }
+}
+
+async function loginBiometric() {
+    const settings = DataManager.getSettings();
+    const credId = settings.biometricCredentialId;
+    if (!credId || !window.PublicKeyCredential) return;
+
+    try {
+        const challenge = crypto.getRandomValues(new Uint8Array(32));
+        const rawId = base64urlToBuffer(credId);
+        
+        const getCredentialOptions = {
+            publicKey: {
+                challenge: challenge,
+                allowCredentials: [{
+                    id: rawId,
+                    type: 'public-key'
+                }],
+                userVerification: "required",
+                timeout: 60000
+            }
+        };
+
+        const assertion = await navigator.credentials.get(getCredentialOptions);
+        if (assertion) {
+            unlockApp();
+            showToast("Đăng nhập bằng sinh trắc học thành công!");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Xác thực sinh trắc học thất bại: " + err.message);
+    }
 
 function showLockScreen() {
     const lockScreen = document.getElementById('lock-screen');
@@ -155,8 +263,8 @@ function setupPinLockListeners() {
         const confirmPin = document.getElementById('input-forced-confirm-pin').value.trim();
         const errorEl = document.getElementById('forced-pin-error');
         
-        if (!/^\d{6}$/.test(pin)) {
-            errorEl.innerText = 'Mã PIN phải gồm đúng 6 chữ số.';
+        if (!/^\d{4,6}$/.test(pin)) {
+            errorEl.innerText = 'Mã PIN phải gồm từ 4 đến 6 chữ số.';
             errorEl.classList.remove('hidden');
             return;
         }
@@ -178,6 +286,31 @@ function setupPinLockListeners() {
             alert(err.message);
         }
     });
+
+    const btnEnableBiometric = document.getElementById('btn-enable-biometric');
+    if (btnEnableBiometric) {
+        btnEnableBiometric.addEventListener('click', () => {
+            registerBiometric();
+        });
+    }
+
+    const btnDisableBiometric = document.getElementById('btn-disable-biometric');
+    if (btnDisableBiometric) {
+        btnDisableBiometric.addEventListener('click', () => {
+            if (confirm('Bạn có chắc chắn muốn tắt tính năng đăng nhập bằng Sinh trắc học?')) {
+                DataManager.saveSettings({ biometricCredentialId: null });
+                updatePinUIState();
+                showToast('Đã tắt Sinh trắc học.');
+            }
+        });
+    }
+
+    const btnBiometricLogin = document.getElementById('btn-biometric-login');
+    if (btnBiometricLogin) {
+        btnBiometricLogin.addEventListener('click', () => {
+            loginBiometric();
+        });
+    }
 }
 
 // PWA Service Worker Registration
