@@ -139,7 +139,7 @@ async function registerBiometric() {
     }
 }
 
-async function loginBiometric() {
+async function loginBiometric(silentFail = false) {
     const settings = DataManager.getSettings();
     const credId = settings.biometricCredentialId;
     if (!credId || !window.PublicKeyCredential) return;
@@ -167,7 +167,9 @@ async function loginBiometric() {
         }
     } catch (err) {
         console.error(err);
-        alert("Xác thực sinh trắc học thất bại: " + err.message);
+        if (!silentFail) {
+            alert("Xác thực sinh trắc học thất bại: " + err.message);
+        }
     }
 }
 
@@ -177,7 +179,14 @@ function showLockScreen() {
     document.getElementById('unlock-error').classList.add('hidden');
     const input = document.getElementById('input-unlock-pin');
     input.value = '';
-    setTimeout(() => input.focus(), 50);
+    
+    const settings = DataManager.getSettings();
+    if (settings.biometricCredentialId && window.PublicKeyCredential) {
+        // Tự động yêu cầu sinh trắc học thay vì chờ bấm nút
+        loginBiometric(true);
+    } else {
+        setTimeout(() => input.focus(), 50);
+    }
 }
 
 /** Ẩn màn hình khóa và tiếp tục các bước khởi tạo vốn bị trì hoãn khi app đang khóa. */
@@ -188,10 +197,21 @@ function unlockApp() {
 }
 
 function showPinSetupForm() {
+    const settings = DataManager.getSettings();
+    const isChange = !!(settings.pinEnabled && settings.pinHash);
+    const groupOldPin = document.getElementById('group-old-pin');
+    if (groupOldPin) groupOldPin.classList.toggle('hidden', !isChange);
+    
     document.getElementById('pin-setup-form').classList.remove('hidden');
+    document.getElementById('input-old-pin').value = '';
     document.getElementById('input-new-pin').value = '';
     document.getElementById('input-confirm-pin').value = '';
-    document.getElementById('input-new-pin').focus();
+    
+    if (isChange) {
+        setTimeout(() => document.getElementById('input-old-pin').focus(), 50);
+    } else {
+        setTimeout(() => document.getElementById('input-new-pin').focus(), 50);
+    }
 }
 
 function hidePinSetupForm() {
@@ -228,6 +248,18 @@ function setupPinLockListeners() {
     document.getElementById('btn-cancel-pin-setup').addEventListener('click', () => hidePinSetupForm());
 
     document.getElementById('btn-save-pin').addEventListener('click', async () => {
+        const settings = DataManager.getSettings();
+        const isChange = !!(settings.pinEnabled && settings.pinHash);
+        
+        if (isChange) {
+            const oldPin = document.getElementById('input-old-pin').value.trim();
+            const oldHash = await DataManager.sha256Hex(oldPin);
+            if (oldHash !== settings.pinHash) {
+                alert('Mã PIN cũ không chính xác!');
+                return;
+            }
+        }
+        
         const pin = document.getElementById('input-new-pin').value.trim();
         const confirmPin = document.getElementById('input-confirm-pin').value.trim();
 
@@ -244,7 +276,7 @@ function setupPinLockListeners() {
             DataManager.saveSettings({ pinEnabled: true, pinHash: hash });
             hidePinSetupForm();
             updatePinUIState();
-            showToast('Đã bật khóa PIN thành công.');
+            showToast('Đã lưu mã PIN thành công.');
         } catch (err) {
             alert(err.message);
         }
