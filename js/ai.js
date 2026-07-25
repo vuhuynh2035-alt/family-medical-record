@@ -145,31 +145,43 @@ const AIService = {
     async callOpenAI(prompt, temperature = 0.3) {
         const apiKey = DataManager.getOpenAIApiKey();
         if (!apiKey) throw new Error("Vui lòng thiết lập OpenAI API Key trong Cài đặt.");
-        // Model có thể được người dùng ghi đè trong Cài đặt (xem DataManager.getOpenAIModel) —
-        // OpenAI cũng thường xuyên ra bản mới, mã nguồn để mặc định "gpt-4o" nhưng khuyến khích
-        // người dùng tự cập nhật tên model mới hơn khi có, thay vì phải chờ bản cập nhật ứng dụng.
         const model = DataManager.getOpenAIModel();
         
-        const bodyObj = {
-            model: model,
+        let bodyObj = {
+            model: model.trim(),
             messages: [{ role: "user", content: prompt }]
         };
         
-        // Các model dòng o1/o3 của OpenAI không hỗ trợ tùy chỉnh temperature (bắt buộc phải là 1)
-        const lowerModel = model.toLowerCase();
+        // Các model dòng o1/o3 của OpenAI không hỗ trợ tùy chỉnh temperature
+        const lowerModel = bodyObj.model.toLowerCase();
         if (!lowerModel.startsWith('o1') && !lowerModel.startsWith('o3')) {
             bodyObj.temperature = temperature;
         }
 
-        const response = await this._fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
-            },
-            body: JSON.stringify(bodyObj)
-        });
-        const data = await response.json();
+        const callApi = async (bodyPayload) => {
+            const response = await this._fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(bodyPayload)
+            });
+            const data = await response.json();
+            return { response, data };
+        };
+
+        let { response, data } = await callApi(bodyObj);
+
+        // Fallback tự động nếu API từ chối tham số temperature (ví dụ model là o1 nhưng tên bị đặt khác đi hoặc API thay đổi chính sách)
+        if (!response.ok && data.error && data.error.message && data.error.message.includes('temperature') && data.error.message.includes('supported')) {
+            console.warn("OpenAI API rejected the temperature parameter. Retrying without temperature...");
+            delete bodyObj.temperature;
+            const retry = await callApi(bodyObj);
+            response = retry.response;
+            data = retry.data;
+        }
+
         if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi OpenAI API.");
         return data.choices[0].message.content;
     },
