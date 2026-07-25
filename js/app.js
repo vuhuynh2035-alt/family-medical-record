@@ -845,21 +845,32 @@ function setupEventListeners() {
     const btnConfirmExit = document.getElementById('btn-confirm-exit');
     if (btnConfirmExit) {
         btnConfirmExit.addEventListener('click', () => {
-            // Thử đóng cửa sổ bằng window.close
             try {
+                // Trick để lừa trình duyệt cho phép đóng tab (hoạt động trên một số trình duyệt)
+                window.open(location.href, '_self', '');
+                window.close();
+                
+                // Dành cho PWA hoặc môi trường đặc biệt
                 if (window.electron) {
                     window.close();
                 } else if (navigator.app && navigator.app.exitApp) {
-                    navigator.app.exitApp(); // Cordova/PhoneGap
-                } else {
-                    window.close();
+                    navigator.app.exitApp();
                 }
                 
-                // Nếu trình duyệt chặn window.close() (thường thấy khi không phải là tab do script mở)
+                // Nếu trình duyệt vẫn chặn window.close() (đặc biệt là trên Cloud/Web)
                 setTimeout(() => {
-                    // Fallback: điều hướng về about:blank hoặc một thông báo
-                    document.body.innerHTML = '<div style="display:flex; height:100vh; align-items:center; justify-content:center; flex-direction:column; background:#f0f2f5; font-family:sans-serif;"><h2>Đã thoát chương trình.</h2><p>Bạn có thể đóng tab này.</p></div>';
-                }, 300);
+                    // Dọn dẹp DOM và hiển thị thông báo thoát an toàn đẹp mắt
+                    document.body.innerHTML = `
+                        <div style="display:flex; height:100vh; align-items:center; justify-content:center; flex-direction:column; background:var(--bg-body, #f0f2f5); font-family:'Outfit', sans-serif; color:var(--text-dark, #2d3436); text-align:center; padding: 20px;">
+                            <span class="material-symbols-rounded" style="font-size: 64px; color: var(--primary-blue, #2980b9); margin-bottom: 20px;">check_circle</span>
+                            <h2 style="margin-bottom: 10px; font-weight: 600;">Đã thoát chương trình an toàn</h2>
+                            <p style="color: var(--text-muted, #636e72); margin-bottom: 30px; font-size: 15px;">Dữ liệu đã được lưu trữ cục bộ. Bạn có thể đóng thẻ trình duyệt này.</p>
+                            <button onclick="window.close()" style="padding: 12px 24px; border: none; border-radius: 25px; background: var(--primary-blue, #2980b9); color: white; font-family: inherit; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(41,128,185,0.3);">
+                                Đóng trang (hoặc bấm Ctrl + W)
+                            </button>
+                        </div>
+                    `;
+                }, 400);
             } catch(e) {
                 console.error(e);
             }
