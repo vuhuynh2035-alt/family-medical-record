@@ -2184,7 +2184,7 @@ function applyFilters() {
 }
 
 // --- REMINDERS LOGIC ---
-const ALARM_SOUND_URL = 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg'; 
+const ALARM_SOUND_URL = 'https://actions.google.com/sounds/v1/alarms/mechanical_clock_ring.ogg';
 
 function getOffsetMs(val, unit) {
     if (!val || !unit) return 0;
@@ -2247,6 +2247,7 @@ function checkReminders() {
 }
 
 let currentAlarmAudio = null;
+let vibrationInterval = null;
 
 function playLoudBell() {
     try {
@@ -2254,6 +2255,10 @@ function playLoudBell() {
             currentAlarmAudio.pause();
             currentAlarmAudio.currentTime = 0;
         }
+        if (vibrationInterval) {
+            clearInterval(vibrationInterval);
+        }
+        
         currentAlarmAudio = new Audio(ALARM_SOUND_URL);
         currentAlarmAudio.volume = 1.0;
         currentAlarmAudio.loop = true; // Lặp liên tục
@@ -2262,7 +2267,12 @@ function playLoudBell() {
             playPromise.catch(e => console.log("Trình duyệt chặn tự động phát âm thanh.", e));
         }
         if (navigator.vibrate) {
-            navigator.vibrate([500, 200, 500, 200, 1000]);
+            // Rung ngay lập tức
+            navigator.vibrate([1000, 500, 1000, 500]);
+            // Lặp lại việc rung mỗi 3 giây
+            vibrationInterval = setInterval(() => {
+                navigator.vibrate([1000, 500, 1000, 500]);
+            }, 3000);
         }
     } catch (err) {}
 }
@@ -2272,6 +2282,13 @@ function stopLoudBell() {
         currentAlarmAudio.pause();
         currentAlarmAudio.currentTime = 0;
         currentAlarmAudio = null;
+    }
+    if (vibrationInterval) {
+        clearInterval(vibrationInterval);
+        vibrationInterval = null;
+    }
+    if (navigator.vibrate) {
+        navigator.vibrate(0); // Dừng rung ngay lập tức
     }
 }
 
