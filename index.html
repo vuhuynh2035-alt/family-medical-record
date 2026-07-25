@@ -49,7 +49,63 @@
                 <div id="unlock-error" class="lock-error hidden" role="alert">Mã PIN không đúng, vui lòng thử lại.</div>
                 <button type="submit" class="primary-btn neumorphic-btn magic-btn" style="width:100%; justify-content:center; margin-top:15px;">Mở khóa</button>
             </form>
-            <button type="button" id="btn-forgot-pin" class="lock-forgot-link">Quên mã PIN?</button>
+        </div>
+    </div>
+
+    <!-- Màn hình tạo mã PIN bắt buộc lần đầu -->
+    <div id="forced-pin-setup-screen" class="hidden" role="dialog" aria-modal="true" aria-label="Thiết lập mã PIN lần đầu" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: var(--bg-body); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div class="lock-box neumorphic-modal" style="width: 90%; max-width: 400px; text-align: center;">
+            <div class="lock-icon" style="background: var(--primary-blue); color: white;"><span class="material-symbols-rounded">security</span></div>
+            <h2>Bảo mật dữ liệu</h2>
+            <p class="help-text">Để đảm bảo an toàn cho dữ liệu y tế, vui lòng tạo mã PIN 6 số. Mã này được dùng để mở ứng dụng và xác nhận khi xoá dữ liệu.</p>
+            <form id="form-forced-pin-setup" style="margin-top: 20px;">
+                <div class="form-group" style="text-align: left;">
+                    <label>Mã PIN (6 chữ số)</label>
+                    <input type="password" id="input-forced-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••••" required>
+                </div>
+                <div class="form-group" style="text-align: left; margin-top: 15px;">
+                    <label>Xác nhận lại mã PIN</label>
+                    <input type="password" id="input-forced-confirm-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••••" required>
+                </div>
+                <div id="forced-pin-error" class="lock-error hidden" role="alert" style="margin-top: 15px;"></div>
+                <button type="submit" class="primary-btn neumorphic-btn magic-btn" style="width:100%; justify-content:center; margin-top:15px;">Tạo mã PIN</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal xác nhận mã PIN (Dùng cho xoá dữ liệu) -->
+    <div id="modal-confirm-pin" class="modal-overlay hidden" style="z-index: 9999;">
+        <div class="modal-content neumorphic-modal" style="max-width: 350px;">
+            <div class="modal-header">
+                <h3>Xác nhận Mã PIN</h3>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 15px;">Vui lòng nhập mã PIN để xác nhận thao tác này.</p>
+                <form id="form-confirm-pin">
+                    <input type="password" id="input-confirm-action-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••••" required>
+                    <div id="confirm-pin-error" class="lock-error hidden" role="alert" style="margin-top: 10px;"></div>
+                    <div style="display: flex; gap: 15px; margin-top: 15px;">
+                        <button type="button" class="secondary-btn neumorphic-btn close-modal" style="flex: 1; justify-content: center;">Quay lại</button>
+                        <button type="submit" class="primary-btn neumorphic-btn danger" style="flex: 1; justify-content: center;">Xác nhận</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal xác nhận thoát chương trình -->
+    <div id="modal-exit-app" class="modal-overlay hidden" style="z-index: 9999;">
+        <div class="modal-content neumorphic-modal" style="max-width: 350px;">
+            <div class="modal-header">
+                <h3>Đóng chương trình</h3>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 25px; text-align: center; color: var(--text-color);">Bạn có chắc chắn muốn đóng chương trình không?</p>
+                <div style="display: flex; gap: 15px;">
+                    <button type="button" class="secondary-btn neumorphic-btn close-modal" style="flex: 1; justify-content: center;">Quay lại</button>
+                    <button id="btn-confirm-exit" type="button" class="primary-btn neumorphic-btn danger" style="flex: 1; justify-content: center; background: #e74c3c; color: white;">Đồng ý</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -70,9 +126,7 @@
                     <button id="btn-install-app" class="icon-btn header-btn hidden" title="Cài đặt Ứng dụng">
                         <span class="material-symbols-rounded">install_mobile</span>
                     </button>
-                    <button id="btn-lock-now" class="icon-btn header-btn hidden" title="Khóa màn hình">
-                        <span class="material-symbols-rounded">lock</span>
-                    </button>
+
                     <button id="btn-notifications" class="icon-btn header-btn" title="Nhắc nhở">
                         <span class="material-symbols-rounded">notifications</span>
                         <span id="notification-badge" class="badge hidden"></span>
@@ -82,6 +136,9 @@
                     </button>
                     <button id="btn-settings" class="icon-btn header-btn" title="Cài đặt">
                         <span class="material-symbols-rounded">settings</span>
+                    </button>
+                    <button id="btn-exit-app" class="icon-btn header-btn" title="Đóng chương trình">
+                        <span class="material-symbols-rounded" style="color: #e74c3c;">power_settings_new</span>
                     </button>
                 </div>
             </div>
@@ -113,7 +170,10 @@
                     </button>
                     <div class="member-header-info">
                         <img id="detail-member-avatar" src="" alt="" class="small-avatar">
-                        <h2 id="current-member-name">Tên thành viên</h2>
+                        <h2 id="current-member-name">
+                            <span class="name-desktop">Tên thành viên</span>
+                            <span class="name-mobile">Nickname</span>
+                        </h2>
                     </div>
                     <div class="header-actions">
                         <button id="btn-edit-member" class="icon-btn neumorphic-btn" title="Sửa thông tin" data-help-title="Sửa thông tin" data-help-desc="Chỉnh sửa hoặc xóa hồ sơ thành viên này" data-help-pos="left">
@@ -124,8 +184,8 @@
 
                 <!-- Tabs -->
                 <div class="tabs-container neumorphic-panel">
-                    <button class="tab-btn active" data-target="tab-profile" data-help-title="Hồ Sơ" data-help-desc="Xem thông tin cá nhân và sức khỏe chung">Hồ Sơ</button>
-                    <button class="tab-btn" data-target="tab-history" data-help-title="Lịch sử khám" data-help-desc="Xem danh sách các lần đi khám bệnh">Lịch sử khám</button>
+                    <button class="tab-btn active" data-target="tab-profile" data-help-title="Thông tin chung" data-help-desc="Xem thông tin cá nhân và sức khỏe chung">Thông tin chung</button>
+                    <button class="tab-btn" data-target="tab-history" data-help-title="Hồ sơ" data-help-desc="Xem danh sách các lần đi khám bệnh">Hồ sơ</button>
                     <button class="tab-btn" data-target="tab-reminders" data-help-title="Lịch hẹn" data-help-desc="Đặt lời nhắc đi tái khám hoặc tiêm chủng">Lịch hẹn</button>
                     <button class="tab-btn" data-target="tab-stats" data-help-title="Thống kê" data-help-desc="Xem biểu đồ số lần đi khám trong năm">Thống kê</button>
                 </div>
@@ -139,8 +199,8 @@
 
                     <!-- History Tab -->
                     <div id="tab-history" class="tab-pane">
-                        <div class="history-controls neumorphic-panel">
-                            <div class="search-filters">
+                        <div class="history-controls neumorphic-panel" style="flex-direction: column;">
+                            <div class="search-filters" style="flex-wrap: nowrap; width: 100%;">
                                 <input type="text" id="search-history" placeholder="Tìm tên bệnh, bác sĩ, bệnh viện, triệu chứng..." class="neumorphic-input">
                                 <select id="filter-type" class="neumorphic-input">
                                     <option value="all">Tất cả</option>
@@ -148,17 +208,17 @@
                                 </select>
                                 <input type="month" id="filter-month" class="neumorphic-input">
                             </div>
-                            <button id="btn-add-record" class="primary-btn neumorphic-btn" style="white-space: nowrap;" data-help-title="Thêm Lượt khám" data-help-desc="Thêm một hồ sơ bệnh án mới (bạn có thể upload ảnh để AI tự động điền)">
-                                <span class="material-symbols-rounded">post_add</span> Thêm
-                            </button>
+                            <div style="display: flex; gap: 15px;">
+                                <button id="btn-add-record" class="primary-btn neumorphic-btn" style="flex: 1; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 8px;" data-help-title="Thêm Hồ sơ mới" data-help-desc="Thêm một hồ sơ bệnh án mới (bạn có thể upload ảnh để AI tự động điền)">
+                                    <span class="material-symbols-rounded">post_add</span> Hồ sơ mới
+                                </button>
+                                <button id="btn-evaluate-trend" class="secondary-btn neumorphic-btn" style="flex: 1; padding: 12px 24px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <span class="material-symbols-rounded ai-sparkle" style="vertical-align: middle;">auto_awesome</span> Đánh giá xu hướng
+                                </button>
+                            </div>
                         </div>
                         <div id="records-list" class="records-timeline">
                             <!-- Records rendered by JS -->
-                        </div>
-                        <div style="text-align: center; margin-top: 20px; padding-bottom: 20px;">
-                            <button id="btn-evaluate-trend" class="secondary-btn neumorphic-btn" style="padding: 12px 24px; font-weight: 500;">
-                                <span class="material-symbols-rounded ai-sparkle" style="vertical-align: middle; margin-right: 8px;">auto_awesome</span>Đánh giá xu hướng sức khỏe (AI)
-                            </button>
                         </div>
                     </div>
 
@@ -318,27 +378,21 @@
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="margin: 0;">Cài đặt Hệ thống</h3>
                 <button type="button" class="icon-btn neumorphic-btn close-modal" title="Quay lại">
-                    <span class="material-symbols-rounded">close</span>
+                    <span class="material-symbols-rounded">reply</span>
                 </button>
             </div>
             <div class="modal-body">
                 <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">save</span> Sao Lưu & Khôi Phục Dữ Liệu</h4>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Lưu trữ toàn bộ hồ sơ y tế thành một file dự phòng, hoặc khôi phục dữ liệu từ file.</p>
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 15px;">
                         <button id="btn-export-data" class="primary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                            <span class="material-symbols-rounded">download</span> Tạo Bản Sao Lưu
+                            <span class="material-symbols-rounded">download</span> Sao Lưu
                         </button>
                         <button id="btn-import-data" class="secondary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                            <span class="material-symbols-rounded">upload</span> Khôi Phục Dữ Liệu
+                            <span class="material-symbols-rounded">upload</span> Khôi Phục
                         </button>
                     </div>
-                    
-                    <h4 style="margin: 15px 0 5px; color: #e74c3c;">Khôi phục Cài đặt gốc</h4>
-                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Xóa sạch toàn bộ hồ sơ y tế, thành viên và hình ảnh trên thiết bị này. Các cài đặt API Key sẽ được giữ lại.</p>
-                    <button id="btn-wipe-data" class="neumorphic-btn" style="width: 100%; background: #fff1f0; color: #e74c3c; border: 1px solid #ffccc7; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; border-radius: 8px; cursor: pointer;">
-                        <span class="material-symbols-rounded">delete_forever</span> Xóa sạch Dữ liệu Y tế
-                    </button>
                     
                     <input type="file" id="input-import-data" accept=".json" hidden>
                 </div>
@@ -347,86 +401,10 @@
                 </div>
                 
                 <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
-
-                <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">smart_toy</span> Đa Trí Tuệ Nhân Tạo (Multi-AI)</h4>
-                <p class="modal-desc" style="margin-bottom: 20px;">Hệ thống sử dụng Gemini (Flash) mặc định để quét ảnh nhanh. Bạn có thể chọn AI chuyên gia khác để tư vấn y khoa chuyên sâu.</p>
-                
-                <div class="form-group">
-                    <label style="font-weight: bold; color: var(--primary-blue);">AI Tư vấn chuyên môn *</label>
-                    <select id="input-ai-provider" class="neumorphic-input" style="font-weight: 500;">
-                        <option value="gemini">Google Gemini 3.5 Flash (Miễn phí & Tốc độ cao)</option>
-                        <option value="openai">OpenAI ChatGPT-4o (Suy luận thông minh)</option>
-                        <option value="anthropic">Anthropic Claude 3.5 Sonnet (Khuyên dùng cho Y khoa)</option>
-                    </select>
-                </div>
-
-                <div class="form-group" style="margin-top: 15px;">
-                    <label style="font-weight: bold; color: var(--primary-blue);">Mô hình quét ảnh OCR (Google Gemini) *</label>
-                    <div style="display: flex; gap: 10px; align-items: flex-end;">
-                        <div style="flex: 1;">
-                            <select id="input-gemini-model" class="neumorphic-input" style="font-weight: 500;">
-                                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                            </select>
-                        </div>
-                        <button id="btn-fetch-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
-                            <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải danh sách
-                        </button>
-                    </div>
-                </div>
-
-                <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
-
-                <div class="form-group">
-                    <label>Google Gemini API Key (Bắt buộc cho quét ảnh)</label>
-                    <input type="password" id="input-api-key" class="neumorphic-input" placeholder="AIzaSy...">
-                </div>
-                
-                <div class="form-group">
-                    <label>OpenAI API Key (Chỉ cần nếu chọn ChatGPT)</label>
-                    <input type="password" id="input-openai-key" class="neumorphic-input" placeholder="sk-...">
-                    <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
-                        <div style="flex: 1;">
-                            <select id="input-openai-model" class="neumorphic-input" style="font-weight: 500;">
-                                <option value="gpt-4o">gpt-4o (Khuyên dùng)</option>
-                                <option value="gpt-4o-mini">gpt-4o-mini</option>
-                            </select>
-                        </div>
-                        <button id="btn-fetch-openai-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
-                            <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải danh sách
-                        </button>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Anthropic API Key (Chỉ cần nếu chọn Claude)</label>
-                    <input type="password" id="input-anthropic-key" class="neumorphic-input" placeholder="sk-ant-...">
-                    <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
-                        <div style="flex: 1;">
-                            <select id="input-anthropic-model" class="neumorphic-input" style="font-weight: 500;">
-                                <option value="claude-3-5-sonnet-20240620">claude-3.5-sonnet (Khuyên dùng)</option>
-                                <option value="claude-3-haiku-20240307">claude-3-haiku</option>
-                            </select>
-                        </div>
-                        <button id="btn-fetch-anthropic-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
-                            <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải danh sách
-                        </button>
-                    </div>
-                </div>
-
-                <div class="help-text" style="margin-top: 15px;">
-                    Lưu ý: Bạn có thể nhấn nút "Tải danh sách" ở từng mục để tự động lấy các model mới nhất đang hoạt động từ tài khoản của mình (cần nhập API Key trước).
-                </div>
-
-                <div class="help-text" style="margin-top: 10px;">
-                    Lưu ý bảo mật: Các khóa API được lưu trực tiếp trên trình duyệt của thiết bị này (Local Storage) ở dạng chưa mã hóa và không được gửi tới bất kỳ máy chủ nào của chúng tôi. Vì vậy, vui lòng không dùng chung hoặc để lộ thiết bị này cho người bạn không tin tưởng, và cân nhắc xóa khóa API khi dùng máy tính công cộng.
-                </div>
-
-                <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
                 <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">lock</span> Khóa màn hình bằng mã PIN</h4>
                 <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
                     Yêu cầu nhập mã PIN mỗi khi mở ứng dụng, giúp tránh người khác vô tình xem được hồ sơ khi cầm máy của bạn.
-                    <strong>Lưu ý:</strong> đây là lớp khóa giao diện, KHÔNG mã hóa dữ liệu — không thay thế cho việc bảo vệ chính thiết bị của bạn.
+                    <strong>Lưu ý:</strong> đây là lớp khóa giao diện, KHÔNG mã hóa dữ liệu.
                 </p>
                 <div id="pin-status-off">
                     <button type="button" id="btn-enable-pin" class="secondary-btn neumorphic-btn" style="width:100%; justify-content:center;">
@@ -434,7 +412,7 @@
                     </button>
                 </div>
                 <div id="pin-status-on" class="hidden">
-                    <div style="display:flex; gap:10px;">
+                    <div style="display:flex; gap:15px;">
                         <button type="button" id="btn-change-pin" class="secondary-btn neumorphic-btn" style="flex:1; justify-content:center;">Đổi mã PIN</button>
                         <button type="button" id="btn-disable-pin" class="neumorphic-btn danger" style="flex:1; justify-content:center; background:#fff1f0; border:1px solid #ffccc7;">Tắt khóa PIN</button>
                     </div>
@@ -453,6 +431,107 @@
                         <button type="button" id="btn-cancel-pin-setup" class="secondary-btn neumorphic-btn" style="flex:1; justify-content:center;">Hủy</button>
                     </div>
                 </div>
+
+                <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
+
+                <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">smart_toy</span> Tùy chỉnh AI chuyên biệt</h4>
+                <p class="modal-desc" style="margin-bottom: 20px;">Bạn có thể chọn nhà cung cấp AI chuyên gia khác nhau cho từng tính năng.</p>
+                
+                <div class="form-group">
+                    <label style="font-weight: bold; color: var(--primary-blue);">AI Phân tích tình trạng</label>
+                    <select id="input-ai-provider-assessment" class="neumorphic-input" style="font-weight: 500;">
+                        <option value="gemini">Google Gemini (Mặc định)</option>
+                        <option value="openai">OpenAI ChatGPT</option>
+                        <option value="anthropic">Anthropic Claude</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: bold; color: var(--primary-blue);">AI Tra cứu chuyên sâu</label>
+                    <select id="input-ai-provider-search" class="neumorphic-input" style="font-weight: 500;">
+                        <option value="gemini">Google Gemini (Mặc định)</option>
+                        <option value="openai">OpenAI ChatGPT</option>
+                        <option value="anthropic">Anthropic Claude</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: bold; color: var(--primary-blue);">AI Đánh giá xu hướng</label>
+                    <select id="input-ai-provider-trend" class="neumorphic-input" style="font-weight: 500;">
+                        <option value="gemini">Google Gemini (Mặc định)</option>
+                        <option value="openai">OpenAI ChatGPT</option>
+                        <option value="anthropic">Anthropic Claude</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label style="font-weight: bold; color: var(--primary-blue);">Mô hình quét ảnh OCR (Google Gemini) *</label>
+                    <div style="display: flex; gap: 10px; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <select id="input-gemini-model" class="neumorphic-input" style="font-weight: 500;">
+                                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                            </select>
+                        </div>
+                        <button id="btn-fetch-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
+                            <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải danh sách
+                        </button>
+                    </div>
+                </div>
+
+                <details style="margin-top: 20px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px;">
+                    <summary style="font-weight: bold; cursor: pointer; color: var(--primary-blue); display: flex; align-items: center;">
+                        <span class="material-symbols-rounded" style="margin-right: 5px;">vpn_key</span>
+                        Cấu hình API Keys và Mô hình chuyên sâu
+                    </summary>
+                    <div style="margin-top: 15px;">
+                        <div class="form-group">
+                            <label>Google Gemini API Key (Bắt buộc cho quét ảnh)</label>
+                            <input type="password" id="input-api-key" class="neumorphic-input" placeholder="AIzaSy...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>OpenAI API Key</label>
+                            <input type="password" id="input-openai-key" class="neumorphic-input" placeholder="sk-...">
+                            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
+                                <div style="flex: 1;">
+                                    <select id="input-openai-model" class="neumorphic-input" style="font-weight: 500;">
+                                        <option value="gpt-4o">gpt-4o (Khuyên dùng)</option>
+                                        <option value="gpt-4o-mini">gpt-4o-mini</option>
+                                    </select>
+                                </div>
+                                <button id="btn-fetch-openai-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
+                                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Anthropic API Key</label>
+                            <input type="password" id="input-anthropic-key" class="neumorphic-input" placeholder="sk-ant-...">
+                            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
+                                <div style="flex: 1;">
+                                    <select id="input-anthropic-model" class="neumorphic-input" style="font-weight: 500;">
+                                        <option value="claude-3-5-sonnet-20240620">claude-3.5-sonnet (Khuyên dùng)</option>
+                                        <option value="claude-3-haiku-20240307">claude-3-haiku</option>
+                                    </select>
+                                </div>
+                                <button id="btn-fetch-anthropic-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
+                                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <div class="help-text" style="margin-top: 15px;">
+                    Lưu ý bảo mật: Các khóa API được lưu trực tiếp trên thiết bị (không mã hóa).
+                </div>
+
+                <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
+                <h4 style="margin-bottom: 15px; color: #e74c3c;"><span class="material-symbols-rounded" style="vertical-align: middle;">delete_forever</span> Khôi phục Cài đặt gốc</h4>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Xóa sạch toàn bộ hồ sơ y tế, thành viên và hình ảnh trên thiết bị này. Các cài đặt API Key sẽ được giữ lại. (Cần mã PIN để xác nhận).</p>
+                <button id="btn-wipe-data" class="neumorphic-btn" style="width: 100%; background: #fff1f0; color: #e74c3c; border: 1px solid #ffccc7; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; border-radius: 8px; cursor: pointer;">
+                    <span class="material-symbols-rounded">delete_forever</span> Xóa sạch Dữ liệu Y tế
+                </button>
 
 
             </div>
@@ -863,7 +942,7 @@
         <div class="modal-content neumorphic-panel" style="max-width: 600px;">
             <div class="modal-header">
                 <h2>Quy trình thao tác</h2>
-                <button class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
+                <button class="icon-btn close-modal" title="Quay lại"><span class="material-symbols-rounded">reply</span></button>
             </div>
             <div class="modal-body" id="workflow-guide-content">
                 <!-- Content injected by JS -->

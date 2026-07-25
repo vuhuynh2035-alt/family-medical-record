@@ -305,14 +305,14 @@ const UI = {
             const images = record.originalImages || (record.originalImage ? [record.originalImage] : []);
             let imgBtn = '';
             if (images.length > 0) {
-                imgBtn = `<span title="Có ${images.length} tệp đính kèm" style="color: var(--text-muted); display: flex; align-items: center; font-size: 13px; margin-right: 10px;"><span class="material-symbols-rounded" style="font-size: 16px; margin-right: 3px;">attach_file</span>${images.length}</span>`;
+                imgBtn = `<span title="Có ${images.length} tệp đính kèm" style="color: var(--text-muted); display: flex; align-items: center; font-size: 13px; margin-right: 10px; flex-shrink: 0;"><span class="material-symbols-rounded" style="font-size: 16px; margin-right: 3px;">attach_file</span>${images.length}</span>`;
             }
-            const aiBtn = `<button class="icon-btn neumorphic-btn btn-ai-assessment" data-id="${this.escapeHtml(record.id)}" title="AI Phân tích tình trạng"><span class="material-symbols-rounded ai-sparkle">psychiatry</span></button>`;
+            const aiBtn = `<button class="neumorphic-btn btn-ai-assessment" data-id="${this.escapeHtml(record.id)}" title="AI Phân tích tình trạng" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px;"><span class="material-symbols-rounded ai-sparkle" style="font-size: 18px;">psychiatry</span> Phân tích AI</button>`;
             // Hồ sơ chỉ là phiếu xét nghiệm (chưa có chẩn đoán/kết luận của bác sĩ) vẫn cần tra cứu được:
             // dùng chẩn đoán nếu có, nếu không thì lùi về kết quả xét nghiệm/triệu chứng/loại khám.
             const searchQuery = (record.disease || record.labs || record.symptoms || record.type || '').trim();
             const searchBtn = searchQuery
-                ? `<button class="icon-btn neumorphic-btn btn-search-disease" data-disease="${this.escapeHtml(searchQuery)}" title="Tra cứu chuyên sâu về ${record.disease ? 'bệnh này' : 'kết quả này'} trên mạng"><span class="material-symbols-rounded" style="color: #9b59b6;">travel_explore</span></button>`
+                ? `<button class="neumorphic-btn btn-search-disease" data-disease="${this.escapeHtml(searchQuery)}" title="Tra cứu chuyên sâu về ${record.disease ? 'bệnh này' : 'kết quả này'} trên mạng" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px;"><span class="material-symbols-rounded" style="color: #9b59b6; font-size: 18px;">travel_explore</span> Tra cứu</button>`
                 : '';
 
             const el = document.createElement('div');
@@ -332,12 +332,11 @@ const UI = {
                         Bác sĩ: ${this.escapeHtml(record.doctor) || 'N/A'} &nbsp;|&nbsp; Chi phí: ${this.formatCurrency(record.cost)}
                     </div>
                 </div>
-                <div class="record-actions" style="border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
-                    <span style="font-size: 12px; color: var(--primary-blue); flex: 1; text-align: left; align-self: center;">Nhấn vào thẻ để xem chi tiết</span>
+                <div class="record-actions" style="border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px; display: flex; gap: 10px; align-items: center;">
                     ${searchBtn}
                     ${aiBtn}
                     ${imgBtn}
-                    <button class="icon-btn neumorphic-btn btn-edit-record" data-id="${this.escapeHtml(record.id)}" title="Sửa"><span class="material-symbols-rounded">edit</span></button>
+                    <button class="icon-btn neumorphic-btn btn-edit-record" data-id="${this.escapeHtml(record.id)}" title="Sửa" style="flex-shrink: 0;"><span class="material-symbols-rounded">edit</span></button>
                 </div>
             `;
             list.appendChild(el);

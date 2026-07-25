@@ -49,7 +49,10 @@ const DataManager = {
 
     getSettings() {
         const defaultSettings = {
-            activeProvider: 'gemini',
+            activeProvider: 'gemini', // kept for backwards compatibility
+            providerAssessment: 'gemini',
+            providerSearch: 'gemini',
+            providerTrend: 'gemini',
             // LƯU Ý: Google ngừng hỗ trợ (decommission) các model Gemini theo chu kỳ ~1 năm. Nếu
             // giá trị này báo lỗi "model không tồn tại", vào Cài đặt > bấm "Tải danh sách" để lấy
             // model còn hoạt động từ chính tài khoản của bạn thay vì sửa cứng trong mã nguồn.
@@ -84,6 +87,9 @@ const DataManager = {
     getOpenAIApiKey() { return this.getSettings().openaiApiKey; },
     getAnthropicApiKey() { return this.getSettings().anthropicApiKey; },
     getActiveProvider() { return this.getSettings().activeProvider || 'gemini'; },
+    getProviderAssessment() { return this.getSettings().providerAssessment || this.getActiveProvider(); },
+    getProviderSearch() { return this.getSettings().providerSearch || this.getActiveProvider(); },
+    getProviderTrend() { return this.getSettings().providerTrend || this.getActiveProvider(); },
     getGeminiModel() {
         return this.getSettings().geminiModel;
     },

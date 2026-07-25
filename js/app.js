@@ -60,9 +60,6 @@ function updatePinUIState() {
     const statusOff = document.getElementById('pin-status-off');
     if (statusOn) statusOn.classList.toggle('hidden', !pinOn);
     if (statusOff) statusOff.classList.toggle('hidden', pinOn);
-
-    const lockBtn = document.getElementById('btn-lock-now');
-    if (lockBtn) lockBtn.classList.toggle('hidden', !pinOn);
 }
 
 function showLockScreen() {
@@ -113,19 +110,9 @@ function setupPinLockListeners() {
         }
     });
 
-    document.getElementById('btn-forgot-pin').addEventListener('click', () => {
-        if (confirm('Nếu quên mã PIN, bạn có thể tắt khóa để tiếp tục sử dụng ứng dụng — TOÀN BỘ hồ sơ y tế và dữ liệu hiện có sẽ được GIỮ NGUYÊN (chỉ xóa mã PIN, không xóa dữ liệu). Bạn có muốn tắt khóa PIN không?')) {
-            DataManager.saveSettings({ pinEnabled: false, pinHash: '' });
-            unlockApp();
-            updatePinUIState();
-            showToast('Đã tắt khóa PIN. Bạn có thể bật lại trong Cài đặt.');
-        }
-    });
+    // btn-forgot-pin đã được loại bỏ để tăng cường bảo mật.
 
-    const btnLockNow = document.getElementById('btn-lock-now');
-    if (btnLockNow) {
-        btnLockNow.addEventListener('click', () => showLockScreen());
-    }
+
 
     document.getElementById('btn-enable-pin').addEventListener('click', () => showPinSetupForm());
     document.getElementById('btn-change-pin').addEventListener('click', () => showPinSetupForm());
@@ -155,10 +142,40 @@ function setupPinLockListeners() {
     });
 
     document.getElementById('btn-disable-pin').addEventListener('click', () => {
-        if (confirm('Tắt khóa PIN? Ứng dụng sẽ mở trực tiếp mà không cần nhập mã PIN nữa.')) {
-            DataManager.saveSettings({ pinEnabled: false, pinHash: '' });
+        if (confirm('Tắt khóa PIN? Ứng dụng sẽ mở trực tiếp mà không cần nhập mã PIN nữa. (Mã PIN vẫn sẽ được dùng để xác nhận bảo mật khi xoá dữ liệu).')) {
+            DataManager.saveSettings({ pinEnabled: false });
             updatePinUIState();
-            showToast('Đã tắt khóa PIN.');
+            showToast('Đã tắt yêu cầu mã PIN khi mở ứng dụng.');
+        }
+    });
+
+    document.getElementById('form-forced-pin-setup').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pin = document.getElementById('input-forced-pin').value.trim();
+        const confirmPin = document.getElementById('input-forced-confirm-pin').value.trim();
+        const errorEl = document.getElementById('forced-pin-error');
+        
+        if (!/^\d{6}$/.test(pin)) {
+            errorEl.innerText = 'Mã PIN phải gồm đúng 6 chữ số.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+        if (pin !== confirmPin) {
+            errorEl.innerText = 'Hai mã PIN không khớp.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+        
+        try {
+            const hash = await DataManager.sha256Hex(pin);
+            DataManager.saveSettings({ pinEnabled: true, pinHash: hash });
+            document.getElementById('forced-pin-setup-screen').classList.add('hidden');
+            updatePinUIState();
+            showToast('Đã tạo mã PIN thành công.');
+            checkReminders();
+            checkBackupReminder();
+        } catch (err) {
+            alert(err.message);
         }
     });
 }
@@ -255,7 +272,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settings.geminiApiKey) document.getElementById('input-api-key').value = settings.geminiApiKey;
     if (settings.openaiApiKey) document.getElementById('input-openai-key').value = settings.openaiApiKey;
     if (settings.anthropicApiKey) document.getElementById('input-anthropic-key').value = settings.anthropicApiKey;
-    if (settings.activeProvider) document.getElementById('input-ai-provider').value = settings.activeProvider;
+    
+    if (settings.providerAssessment) document.getElementById('input-ai-provider-assessment').value = settings.providerAssessment;
+    else if (settings.activeProvider) document.getElementById('input-ai-provider-assessment').value = settings.activeProvider;
+    
+    if (settings.providerSearch) document.getElementById('input-ai-provider-search').value = settings.providerSearch;
+    else if (settings.activeProvider) document.getElementById('input-ai-provider-search').value = settings.activeProvider;
+    
+    if (settings.providerTrend) document.getElementById('input-ai-provider-trend').value = settings.providerTrend;
+    else if (settings.activeProvider) document.getElementById('input-ai-provider-trend').value = settings.activeProvider;
     if (settings.geminiModel) {
         const select = document.getElementById('input-gemini-model');
         if (!Array.from(select.options).some(opt => opt.value === settings.geminiModel)) {
@@ -293,8 +318,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Nếu khóa PIN đang bật: hiện màn hình khóa NGAY và trì hoãn việc kiểm tra/thông báo lịch hẹn
     // tới khi mở khóa thành công — tránh lộ nội dung nhắc hẹn qua hộp thoại alert() trước khi
     // người dùng xác thực (hộp thoại alert() của trình duyệt luôn hiện trên mọi lớp phủ z-index).
+    // Nếu chưa có mã PIN, ép buộc tạo mã PIN (chặn không cho dùng app)
     ensureFirstRunTimestamp();
-    if (settings.pinEnabled && settings.pinHash) {
+    if (!settings.pinHash) {
+        document.getElementById('forced-pin-setup-screen').classList.remove('hidden');
+        setTimeout(() => document.getElementById('input-forced-pin').focus(), 50);
+    } else if (settings.pinEnabled) {
         showLockScreen();
     } else {
         checkReminders();
@@ -529,7 +558,11 @@ function setupEventListeners() {
         const geminiKey = document.getElementById('input-api-key').value.trim();
         const openaiKey = document.getElementById('input-openai-key').value.trim();
         const anthropicKey = document.getElementById('input-anthropic-key').value.trim();
-        const provider = document.getElementById('input-ai-provider').value;
+        
+        const providerAssessment = document.getElementById('input-ai-provider-assessment').value;
+        const providerSearch = document.getElementById('input-ai-provider-search').value;
+        const providerTrend = document.getElementById('input-ai-provider-trend').value;
+        
         const geminiModel = document.getElementById('input-gemini-model').value;
         const openaiModel = document.getElementById('input-openai-model') ? document.getElementById('input-openai-model').value.trim() : '';
         const anthropicModel = document.getElementById('input-anthropic-model') ? document.getElementById('input-anthropic-model').value.trim() : '';
@@ -538,7 +571,10 @@ function setupEventListeners() {
             geminiApiKey: geminiKey,
             openaiApiKey: openaiKey,
             anthropicApiKey: anthropicKey,
-            activeProvider: provider,
+            providerAssessment: providerAssessment,
+            providerSearch: providerSearch,
+            providerTrend: providerTrend,
+            activeProvider: providerAssessment, // kept for backward compatibility
             geminiModel: geminiModel,
             openaiModel: openaiModel,
             anthropicModel: anthropicModel
@@ -620,10 +656,79 @@ function setupEventListeners() {
     const btnWipeData = document.getElementById('btn-wipe-data');
     if (btnWipeData) {
         btnWipeData.addEventListener('click', () => {
-            if (confirm("CẢNH BÁO: Bấm OK sẽ xóa VĨNH VIỄN toàn bộ hồ sơ khám bệnh, thông tin thành viên và hình ảnh trên máy này (Các cài đặt API Key sẽ được giữ nguyên). Bạn có chắc chắn muốn xóa sạch?")) {
-                DataManager.wipeAllDataKeepSettings();
-                alert("Đã xóa sạch dữ liệu thành công! Ứng dụng sẽ tải lại.");
-                window.location.reload();
+            document.getElementById('input-confirm-action-pin').value = '';
+            document.getElementById('confirm-pin-error').classList.add('hidden');
+            document.getElementById('modal-confirm-pin').classList.remove('hidden');
+            setTimeout(() => document.getElementById('input-confirm-action-pin').focus(), 50);
+        });
+    }
+
+    const formConfirmPin = document.getElementById('form-confirm-pin');
+    if (formConfirmPin) {
+        formConfirmPin.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('input-confirm-action-pin');
+            const pin = input.value.trim();
+            const errorEl = document.getElementById('confirm-pin-error');
+            
+            try {
+                const settings = DataManager.getSettings();
+                const hash = await DataManager.sha256Hex(pin);
+                if (hash === settings.pinHash) {
+                    // Valid PIN, execute wipe
+                    document.getElementById('modal-confirm-pin').classList.add('hidden');
+                    if (confirm("CẢNH BÁO CUỐI: Hành động này sẽ xóa VĨNH VIỄN toàn bộ hồ sơ khám bệnh và thành viên. Bạn có chắc chắn?")) {
+                        DataManager.wipeAllDataKeepSettings();
+                        alert("Đã xóa sạch dữ liệu thành công! Ứng dụng sẽ tải lại.");
+                        window.location.reload();
+                    }
+                } else {
+                    errorEl.innerText = 'Mã PIN không đúng, vui lòng thử lại.';
+                    errorEl.classList.remove('hidden');
+                    input.value = '';
+                    input.focus();
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+    }
+
+    const closeConfirmPinBtn = document.querySelector('#modal-confirm-pin .close-modal');
+    if (closeConfirmPinBtn) {
+        closeConfirmPinBtn.addEventListener('click', () => {
+            document.getElementById('modal-confirm-pin').classList.add('hidden');
+        });
+    }
+
+    // Exit App Logic
+    const btnExitApp = document.getElementById('btn-exit-app');
+    if (btnExitApp) {
+        btnExitApp.addEventListener('click', () => {
+            document.getElementById('modal-exit-app').classList.remove('hidden');
+        });
+    }
+
+    const btnConfirmExit = document.getElementById('btn-confirm-exit');
+    if (btnConfirmExit) {
+        btnConfirmExit.addEventListener('click', () => {
+            // Thử đóng cửa sổ bằng window.close
+            try {
+                if (window.electron) {
+                    window.close();
+                } else if (navigator.app && navigator.app.exitApp) {
+                    navigator.app.exitApp(); // Cordova/PhoneGap
+                } else {
+                    window.close();
+                }
+                
+                // Nếu trình duyệt chặn window.close() (thường thấy khi không phải là tab do script mở)
+                setTimeout(() => {
+                    // Fallback: điều hướng về about:blank hoặc một thông báo
+                    document.body.innerHTML = '<div style="display:flex; height:100vh; align-items:center; justify-content:center; flex-direction:column; background:#f0f2f5; font-family:sans-serif;"><h2>Đã thoát chương trình.</h2><p>Bạn có thể đóng tab này.</p></div>';
+                }, 300);
+            } catch(e) {
+                console.error(e);
             }
         });
     }
@@ -885,7 +990,7 @@ function setupEventListeners() {
         }
 
         const member = DataManager.getMembers().find(m => m.id === currentMemberId);
-        const activeProvider = DataManager.getActiveProvider();
+        const activeProvider = DataManager.getProviderTrend();
         const pName = activeProvider === 'openai' ? 'ChatGPT' : (activeProvider === 'anthropic' ? 'Claude' : 'Gemini');
         
         document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">auto_awesome</span> ${pName} Đánh giá xu hướng sức khỏe`;
@@ -1111,7 +1216,7 @@ function setupEventListeners() {
             const member = DataManager.getMemberById(currentMemberId);
             
             if (record && member) {
-                const activeProvider = DataManager.getActiveProvider();
+                const activeProvider = DataManager.getProviderAssessment();
                 const pName = activeProvider === 'openai' ? 'ChatGPT' : (activeProvider === 'anthropic' ? 'Claude' : 'Gemini');
                 
                 document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">psychiatry</span> ${pName} Nhận xét tình trạng`;
@@ -1140,7 +1245,7 @@ function setupEventListeners() {
             const disease = btnSearch.dataset.disease;
             if (!disease) return;
             
-            const activeProvider = DataManager.getActiveProvider();
+            const activeProvider = DataManager.getProviderSearch();
             const pName = activeProvider === 'openai' ? 'ChatGPT' : (activeProvider === 'anthropic' ? 'Claude' : 'Gemini');
             
             document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">travel_explore</span> Tra cứu chuyên sâu (${pName})`;
@@ -1647,7 +1752,14 @@ function loadMemberDetail(id) {
     document.querySelectorAll('.tab-btn')[0].click();
 
     // Set Header
-    document.getElementById('current-member-name').innerText = member.name;
+    const nameDesktop = document.querySelector('#current-member-name .name-desktop');
+    const nameMobile = document.querySelector('#current-member-name .name-mobile');
+    if (nameDesktop && nameMobile) {
+        nameDesktop.innerText = member.name;
+        nameMobile.innerText = member.nickname || member.name;
+    } else {
+        document.getElementById('current-member-name').innerText = member.name;
+    }
     document.getElementById('detail-member-avatar').src = member.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(member.name) + '&background=random';
 
     // Render Profile

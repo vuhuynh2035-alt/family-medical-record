@@ -344,7 +344,7 @@ Vui lòng phân tích và đưa ra nhận xét:
 3. Lời khuyên cụ thể về cách sinh hoạt, chế độ dinh dưỡng, vận động để cải thiện tình trạng.
 4. Những dấu hiệu nguy hiểm cần theo dõi thêm và khi nào cần đi tái khám.`;
 
-        const provider = DataManager.getActiveProvider();
+        const provider = DataManager.getProviderAssessment();
         if (provider === 'openai') {
             return await this.callOpenAI(prompt);
         } else if (provider === 'anthropic') {
@@ -401,7 +401,7 @@ Vui lòng phân tích và xuất Báo cáo Đánh giá Xu hướng Sức khỏe 
 3. **Phân tích bệnh lý:** Các bệnh lý nào thường xuyên lặp lại hoặc có xu hướng tiến triển? Nguyên nhân có thể do đâu?
 4. **Kế hoạch hành động:** Đưa ra lời khuyên thiết thực về cách theo dõi sức khỏe tại nhà, thay đổi chế độ dinh dưỡng, vận động, và lịch tái khám định kỳ để cải thiện tình hình sức khỏe hiện tại, tập trung vào việc ổn định huyết áp và đường huyết nếu bệnh nhân có tiền sử bất thường.`;
 
-        const provider = DataManager.getActiveProvider();
+        const provider = DataManager.getProviderTrend();
         if (provider === 'openai') {
             return await this.callOpenAI(prompt);
         } else if (provider === 'anthropic') {
@@ -429,7 +429,7 @@ Vui lòng cung cấp một bài viết tham khảo y khoa chi tiết, sử dụn
 
 Hãy viết với văn phong đồng cảm, khoa học, chính xác, nhưng dễ hiểu đối với người không có chuyên môn y tế. Nếu thông tin đầu vào chưa đủ để kết luận chắc chắn, hãy nói rõ đây chỉ là tham khảo và khuyên bệnh nhân gặp bác sĩ để có chẩn đoán chính xác.`;
 
-        const provider = DataManager.getActiveProvider();
+        const provider = DataManager.getProviderSearch();
         if (provider === 'openai') {
             return await this.callOpenAI(prompt);
         } else if (provider === 'anthropic') {
