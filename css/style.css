@@ -8,15 +8,15 @@
     --danger: #e74c3c;
     --success: #2ecc71;
     --warning: #f1c40f;
-    
+
     /* Neumorphic Shadows */
     --shadow-light: #ffffff;
     --shadow-dark: #c3d0df;
-    
+
     --shadow-outer: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
     --shadow-inner: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
     --shadow-hover: 2px 2px 5px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
-    
+
     --radius-sm: 8px;
     --radius-md: 15px;
     --radius-lg: 25px;
@@ -74,6 +74,14 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
+    /* Nếu font "Material Symbols Rounded" (tải từ Google Fonts) chưa kịp load hoặc bị chặn
+       (mất mạng, trình duyệt/tiện ích chặn CDN...), trình duyệt sẽ hiển thị chữ thường thay cho
+       icon (vd: "power_settings_new") — dài hơn nhiều so với khung tròn 45px này. Không có
+       overflow: hidden, phần chữ tràn ra sẽ đè lên các nút lân cận trong hàng và chặn luôn thao
+       tác click vào chúng. Xem tests/smoke-test.js phần "Khóa PIN" (nơi phát hiện ra lỗi này khi
+       chạy offline không tải được font ngoài).
+       */
+    overflow: hidden;
 }
 
 .header-btn:hover {
@@ -160,6 +168,9 @@ body {
 .icon-btn {
     padding: 10px;
     border-radius: var(--radius-round);
+    /* Cùng lý do với .header-btn ở trên: tránh chữ thay thế (fallback) của icon font tràn ra
+       ngoài khung tròn nhỏ và che mất/chặn click các phần tử lân cận khi font chưa tải xong. */
+    overflow: hidden;
 }
 
 .icon-btn.danger {
@@ -767,9 +778,9 @@ button.icon-btn.btn-back-blue {
     background: radial-gradient(circle at 50% 20%, #4fc3f7, #0277bd);
     color: white !important;
     border: 3px solid white;
-    box-shadow: 
-        0 4px 8px rgba(0,0,0,0.2), 
-        inset 0 -4px 8px rgba(0,0,0,0.2), 
+    box-shadow:
+        0 4px 8px rgba(0,0,0,0.2),
+        inset 0 -4px 8px rgba(0,0,0,0.2),
         inset 0 4px 8px rgba(255,255,255,0.8);
     border-radius: 50%;
     width: 45px;
@@ -785,9 +796,9 @@ button.icon-btn.btn-back-blue {
 button.icon-btn.close-modal:active,
 button.icon-btn.btn-back-blue:active {
     transform: scale(0.95);
-    box-shadow: 
-        0 2px 4px rgba(0,0,0,0.2), 
-        inset 0 -2px 4px rgba(0,0,0,0.2), 
+    box-shadow:
+        0 2px 4px rgba(0,0,0,0.2),
+        inset 0 -2px 4px rgba(0,0,0,0.2),
         inset 0 2px 4px rgba(255,255,255,0.7);
 }
 button.icon-btn.close-modal span,
@@ -1099,11 +1110,11 @@ input::placeholder {
         justify-content: flex-end;
         gap: 10px;
     }
-    
+
     /* Hàng trên: Cài đặt & Đóng */
     #btn-settings { order: 1; }
     #btn-exit-app { order: 2; }
-    
+
     /* Hàng dưới: Chuông & Hướng dẫn */
     #btn-notifications { order: 3; }
     #btn-help { order: 4; }

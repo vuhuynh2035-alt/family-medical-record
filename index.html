@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=1.14.28">
+    <link rel="stylesheet" href="css/style.css?v=1.14.34">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
@@ -45,11 +45,11 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=1.14.28"></script>
-    <script defer src="js/ai.js?v=1.14.28"></script>
-    <script defer src="js/components.js?v=1.14.28"></script>
-    <script defer src="js/help.js?v=1.14.28"></script>
-    <script defer src="js/app.js?v=1.14.28"></script>
+    <script defer src="js/data.js?v=1.14.34"></script>
+    <script defer src="js/ai.js?v=1.14.34"></script>
+    <script defer src="js/components.js?v=1.14.34"></script>
+    <script defer src="js/help.js?v=1.14.34"></script>
+    <script defer src="js/app.js?v=1.14.34"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -140,7 +140,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.14.28</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.14.34</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -148,17 +148,17 @@
                         <span class="material-symbols-rounded">install_mobile</span>
                     </button>
 
-                    <button id="btn-notifications" class="icon-btn header-btn" title="Nhắc nhở">
+                    <button id="btn-notifications" class="icon-btn header-btn" title="Nhắc nhở" data-help-title="Chuông Thông báo" data-help-desc="Nơi hiển thị các lịch hẹn khám, nhắc nhở uống thuốc hoặc tiêm chủng đã đến hạn.">
                         <span class="material-symbols-rounded">notifications</span>
                         <span id="notification-badge" class="badge hidden"></span>
                     </button>
-                    <button id="btn-help" class="icon-btn header-btn" title="Hướng dẫn sử dụng">
+                    <button id="btn-help" class="icon-btn header-btn" title="Hướng dẫn sử dụng" data-help-title="Hướng dẫn sử dụng" data-help-desc="Bật chế độ hướng dẫn để tìm hiểu cách sử dụng các tính năng trên màn hình.">
                         <span class="material-symbols-rounded">help</span>
                     </button>
-                    <button id="btn-settings" class="icon-btn header-btn" title="Cài đặt">
+                    <button id="btn-settings" class="icon-btn header-btn" title="Cài đặt" data-help-title="Bảng Cài đặt" data-help-desc="Thiết lập bảo mật (Mã PIN, Sinh trắc học) và cấu hình Trí tuệ Nhân tạo.">
                         <span class="material-symbols-rounded">settings</span>
                     </button>
-                    <button id="btn-exit-app" class="icon-btn header-btn" title="Đóng chương trình">
+                    <button id="btn-exit-app" class="icon-btn header-btn" title="Đóng chương trình" data-help-title="Thoát ứng dụng" data-help-desc="Đóng an toàn chương trình để bảo mật dữ liệu.">
                         <span class="material-symbols-rounded" style="color: #e74c3c;">power_settings_new</span>
                     </button>
                 </div>
@@ -233,7 +233,7 @@
                                 <button id="btn-add-record" class="primary-btn neumorphic-btn" style="flex: 1; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 8px;" data-help-title="Thêm Hồ sơ mới" data-help-desc="Thêm một hồ sơ bệnh án mới (bạn có thể upload ảnh để AI tự động điền)">
                                     <span class="material-symbols-rounded">post_add</span> Hồ sơ mới
                                 </button>
-                                <button id="btn-evaluate-trend" class="secondary-btn neumorphic-btn" style="flex: 1; padding: 12px 24px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <button id="btn-evaluate-trend" class="secondary-btn neumorphic-btn" style="flex: 1; padding: 12px 24px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;" data-help-title="Đánh giá xu hướng sức khỏe" data-help-desc="AI sẽ tổng hợp toàn bộ lịch sử khám bệnh của bạn để phân tích tổng quan và dự báo nguy cơ tiềm ẩn.">
                                     <span class="material-symbols-rounded ai-sparkle" style="vertical-align: middle;">auto_awesome</span> Đánh giá xu hướng
                                 </button>
                             </div>
@@ -471,7 +471,7 @@
                         Mở khóa ứng dụng nhanh chóng bằng Vân tay hoặc Khuôn mặt (yêu cầu thiết bị có hỗ trợ).
                     </p>
                     <div id="biometric-status-off">
-                        <button type="button" id="btn-enable-biometric" class="secondary-btn neumorphic-btn" style="width:100%; justify-content:center;">
+                        <button type="button" id="btn-enable-biometric" class="secondary-btn neumorphic-btn" style="width:100%; justify-content:center;" data-help-title="Kích hoạt Sinh trắc học" data-help-desc="Sử dụng vân tay hoặc FaceID để mở khóa ứng dụng thay vì phải nhập mã PIN mỗi lần.">
                             <span class="material-symbols-rounded">fingerprint</span> Bật Sinh trắc học
                         </button>
                     </div>
@@ -483,7 +483,7 @@
                     <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
                 </div>
 
-                <details style="margin-bottom: 20px; border-radius: 12px;">
+                <details style="margin-bottom: 20px; border-radius: 12px;" data-help-title="Cấu hình AI" data-help-desc="Bấm vào để mở rộng cài đặt API Key và phân công tác vụ cho các hệ thống Trí tuệ Nhân tạo khác nhau.">
                     <summary class="neumorphic-btn" style="font-weight: bold; cursor: pointer; color: var(--primary-blue); display: flex; align-items: center; font-size: 16px; padding: 15px; border-radius: 12px; transition: all 0.3s ease;">
                         <span class="material-symbols-rounded" style="margin-right: 8px; font-size: 24px;">smart_toy</span>
                         <span style="flex: 1;">Cấu hình Trí tuệ Nhân tạo (AI)</span>
@@ -494,7 +494,7 @@
                         
                         <div class="form-group">
                             <label style="font-weight: bold; color: var(--primary-blue);">AI Phân tích tình trạng bệnh án</label>
-                            <select id="input-ai-provider-assessment" class="neumorphic-input" style="font-weight: 500;">
+                            <select id="input-ai-provider-assessment" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn AI Phân tích" data-help-desc="Quyết định hệ thống AI nào sẽ đọc và giải thích hồ sơ bệnh án của bạn. (Khuyên dùng: OpenAI ChatGPT).">
                                 <option value="gemini">Google Gemini (Mặc định)</option>
                                 <option value="openai">OpenAI ChatGPT</option>
                                 <option value="anthropic">Anthropic Claude</option>
@@ -502,7 +502,7 @@
                         </div>
                         <div class="form-group">
                             <label style="font-weight: bold; color: var(--primary-blue);">AI Tra cứu chuyên sâu & Hỏi đáp</label>
-                            <select id="input-ai-provider-search" class="neumorphic-input" style="font-weight: 500;">
+                            <select id="input-ai-provider-search" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn AI Tra cứu" data-help-desc="Quyết định AI nào sẽ tìm kiếm thêm kiến thức y khoa mở rộng trên mạng.">
                                 <option value="gemini">Google Gemini (Mặc định)</option>
                                 <option value="openai">OpenAI ChatGPT</option>
                                 <option value="anthropic">Anthropic Claude</option>
@@ -510,7 +510,7 @@
                         </div>
                         <div class="form-group">
                             <label style="font-weight: bold; color: var(--primary-blue);">AI Đánh giá xu hướng sức khỏe</label>
-                            <select id="input-ai-provider-trend" class="neumorphic-input" style="font-weight: 500;">
+                            <select id="input-ai-provider-trend" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn AI Đánh giá" data-help-desc="Hệ thống AI xử lý toàn bộ lịch sử bệnh án để tìm ra bức tranh tổng quát.">
                                 <option value="gemini">Google Gemini (Mặc định)</option>
                                 <option value="openai">OpenAI ChatGPT</option>
                                 <option value="anthropic">Anthropic Claude</option>
@@ -522,15 +522,15 @@
 
                         <div class="form-group">
                             <label>Google Gemini API Key (Bắt buộc cho OCR Quét ảnh)</label>
-                            <input type="password" id="input-api-key" class="neumorphic-input" placeholder="AIzaSy...">
+                            <input type="password" id="input-api-key" class="neumorphic-input" placeholder="AIzaSy..." data-help-title="API Key của Google Gemini" data-help-desc="Nhập mã bí mật từ tài khoản Google AI Studio của bạn. Mã này được dùng để xử lý đọc ảnh và các tác vụ mặc định.">
                             <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
                                 <div style="flex: 1;">
-                                    <select id="input-gemini-model" class="neumorphic-input" style="font-weight: 500;">
+                                    <select id="input-gemini-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model Gemini" data-help-desc="Flash: Đọc ảnh và xử lý nhanh. Pro: Suy luận y khoa sâu sắc hơn nhưng chậm hơn.">
                                         <option value="gemini-1.5-flash">Gemini 1.5 Flash (Dùng cho OCR)</option>
                                         <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
                                     </select>
                                 </div>
-                                <button id="btn-fetch-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
+                                <button id="btn-fetch-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;" data-help-title="Tải Danh sách Model mới" data-help-desc="Kết nối tới máy chủ Google để tải về danh sách các phiên bản AI mới nhất vừa được phát hành.">
                                     <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải
                                 </button>
                             </div>
@@ -538,15 +538,15 @@
                         
                         <div class="form-group">
                             <label>OpenAI API Key</label>
-                            <input type="password" id="input-openai-key" class="neumorphic-input" placeholder="sk-...">
+                            <input type="password" id="input-openai-key" class="neumorphic-input" placeholder="sk-..." data-help-title="API Key của OpenAI (ChatGPT)" data-help-desc="Nhập mã bí mật từ nền tảng OpenAI. Giúp bạn sử dụng ChatGPT 4o cho các tác vụ phân tích chuyên sâu.">
                             <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
                                 <div style="flex: 1;">
-                                    <select id="input-openai-model" class="neumorphic-input" style="font-weight: 500;">
+                                    <select id="input-openai-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model ChatGPT" data-help-desc="gpt-4o rất thông minh và hiểu tiếng Việt cực tốt.">
                                         <option value="gpt-4o">gpt-4o (Khuyên dùng)</option>
                                         <option value="gpt-4o-mini">gpt-4o-mini</option>
                                     </select>
                                 </div>
-                                <button id="btn-fetch-openai-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
+                                <button id="btn-fetch-openai-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;" data-help-title="Đồng bộ Model OpenAI" data-help-desc="Kiểm tra và tải về các Model ngôn ngữ mới ra mắt của OpenAI (Ví dụ: o1, gpt-5).">
                                     <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải
                                 </button>
                             </div>
@@ -554,15 +554,15 @@
 
                         <div class="form-group">
                             <label>Anthropic API Key</label>
-                            <input type="password" id="input-anthropic-key" class="neumorphic-input" placeholder="sk-ant-...">
+                            <input type="password" id="input-anthropic-key" class="neumorphic-input" placeholder="sk-ant-..." data-help-title="API Key của Anthropic (Claude)" data-help-desc="Nhập mã bí mật từ Anthropic. Trí tuệ Claude cực kỳ xuất sắc trong việc đọc hiểu văn bản dài và lập luận y khoa.">
                             <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
                                 <div style="flex: 1;">
-                                    <select id="input-anthropic-model" class="neumorphic-input" style="font-weight: 500;">
+                                    <select id="input-anthropic-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model Claude" data-help-desc="Sonnet 3.5 là phiên bản mạnh mẽ, nhanh và chính xác nhất cho các tác vụ phân tích.">
                                         <option value="claude-3-5-sonnet-20240620">claude-3.5-sonnet (Khuyên dùng)</option>
                                         <option value="claude-3-haiku-20240307">claude-3-haiku</option>
                                     </select>
                                 </div>
-                                <button id="btn-fetch-anthropic-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
+                                <button id="btn-fetch-anthropic-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;" data-help-title="Đồng bộ Model Claude" data-help-desc="Kiểm tra và tải về các phiên bản AI mới nhất từ hệ thống Anthropic.">
                                     <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải
                                 </button>
                             </div>
@@ -577,7 +577,7 @@
                 <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
                 <h4 style="margin-bottom: 15px; color: #e74c3c;"><span class="material-symbols-rounded" style="vertical-align: middle;">delete_forever</span> Khôi phục Cài đặt gốc</h4>
                 <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Xóa sạch toàn bộ hồ sơ y tế, thành viên và hình ảnh trên thiết bị này. Các cài đặt API Key sẽ được giữ lại. (Cần mã PIN để xác nhận).</p>
-                <button id="btn-wipe-data" class="neumorphic-btn" style="width: 100%; background: #fff1f0; color: #e74c3c; border: 1px solid #ffccc7; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; border-radius: 8px; cursor: pointer;">
+                <button id="btn-wipe-data" class="neumorphic-btn" style="width: 100%; background: #fff1f0; color: #e74c3c; border: 1px solid #ffccc7; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; border-radius: 8px; cursor: pointer;" data-help-title="Xóa toàn bộ dữ liệu" data-help-desc="Xóa sạch mọi hồ sơ trên thiết bị và đưa ứng dụng về trạng thái nguyên bản lúc mới tải (Sẽ không thể khôi phục lại).">
                     <span class="material-symbols-rounded">delete_forever</span> Xóa sạch Dữ liệu Y tế
                 </button>
 

@@ -307,12 +307,12 @@ const UI = {
             if (images.length > 0) {
                 imgBtn = `<span title="Có ${images.length} tệp đính kèm" style="color: var(--text-muted); display: flex; align-items: center; font-size: 13px; margin-right: 10px; flex-shrink: 0;"><span class="material-symbols-rounded" style="font-size: 16px; margin-right: 3px;">attach_file</span>${images.length}</span>`;
             }
-            const aiBtn = `<button class="neumorphic-btn btn-ai-assessment" data-id="${this.escapeHtml(record.id)}" title="AI Phân tích tình trạng" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px;"><span class="material-symbols-rounded ai-sparkle" style="font-size: 18px;">psychiatry</span> Phân tích AI</button>`;
+            const aiBtn = `<button class="neumorphic-btn btn-ai-assessment" data-id="${this.escapeHtml(record.id)}" title="AI Phân tích tình trạng" data-help-title="Phân tích bệnh án" data-help-desc="AI sẽ đọc chi tiết hồ sơ này, giải thích các chỉ số và đưa ra lời khuyên dễ hiểu." style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px;"><span class="material-symbols-rounded ai-sparkle" style="font-size: 18px;">psychiatry</span> Phân tích AI</button>`;
             // Hồ sơ chỉ là phiếu xét nghiệm (chưa có chẩn đoán/kết luận của bác sĩ) vẫn cần tra cứu được:
             // dùng chẩn đoán nếu có, nếu không thì lùi về kết quả xét nghiệm/triệu chứng/loại khám.
             const searchQuery = (record.disease || record.labs || record.symptoms || record.type || '').trim();
             const searchBtn = searchQuery
-                ? `<button class="neumorphic-btn btn-search-disease" data-disease="${this.escapeHtml(searchQuery)}" title="Tra cứu chuyên sâu về ${record.disease ? 'bệnh này' : 'kết quả này'} trên mạng" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px;"><span class="material-symbols-rounded" style="color: #9b59b6; font-size: 18px;">travel_explore</span> Tra cứu</button>`
+                ? `<button class="neumorphic-btn btn-search-disease" data-disease="${this.escapeHtml(searchQuery)}" title="Tra cứu chuyên sâu về ${record.disease ? 'bệnh này' : 'kết quả này'} trên mạng" data-help-title="Tra cứu chuyên sâu" data-help-desc="Sử dụng AI để tìm kiếm thông tin chi tiết và kiến thức y khoa mở rộng về loại bệnh hoặc triệu chứng này." style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px;"><span class="material-symbols-rounded" style="color: #9b59b6; font-size: 18px;">travel_explore</span> Tra cứu</button>`
                 : '';
 
             const el = document.createElement('div');
