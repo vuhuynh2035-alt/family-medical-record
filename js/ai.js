@@ -149,17 +149,24 @@ const AIService = {
         // OpenAI cũng thường xuyên ra bản mới, mã nguồn để mặc định "gpt-4o" nhưng khuyến khích
         // người dùng tự cập nhật tên model mới hơn khi có, thay vì phải chờ bản cập nhật ứng dụng.
         const model = DataManager.getOpenAIModel();
+        
+        const bodyObj = {
+            model: model,
+            messages: [{ role: "user", content: prompt }]
+        };
+        
+        // Các model dòng o1/o3 của OpenAI không hỗ trợ tùy chỉnh temperature (bắt buộc phải là 1)
+        if (!model.startsWith('o1') && !model.startsWith('o3')) {
+            bodyObj.temperature = temperature;
+        }
+
         const response = await this._fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${apiKey}`
             },
-            body: JSON.stringify({
-                model: model,
-                messages: [{ role: "user", content: prompt }],
-                temperature: temperature
-            })
+            body: JSON.stringify(bodyObj)
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi OpenAI API.");
