@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=1.14.31">
+    <link rel="stylesheet" href="css/style.css?v=1.14.28">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
@@ -45,11 +45,11 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=1.14.31"></script>
-    <script defer src="js/ai.js?v=1.14.31"></script>
-    <script defer src="js/components.js?v=1.14.31"></script>
-    <script defer src="js/help.js?v=1.14.31"></script>
-    <script defer src="js/app.js?v=1.14.31"></script>
+    <script defer src="js/data.js?v=1.14.28"></script>
+    <script defer src="js/ai.js?v=1.14.28"></script>
+    <script defer src="js/components.js?v=1.14.28"></script>
+    <script defer src="js/help.js?v=1.14.28"></script>
+    <script defer src="js/app.js?v=1.14.28"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -140,7 +140,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.14.31</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v1.14.28</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -483,58 +483,56 @@
                     <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
                 </div>
 
-                <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">smart_toy</span> Tùy chỉnh AI chuyên biệt</h4>
-                <p class="modal-desc" style="margin-bottom: 20px;">Bạn có thể chọn nhà cung cấp AI chuyên gia khác nhau cho từng tính năng.</p>
-                
-                <div class="form-group">
-                    <label style="font-weight: bold; color: var(--primary-blue);">AI Phân tích tình trạng</label>
-                    <select id="input-ai-provider-assessment" class="neumorphic-input" style="font-weight: 500;">
-                        <option value="gemini">Google Gemini (Mặc định)</option>
-                        <option value="openai">OpenAI ChatGPT</option>
-                        <option value="anthropic">Anthropic Claude</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label style="font-weight: bold; color: var(--primary-blue);">AI Tra cứu chuyên sâu</label>
-                    <select id="input-ai-provider-search" class="neumorphic-input" style="font-weight: 500;">
-                        <option value="gemini">Google Gemini (Mặc định)</option>
-                        <option value="openai">OpenAI ChatGPT</option>
-                        <option value="anthropic">Anthropic Claude</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label style="font-weight: bold; color: var(--primary-blue);">AI Đánh giá xu hướng</label>
-                    <select id="input-ai-provider-trend" class="neumorphic-input" style="font-weight: 500;">
-                        <option value="gemini">Google Gemini (Mặc định)</option>
-                        <option value="openai">OpenAI ChatGPT</option>
-                        <option value="anthropic">Anthropic Claude</option>
-                    </select>
-                </div>
-
-                <div class="form-group" style="margin-top: 15px;">
-                    <label style="font-weight: bold; color: var(--primary-blue);">Mô hình quét ảnh OCR (Google Gemini) *</label>
-                    <div style="display: flex; gap: 10px; align-items: flex-end;">
-                        <div style="flex: 1;">
-                            <select id="input-gemini-model" class="neumorphic-input" style="font-weight: 500;">
-                                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                            </select>
-                        </div>
-                        <button id="btn-fetch-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
-                            <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải danh sách
-                        </button>
-                    </div>
-                </div>
-
-                <details style="margin-top: 20px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px;">
-                    <summary style="font-weight: bold; cursor: pointer; color: var(--primary-blue); display: flex; align-items: center;">
-                        <span class="material-symbols-rounded" style="margin-right: 5px;">vpn_key</span>
-                        Cấu hình API Keys và Mô hình chuyên sâu
+                <details style="margin-bottom: 20px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px;">
+                    <summary style="font-weight: bold; cursor: pointer; color: var(--primary-blue); display: flex; align-items: center; font-size: 16px;">
+                        <span class="material-symbols-rounded" style="margin-right: 5px;">smart_toy</span>
+                        Cấu hình Trí tuệ Nhân tạo (AI)
                     </summary>
                     <div style="margin-top: 15px;">
+                        <p class="modal-desc" style="margin-bottom: 20px;">Phân công tác vụ cho các nhà cung cấp AI khác nhau (Google, OpenAI, Anthropic).</p>
+                        
                         <div class="form-group">
-                            <label>Google Gemini API Key (Bắt buộc cho quét ảnh)</label>
+                            <label style="font-weight: bold; color: var(--primary-blue);">AI Phân tích tình trạng bệnh án</label>
+                            <select id="input-ai-provider-assessment" class="neumorphic-input" style="font-weight: 500;">
+                                <option value="gemini">Google Gemini (Mặc định)</option>
+                                <option value="openai">OpenAI ChatGPT</option>
+                                <option value="anthropic">Anthropic Claude</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight: bold; color: var(--primary-blue);">AI Tra cứu chuyên sâu & Hỏi đáp</label>
+                            <select id="input-ai-provider-search" class="neumorphic-input" style="font-weight: 500;">
+                                <option value="gemini">Google Gemini (Mặc định)</option>
+                                <option value="openai">OpenAI ChatGPT</option>
+                                <option value="anthropic">Anthropic Claude</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight: bold; color: var(--primary-blue);">AI Đánh giá xu hướng sức khỏe</label>
+                            <select id="input-ai-provider-trend" class="neumorphic-input" style="font-weight: 500;">
+                                <option value="gemini">Google Gemini (Mặc định)</option>
+                                <option value="openai">OpenAI ChatGPT</option>
+                                <option value="anthropic">Anthropic Claude</option>
+                            </select>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
+                        <h5 style="margin-bottom: 15px; color: var(--text-color);">Cài đặt API Keys & Mô hình nâng cao</h5>
+
+                        <div class="form-group">
+                            <label>Google Gemini API Key (Bắt buộc cho OCR Quét ảnh)</label>
                             <input type="password" id="input-api-key" class="neumorphic-input" placeholder="AIzaSy...">
+                            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
+                                <div style="flex: 1;">
+                                    <select id="input-gemini-model" class="neumorphic-input" style="font-weight: 500;">
+                                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Dùng cho OCR)</option>
+                                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                    </select>
+                                </div>
+                                <button id="btn-fetch-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;">
+                                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -568,12 +566,12 @@
                                 </button>
                             </div>
                         </div>
+
+                        <div class="help-text" style="margin-top: 15px;">
+                            Lưu ý bảo mật: Các khóa API được lưu trực tiếp trên thiết bị (không mã hóa).
+                        </div>
                     </div>
                 </details>
-
-                <div class="help-text" style="margin-top: 15px;">
-                    Lưu ý bảo mật: Các khóa API được lưu trực tiếp trên thiết bị (không mã hóa).
-                </div>
 
                 <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
                 <h4 style="margin-bottom: 15px; color: #e74c3c;"><span class="material-symbols-rounded" style="vertical-align: middle;">delete_forever</span> Khôi phục Cài đặt gốc</h4>
