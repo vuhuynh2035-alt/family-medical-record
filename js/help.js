@@ -6,7 +6,9 @@ const HelpService = {
         this.backdrop = document.getElementById('help-backdrop');
         this.layer = document.getElementById('help-layer');
         this.btnWorkflow = document.getElementById('btn-workflow-guide');
+        this.btnAiHelp = document.getElementById('btn-ai-help-chat');
         this.modalWorkflow = document.getElementById('modal-workflow-guide');
+        this.modalAiHelp = document.getElementById('modal-ai-help-chat');
         this.workflowContent = document.getElementById('workflow-guide-content');
 
         if (this.btnHelp) {
@@ -18,15 +20,26 @@ const HelpService = {
         if (this.btnWorkflow) {
             this.btnWorkflow.addEventListener('click', () => this.showWorkflowGuide());
         }
+        if (this.btnAiHelp) {
+            this.btnAiHelp.addEventListener('click', () => this.showAiHelpChat());
+        }
         
-        // Modal close button
-        if (this.modalWorkflow) {
-            const closeBtn = this.modalWorkflow.querySelector('.close-modal');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    this.modalWorkflow.classList.add('hidden');
-                });
-            }
+        // Modal close buttons
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const overlay = e.target.closest('.modal-overlay');
+                if (overlay) overlay.classList.add('hidden');
+            });
+        });
+
+        // AI Chat input handling
+        const btnSendAiHelp = document.getElementById('btn-send-ai-help');
+        const inputAiHelp = document.getElementById('input-ai-help-chat');
+        if (btnSendAiHelp && inputAiHelp) {
+            btnSendAiHelp.addEventListener('click', () => this.sendAiHelpMessage());
+            inputAiHelp.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.sendAiHelpMessage();
+            });
         }
 
         window.addEventListener('resize', () => {
@@ -42,12 +55,16 @@ const HelpService = {
         if (this.isHelpModeActive) {
             this.backdrop.classList.remove('hidden');
             this.layer.classList.remove('hidden');
-            this.btnWorkflow.classList.remove('hidden');
+            if (this.btnWorkflow) this.btnWorkflow.classList.remove('hidden');
+            if (this.btnAiHelp) this.btnAiHelp.classList.remove('hidden');
             this.renderHelpElements();
         } else {
             this.backdrop.classList.add('hidden');
             this.layer.classList.add('hidden');
-            this.btnWorkflow.classList.add('hidden');
+            if (this.btnWorkflow) this.btnWorkflow.classList.add('hidden');
+            if (this.btnAiHelp) this.btnAiHelp.classList.add('hidden');
+            if (this.modalAiHelp) this.modalAiHelp.classList.add('hidden');
+            if (this.modalWorkflow) this.modalWorkflow.classList.add('hidden');
             this.layer.innerHTML = '';
         }
     },
@@ -224,6 +241,68 @@ const HelpService = {
         
         this.workflowContent.innerHTML = html;
         this.modalWorkflow.classList.remove('hidden');
+    },
+
+    showAiHelpChat() {
+        if (!this.modalAiHelp) return;
+        this.modalAiHelp.classList.remove('hidden');
+        const input = document.getElementById('input-ai-help-chat');
+        if (input) input.focus();
+    },
+
+    async sendAiHelpMessage() {
+        const input = document.getElementById('input-ai-help-chat');
+        const messageContainer = document.getElementById('ai-help-chat-messages');
+        if (!input || !messageContainer || !input.value.trim()) return;
+
+        const userText = input.value.trim();
+        input.value = '';
+
+        // Add user message to chat
+        const userMsg = document.createElement('div');
+        userMsg.className = 'chat-message user-message';
+        userMsg.style.cssText = 'align-self: flex-end; max-width: 85%; background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; padding: 12px 16px; border-radius: 15px 15px 0 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);';
+        userMsg.innerHTML = `<div style="font-size: 12px; color: rgba(255,255,255,0.8); font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">Bạn <span class="material-symbols-rounded" style="font-size: 14px;">person</span></div><div>${this.escapeHtml(userText)}</div>`;
+        messageContainer.appendChild(userMsg);
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+
+        // Add loading message
+        const loadingMsg = document.createElement('div');
+        loadingMsg.className = 'chat-message assistant-message';
+        loadingMsg.style.cssText = 'align-self: flex-start; max-width: 85%; background: white; padding: 12px 16px; border-radius: 15px 15px 15px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);';
+        loadingMsg.innerHTML = `<div style="font-size: 12px; color: #9b59b6; font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-rounded" style="font-size: 14px;">smart_toy</span> AI Assistant</div><div class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+        messageContainer.appendChild(loadingMsg);
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+
+        try {
+            // Call AI Service (implemented in js/ai.js)
+            const response = await AIService.askHelpAssistant(userText);
+            
+            // Remove loading and add actual response
+            loadingMsg.remove();
+            
+            const aiMsg = document.createElement('div');
+            aiMsg.className = 'chat-message assistant-message';
+            aiMsg.style.cssText = 'align-self: flex-start; max-width: 85%; background: white; padding: 12px 16px; border-radius: 15px 15px 15px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); font-size: 14px; line-height: 1.5;';
+            aiMsg.innerHTML = `<div style="font-size: 12px; color: #9b59b6; font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-rounded" style="font-size: 14px;">smart_toy</span> AI Assistant</div><div>${DOMPurify.sanitize(marked.parse(response))}</div>`;
+            messageContainer.appendChild(aiMsg);
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        } catch (error) {
+            loadingMsg.remove();
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'chat-message assistant-message';
+            errorMsg.style.cssText = 'align-self: flex-start; max-width: 85%; background: #fff1f0; color: #e74c3c; padding: 12px 16px; border-radius: 15px 15px 15px 0; border: 1px solid #ffccc7; font-size: 14px;';
+            errorMsg.innerHTML = `<div style="font-size: 12px; font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-rounded" style="font-size: 14px;">error</span> Lỗi</div><div>Xin lỗi, tôi không thể xử lý câu hỏi lúc này: ${this.escapeHtml(error.message)}</div>`;
+            messageContainer.appendChild(errorMsg);
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+    },
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 };
 

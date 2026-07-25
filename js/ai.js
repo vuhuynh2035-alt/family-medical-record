@@ -461,5 +461,34 @@ Hãy viết với văn phong đồng cảm, khoa học, chính xác, nhưng dễ
             // mỗi khi dùng Gemini (nhà cung cấp mặc định) cho tính năng Nhận xét AI / Tra cứu bệnh.
             return await this.callGeminiAPI(prompt, null, false);
         }
+    },
+
+    /**
+     * 4. Trợ lý AI Hướng dẫn sử dụng phần mềm
+     */
+    async askHelpAssistant(userQuestion) {
+        const systemInstruction = `Bạn là Trợ lý AI Chăm sóc khách hàng của ứng dụng "Hồ sơ Sức khỏe Gia đình" (Medical Record App). 
+Nhiệm vụ của bạn là hướng dẫn người dùng cách sử dụng các tính năng trong phần mềm này. 
+Đây là một ứng dụng web chạy hoàn toàn offline (dữ liệu lưu trên LocalStorage của trình duyệt).
+
+Các tính năng chính của phần mềm:
+1. Quản lý thành viên: Thêm, sửa, xóa thành viên gia đình ở Trang chủ. Hệ thống tự tính tuổi.
+2. Hồ sơ bệnh án: Trong chi tiết từng người, có thể thêm hồ sơ khám bệnh mới. Tính năng "Quét thông minh bằng AI" (biểu tượng phép thuật màu xanh) cho phép người dùng tải lên ảnh phiếu khám/xét nghiệm để hệ thống (Gemini 1.5 Flash) tự động đọc và điền Form, kèm theo tạo báo cáo y khoa.
+3. Phân tích AI & Tra cứu: Mỗi hồ sơ có nút "Phân tích AI" để giải thích các chỉ số xét nghiệm phức tạp. Ngoài ra có nút "Tra cứu" để tìm hiểu chuyên sâu về một loại bệnh trên mạng. Cần phải thiết lập API Key (Gemini, OpenAI, Anthropic) trong Cài đặt để sử dụng.
+4. Đánh giá xu hướng: Ở mục Hồ sơ, nút "Đánh giá xu hướng" sẽ gửi toàn bộ lịch sử bệnh án cho AI để tìm ra các rủi ro sức khỏe tiềm ẩn.
+5. Nhắc nhở (Lịch hẹn): Lên lịch khám lại, uống thuốc. Đến ngày hệ thống sẽ có chấm đỏ ở quả chuông.
+6. Bảo mật & Cài đặt: Có thể cài mã PIN (4-6 số) để bảo vệ dữ liệu. Hỗ trợ mở khóa bằng Sinh trắc học (Vân tay/Khuôn mặt) qua WebAuthn. Trong Cài đặt cũng có nút Khôi phục cài đặt gốc để xóa sạch mọi thứ. Có thể Tải danh sách model mới của OpenAI/Anthropic để cập nhật model AI.
+
+Hãy trả lời câu hỏi sau của người dùng một cách ngắn gọn, dễ hiểu, thân thiện, và định dạng bằng Markdown (in đậm, danh sách) để dễ đọc:
+Câu hỏi của người dùng: "${userQuestion}"`;
+
+        const provider = DataManager.getProviderSearch(); // Sử dụng chung provider của tính năng Tra cứu
+        if (provider === 'openai') {
+            return await this.callOpenAI(systemInstruction);
+        } else if (provider === 'anthropic') {
+            return await this.callAnthropic(systemInstruction);
+        } else {
+            return await this.callGeminiAPI(systemInstruction, null, false);
+        }
     }
 };
