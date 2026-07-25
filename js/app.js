@@ -63,10 +63,10 @@ function updatePinUIState() {
 
     // Biometric UI Update
     if (window.PublicKeyCredential) {
-        document.getElementById('biometric-settings-container').classList.remove('hidden');
+        document.getElementById('biometric-settings-container')?.classList.remove('hidden');
         const biometricOn = !!settings.biometricCredentialId;
-        document.getElementById('biometric-status-on').classList.toggle('hidden', !biometricOn);
-        document.getElementById('biometric-status-off').classList.toggle('hidden', biometricOn);
+        document.getElementById('biometric-status-on')?.classList.toggle('hidden', !biometricOn);
+        document.getElementById('biometric-status-off')?.classList.toggle('hidden', biometricOn);
         
         const bioLoginContainer = document.getElementById('biometric-login-container');
         if (bioLoginContainer) {
