@@ -1055,3 +1055,25 @@ input::placeholder {
         display: inline;
     }
 }
+
+/* Giảm bề ngang header trên điện thoại bằng cách chia icon thành 2 hàng */
+@media (max-width: 450px) {
+    .header-content {
+        align-items: flex-start;
+    }
+    .header-actions {
+        width: 105px; /* Vừa đủ 2 icon (45px x 2) + gap 10px */
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    
+    /* Hàng trên: Cài đặt & Đóng */
+    #btn-settings { order: 1; }
+    #btn-exit-app { order: 2; }
+    
+    /* Hàng dưới: Chuông & Hướng dẫn */
+    #btn-notifications { order: 3; }
+    #btn-help { order: 4; }
+    #btn-install-app { order: 5; }
+}
