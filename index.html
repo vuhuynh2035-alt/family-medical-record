@@ -249,10 +249,40 @@
     <!-- Settings Modal -->
     <div id="modal-settings" class="modal-overlay hidden" role="dialog" aria-modal="true">
         <div class="modal-content neumorphic-modal">
-            <div class="modal-header">
-                <h3>Cài đặt Đa Trí Tuệ Nhân Tạo (Multi-AI)</h3>
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0;">Cài đặt Hệ thống</h3>
+                <button type="button" class="icon-btn neumorphic-btn close-modal" title="Quay lại">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
             </div>
             <div class="modal-body">
+                <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">save</span> Sao Lưu & Khôi Phục Dữ Liệu</h4>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Lưu trữ toàn bộ hồ sơ y tế thành một file dự phòng, hoặc khôi phục dữ liệu từ file.</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btn-export-data" class="primary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <span class="material-symbols-rounded">download</span> Tạo Bản Sao Lưu
+                        </button>
+                        <button id="btn-import-data" class="secondary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <span class="material-symbols-rounded">upload</span> Khôi Phục Dữ Liệu
+                        </button>
+                    </div>
+                    
+                    <h4 style="margin: 15px 0 5px; color: #e74c3c;">Khôi phục Cài đặt gốc</h4>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Xóa sạch toàn bộ hồ sơ y tế, thành viên và hình ảnh trên thiết bị này. Các cài đặt API Key sẽ được giữ lại.</p>
+                    <button id="btn-wipe-data" class="neumorphic-btn" style="width: 100%; background: #fff1f0; color: #e74c3c; border: 1px solid #ffccc7; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; border-radius: 8px; cursor: pointer;">
+                        <span class="material-symbols-rounded">delete_forever</span> Xóa sạch Dữ liệu Y tế
+                    </button>
+                    
+                    <input type="file" id="input-import-data" accept=".json" hidden>
+                </div>
+                <div class="help-text" style="margin-top: 10px; margin-bottom: 20px; color: var(--danger);">
+                    Lưu ý: Khôi phục dữ liệu sẽ ghi đè toàn bộ hồ sơ và cài đặt hiện tại của bạn trên máy này.
+                </div>
+                
+                <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
+
+                <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">smart_toy</span> Đa Trí Tuệ Nhân Tạo (Multi-AI)</h4>
                 <p class="modal-desc" style="margin-bottom: 20px;">Hệ thống sử dụng Gemini (Flash) mặc định để quét ảnh nhanh. Bạn có thể chọn AI chuyên gia khác để tư vấn y khoa chuyên sâu.</p>
                 
                 <div class="form-group">
@@ -358,30 +388,7 @@
                     </div>
                 </div>
 
-                <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
-                <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">save</span> Sao Lưu & Khôi Phục Dữ Liệu</h4>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Lưu trữ toàn bộ hồ sơ y tế thành một file dự phòng, hoặc khôi phục dữ liệu từ file.</p>
-                    <div style="display: flex; gap: 10px;">
-                        <button id="btn-export-data" class="primary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                            <span class="material-symbols-rounded">download</span> Tạo Bản Sao Lưu
-                        </button>
-                        <button id="btn-import-data" class="secondary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                            <span class="material-symbols-rounded">upload</span> Khôi Phục Dữ Liệu
-                        </button>
-                    </div>
-                    
-                    <h4 style="margin: 15px 0 5px; color: #e74c3c;">Khôi phục Cài đặt gốc</h4>
-                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Xóa sạch toàn bộ hồ sơ y tế, thành viên và hình ảnh trên thiết bị này. Các cài đặt API Key sẽ được giữ lại.</p>
-                    <button id="btn-wipe-data" class="neumorphic-btn" style="width: 100%; background: #fff1f0; color: #e74c3c; border: 1px solid #ffccc7; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; border-radius: 8px; cursor: pointer;">
-                        <span class="material-symbols-rounded">delete_forever</span> Xóa sạch Dữ liệu Y tế
-                    </button>
-                    
-                    <input type="file" id="input-import-data" accept=".json" hidden>
-                </div>
-                <div class="help-text" style="margin-top: 10px; color: var(--danger);">
-                    Lưu ý: Khôi phục dữ liệu sẽ ghi đè toàn bộ hồ sơ và cài đặt hiện tại của bạn trên máy này.
-                </div>
+
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
                 <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
