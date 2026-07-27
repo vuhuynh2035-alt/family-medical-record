@@ -1790,26 +1790,45 @@ function setupEventListeners() {
     });
 
     async function generateAndSharePdf(element, filename) {
-        // Tạo wrapper để render PDF (tránh bị cắt chữ do CSS overflow/max-height của modal)
-        const wrapper = document.createElement('div');
-        wrapper.className = 'modal-overlay modal-content modal-body'; // Kế thừa CSS gốc
-        wrapper.style.position = 'absolute';
-        wrapper.style.top = '-9999px';
-        wrapper.style.left = '0';
-        wrapper.style.width = '800px'; 
-        wrapper.style.height = 'auto';
-        wrapper.style.background = 'white';
-        wrapper.style.padding = '20px';
-        wrapper.style.color = 'black';
-        wrapper.style.overflow = 'visible';
-        
-        const clone = element.cloneNode(true);
-        // Đảm bảo clone không bị giới hạn chiều cao
-        clone.style.maxHeight = 'none';
-        clone.style.overflowY = 'visible';
-        clone.style.height = 'auto';
-        wrapper.appendChild(clone);
-        document.body.appendChild(wrapper);
+        // Tạo overlay che màn hình để giấu việc modal bị giãn ra
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.style.position = 'fixed';
+        loadingOverlay.style.top = '0';
+        loadingOverlay.style.left = '0';
+        loadingOverlay.style.width = '100vw';
+        loadingOverlay.style.height = '100vh';
+        loadingOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+        loadingOverlay.style.zIndex = '99999';
+        loadingOverlay.style.display = 'flex';
+        loadingOverlay.style.flexDirection = 'column';
+        loadingOverlay.style.justifyContent = 'center';
+        loadingOverlay.style.alignItems = 'center';
+        loadingOverlay.style.color = '#2563eb';
+        loadingOverlay.style.fontSize = '18px';
+        loadingOverlay.style.fontWeight = 'bold';
+        loadingOverlay.innerHTML = '<div class="loading-spinner" style="width:40px;height:40px;margin-bottom:15px;border:4px solid #2563eb;border-top-color:transparent;"></div> Đang tạo tệp PDF chất lượng cao...';
+        document.body.appendChild(loadingOverlay);
+
+        // Lưu lại CSS gốc và mở rộng tất cả container để html2canvas không bị cắt chữ
+        const parents = [];
+        let curr = element;
+        while (curr && curr !== document.body) {
+            parents.push({
+                el: curr,
+                overflow: curr.style.overflow,
+                overflowY: curr.style.overflowY,
+                maxHeight: curr.style.maxHeight,
+                height: curr.style.height
+            });
+            curr.style.overflow = 'visible';
+            curr.style.overflowY = 'visible';
+            curr.style.maxHeight = 'none';
+            curr.style.height = 'auto';
+            curr = curr.parentElement;
+        }
+
+        // Đợi DOM cập nhật layout
+        await new Promise(r => setTimeout(r, 150));
 
         const opt = {
             margin:       0.5,
@@ -1827,10 +1846,19 @@ function setupEventListeners() {
             // Check if Native Share with files is supported AND device is mobile
             if (isMobile && navigator.share && typeof navigator.canShare === 'function') {
                 try {
-                    const pdfBlob = await html2pdf().set(opt).from(wrapper).output('blob');
+                    const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
                     const file = new File([pdfBlob], filename, { type: 'application/pdf' });
                     
                     if (navigator.canShare({ files: [file] })) {
+                        // Khôi phục DOM ngay lập tức trước khi gọi Share Sheet
+                        for (let p of parents) {
+                            p.el.style.overflow = p.overflow;
+                            p.el.style.overflowY = p.overflowY;
+                            p.el.style.maxHeight = p.maxHeight;
+                            p.el.style.height = p.height;
+                        }
+                        loadingOverlay.remove();
+
                         await navigator.share({
                             title: 'Tài liệu Y khoa',
                             text: 'Tài liệu xuất từ ứng dụng Hồ sơ Sức khỏe Gia đình',
@@ -1848,14 +1876,22 @@ function setupEventListeners() {
             }
             
             // Fallback: Tải xuống trực tiếp cho Desktop hoặc khi mobile share bị lỗi
-            await html2pdf().set(opt).from(wrapper).save();
+            await html2pdf().set(opt).from(element).save();
             
         } catch (err) {
             console.error('Lỗi quá trình tạo PDF:', err);
             alert('Đã xảy ra lỗi khi tạo tệp PDF. Xin vui lòng thử lại.');
         } finally {
-            // Dọn dẹp DOM
-            document.body.removeChild(wrapper);
+            // Khôi phục DOM nếu chưa được khôi phục
+            if (document.body.contains(loadingOverlay)) {
+                for (let p of parents) {
+                    p.el.style.overflow = p.overflow;
+                    p.el.style.overflowY = p.overflowY;
+                    p.el.style.maxHeight = p.maxHeight;
+                    p.el.style.height = p.height;
+                }
+                loadingOverlay.remove();
+            }
         }
     }
 
