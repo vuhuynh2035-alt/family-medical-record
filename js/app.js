@@ -1803,8 +1803,8 @@ function setupEventListeners() {
             html2canvas:  { 
                 scale: safeScale,
                 useCORS: true,
-                logging: false,
-                windowWidth: 800
+                scrollY: 0,
+                scrollX: 0
             },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
@@ -1814,6 +1814,8 @@ function setupEventListeners() {
         const modalContent = element.closest('.modal-content');
         let originalMaxHeight = '';
         let originalOverflow = '';
+        const originalScrollY = window.scrollY;
+        const originalScrollX = window.scrollX;
         
         // Mở rộng modal để không bị giới hạn 90vh (nguyên nhân gây cắt chữ)
         if (modalContent) {
@@ -1822,6 +1824,9 @@ function setupEventListeners() {
             modalContent.style.maxHeight = 'none';
             modalContent.style.overflowY = 'visible';
         }
+
+        // Đưa màn hình về góc trên cùng để html2canvas không bị lệch tọa độ
+        window.scrollTo(0, 0);
         
         // Đảm bảo hình ảnh đính kèm đã tải xong hoàn toàn
         const imgs = Array.from(element.querySelectorAll('img'));
@@ -1840,6 +1845,7 @@ function setupEventListeners() {
             modalContent.style.maxHeight = originalMaxHeight;
             modalContent.style.overflowY = originalOverflow;
         }
+        window.scrollTo(originalScrollX, originalScrollY);
     }
 
     async function downloadPdf(element, filename) {
