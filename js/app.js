@@ -1821,8 +1821,11 @@ function setupEventListeners() {
         };
 
         try {
-            // Check if Native Share with files is supported
-            if (navigator.share && typeof navigator.canShare === 'function') {
+            // Chỉ sử dụng Share Sheet tự nhiên trên thiết bị di động vì Share Sheet của Windows Desktop rất hạn chế
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            // Check if Native Share with files is supported AND device is mobile
+            if (isMobile && navigator.share && typeof navigator.canShare === 'function') {
                 try {
                     const pdfBlob = await html2pdf().set(opt).from(wrapper).output('blob');
                     const file = new File([pdfBlob], filename, { type: 'application/pdf' });
@@ -1844,7 +1847,7 @@ function setupEventListeners() {
                 }
             }
             
-            // Fallback: Nếu không share được thì lưu (tải xuống) bình thường. Bắt buộc phải có 'await' để DOM không bị reset sớm.
+            // Fallback: Tải xuống trực tiếp cho Desktop hoặc khi mobile share bị lỗi
             await html2pdf().set(opt).from(wrapper).save();
             
         } catch (err) {
