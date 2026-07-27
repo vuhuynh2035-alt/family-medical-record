@@ -1790,19 +1790,41 @@ function setupEventListeners() {
     });
 
     async function generateAndSharePdf(element, filename) {
+        // Tạo wrapper để render PDF (tránh bị cắt chữ do CSS overflow/max-height của modal)
+        const wrapper = document.createElement('div');
+        wrapper.className = 'modal-overlay modal-content modal-body'; // Kế thừa CSS gốc
+        wrapper.style.position = 'absolute';
+        wrapper.style.top = '-9999px';
+        wrapper.style.left = '0';
+        wrapper.style.width = '800px'; 
+        wrapper.style.height = 'auto';
+        wrapper.style.background = 'white';
+        wrapper.style.padding = '20px';
+        wrapper.style.color = 'black';
+        wrapper.style.overflow = 'visible';
+        
+        const clone = element.cloneNode(true);
+        // Đảm bảo clone không bị giới hạn chiều cao
+        clone.style.maxHeight = 'none';
+        clone.style.overflowY = 'visible';
+        clone.style.height = 'auto';
+        wrapper.appendChild(clone);
+        document.body.appendChild(wrapper);
+
         const opt = {
             margin:       0.5,
             filename:     filename,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            html2canvas:  { scale: 2, useCORS: true, logging: false },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         try {
             // Check if Native Share with files is supported
             if (navigator.share && typeof navigator.canShare === 'function') {
                 try {
-                    const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+                    const pdfBlob = await html2pdf().set(opt).from(wrapper).output('blob');
                     const file = new File([pdfBlob], filename, { type: 'application/pdf' });
                     
                     if (navigator.canShare({ files: [file] })) {
@@ -1823,38 +1845,32 @@ function setupEventListeners() {
             }
             
             // Fallback: Nếu không share được thì lưu (tải xuống) bình thường. Bắt buộc phải có 'await' để DOM không bị reset sớm.
-            await html2pdf().set(opt).from(element).save();
+            await html2pdf().set(opt).from(wrapper).save();
             
         } catch (err) {
             console.error('Lỗi quá trình tạo PDF:', err);
             alert('Đã xảy ra lỗi khi tạo tệp PDF. Xin vui lòng thử lại.');
+        } finally {
+            // Dọn dẹp DOM
+            document.body.removeChild(wrapper);
         }
     }
 
     document.getElementById('btn-download-pdf').addEventListener('click', async () => {
         const element = document.getElementById('report-preview-mode');
-        
-        const originalMaxHeight = element.style.maxHeight;
-        const originalOverflow = element.style.overflowY;
-        element.style.maxHeight = 'none';
-        element.style.overflowY = 'visible';
-
         await generateAndSharePdf(element, 'Bao_Cao_Y_Khoa.pdf');
-        
-        element.style.maxHeight = originalMaxHeight;
-        element.style.overflowY = originalOverflow;
     });
 
-    document.getElementById('btn-download-record-pdf').addEventListener('click', () => {
+    document.getElementById('btn-download-record-pdf').addEventListener('click', async () => {
         const element = document.getElementById('view-record-content');
-        generateAndSharePdf(element, 'Chi_Tiet_Ho_So.pdf');
+        await generateAndSharePdf(element, 'Chi_Tiet_Ho_So.pdf');
     });
 
-    document.getElementById('btn-download-assessment-pdf').addEventListener('click', () => {
+    document.getElementById('btn-download-assessment-pdf').addEventListener('click', async () => {
         const element = document.getElementById('ai-assessment-content');
         let rawTitle = document.querySelector('#modal-ai-assessment .modal-header h3').innerText.trim();
         const titleText = rawTitle.replace(/psychiatry|travel_explore|auto_awesome/g, '').trim() || 'AI_Assessment';
-        generateAndSharePdf(element, `${titleText}.pdf`.replace(/\s+/g, '_'));
+        await generateAndSharePdf(element, `${titleText}.pdf`.replace(/\s+/g, '_'));
     });
 
     // Image Viewer Logic
