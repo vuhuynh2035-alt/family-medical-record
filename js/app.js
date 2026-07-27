@@ -1814,19 +1814,24 @@ function setupEventListeners() {
         let curr = element;
         // Đi tới tận cùng là documentElement (thẻ <html>)
         while (curr) {
+            const compStyle = window.getComputedStyle(curr);
             parents.push({
                 el: curr,
                 overflow: curr.style.overflow,
                 overflowY: curr.style.overflowY,
                 overflowX: curr.style.overflowX,
                 maxHeight: curr.style.maxHeight,
-                height: curr.style.height
+                height: curr.style.height,
+                position: curr.style.position
             });
             curr.style.overflow = 'visible';
             curr.style.overflowY = 'visible';
             curr.style.overflowX = 'visible';
             curr.style.maxHeight = 'none';
             curr.style.height = 'auto';
+            if (compStyle.position === 'fixed') {
+                curr.style.position = 'absolute';
+            }
             if (curr === document.documentElement) break;
             curr = curr.parentElement;
         }
@@ -1868,6 +1873,7 @@ function setupEventListeners() {
                             p.el.style.overflowX = p.overflowX;
                             p.el.style.maxHeight = p.maxHeight;
                             p.el.style.height = p.height;
+                            p.el.style.position = p.position;
                         }
                         loadingOverlay.remove();
 
@@ -1902,6 +1908,7 @@ function setupEventListeners() {
                     p.el.style.overflowX = p.overflowX;
                     p.el.style.maxHeight = p.maxHeight;
                     p.el.style.height = p.height;
+                    p.el.style.position = p.position;
                 }
                 loadingOverlay.remove();
             }
