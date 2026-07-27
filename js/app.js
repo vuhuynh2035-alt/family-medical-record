@@ -1790,15 +1790,15 @@ function setupEventListeners() {
     });
 
     async function generateAndSharePdf(element, filename) {
-        // Tạo overlay che màn hình để giấu việc xử lý DOM
+        // Tạo overlay che màn hình để giấu việc modal bị giãn ra
         const loadingOverlay = document.createElement('div');
         loadingOverlay.style.position = 'fixed';
         loadingOverlay.style.top = '0';
         loadingOverlay.style.left = '0';
         loadingOverlay.style.width = '100vw';
         loadingOverlay.style.height = '100vh';
-        loadingOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-        loadingOverlay.style.zIndex = '999999';
+        loadingOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+        loadingOverlay.style.zIndex = '99999';
         loadingOverlay.style.display = 'flex';
         loadingOverlay.style.flexDirection = 'column';
         loadingOverlay.style.justifyContent = 'center';
@@ -1809,40 +1809,45 @@ function setupEventListeners() {
         loadingOverlay.innerHTML = '<div class="loading-spinner" style="width:40px;height:40px;margin-bottom:15px;border:4px solid #2563eb;border-top-color:transparent;"></div> Đang tạo tệp PDF chất lượng cao...';
         document.body.appendChild(loadingOverlay);
 
-        // Tạo một container độc lập hoàn toàn gắn thẳng vào body
-        const wrapper = document.createElement('div');
-        wrapper.style.position = 'absolute';
-        wrapper.style.top = '0'; // Bắt buộc ở toạ độ 0 để html2canvas không chụp hụt (gây ra lỗi trang trắng)
-        wrapper.style.left = '0';
-        wrapper.style.width = '800px'; 
-        wrapper.style.height = 'auto'; // Tự do giãn theo nội dung
-        wrapper.style.background = 'white';
-        wrapper.style.padding = '30px';
-        wrapper.style.color = 'black';
-        wrapper.style.zIndex = '999990'; // Nằm ngay dưới loadingOverlay
-
-        const clone = element.cloneNode(true);
-        // Xóa sạch mọi rào cản chiều cao trên clone
-        clone.style.overflow = 'visible';
-        clone.style.overflowY = 'visible';
-        clone.style.maxHeight = 'none';
-        clone.style.height = 'auto';
-        
-        wrapper.appendChild(clone);
-        document.body.appendChild(wrapper);
+        // Lưu lại CSS gốc và mở rộng tất cả container để html2canvas không bị cắt chữ
+        const parents = [];
+        let curr = element;
+        // Đi tới tận cùng là documentElement (thẻ <html>)
+        while (curr) {
+            const compStyle = window.getComputedStyle(curr);
+            parents.push({
+                el: curr,
+                overflow: curr.style.overflow,
+                overflowY: curr.style.overflowY,
+                overflowX: curr.style.overflowX,
+                maxHeight: curr.style.maxHeight,
+                height: curr.style.height,
+                position: curr.style.position
+            });
+            curr.style.overflow = 'visible';
+            curr.style.overflowY = 'visible';
+            curr.style.overflowX = 'visible';
+            curr.style.maxHeight = 'none';
+            curr.style.height = 'auto';
+            if (compStyle.position === 'fixed') {
+                curr.style.position = 'absolute';
+            }
+            if (curr === document.documentElement) break;
+            curr = curr.parentElement;
+        }
 
         // Đảm bảo tất cả hình ảnh trong bản sao đã load xong hoàn toàn để tính toán chiều cao chính xác
-        const imgs = Array.from(wrapper.querySelectorAll('img'));
+        const imgs = Array.from(element.querySelectorAll('img'));
         await Promise.all(imgs.map(img => new Promise(resolve => {
             if (img.complete) resolve();
             else { img.onload = resolve; img.onerror = resolve; }
         })));
 
-        // Đợi thêm một chút để trình duyệt hoàn tất render layout (dành cho máy yếu)
-        await new Promise(r => setTimeout(r, 1500)); 
+        // Đợi DOM cập nhật layout và hình ảnh
+        await new Promise(r => setTimeout(r, 1000)); 
 
-        // Tính toán chiều cao chính xác (cộng thêm 1 chút biên độ an toàn)
-        const docHeight = wrapper.scrollHeight + 50;
+        // Tính toán chiều cao chính xác
+        const docHeight = document.documentElement.scrollHeight + 100;
         let safeScale = 2;
         if (docHeight * safeScale > 14000) safeScale = 1.5;
         if (docHeight * safeScale > 14000) safeScale = 1;
@@ -1855,26 +1860,35 @@ function setupEventListeners() {
                 scale: safeScale, 
                 useCORS: true, 
                 logging: false,
-                windowWidth: 800,
-                windowHeight: docHeight,
-                scrollY: 0
+                // Bắt buộc html2canvas phải render hết toàn bộ chiều cao của nội dung
+                windowWidth: document.documentElement.scrollWidth,
+                windowHeight: document.documentElement.scrollHeight
             },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
             // Bỏ avoid-all để html2pdf tự do cắt trang nếu phần tử quá dài, đảm bảo không bao giờ mất chữ
-            pagebreak:    { mode: ['css', 'legacy'] } 
+            pagebreak:    { mode: ['css', 'legacy'] }
         };
 
         try {
+            // Chỉ sử dụng Share Sheet tự nhiên trên thiết bị di động vì Share Sheet của Windows Desktop rất hạn chế
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
+            // Check if Native Share with files is supported AND device is mobile
             if (isMobile && navigator.share && typeof navigator.canShare === 'function') {
                 try {
-                    const pdfBlob = await html2pdf().set(opt).from(wrapper).output('blob');
+                    const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
                     const file = new File([pdfBlob], filename, { type: 'application/pdf' });
                     
                     if (navigator.canShare({ files: [file] })) {
-                        // Dọn dẹp DOM trước khi gọi bảng share
-                        wrapper.remove();
+                        // Khôi phục DOM ngay lập tức trước khi gọi Share Sheet
+                        for (let p of parents) {
+                            p.el.style.overflow = p.overflow;
+                            p.el.style.overflowY = p.overflowY;
+                            p.el.style.overflowX = p.overflowX;
+                            p.el.style.maxHeight = p.maxHeight;
+                            p.el.style.height = p.height;
+                            p.el.style.position = p.position;
+                        }
                         loadingOverlay.remove();
 
                         await navigator.share({
@@ -1882,22 +1896,36 @@ function setupEventListeners() {
                             text: 'Tài liệu xuất từ ứng dụng Hồ sơ Sức khỏe Gia đình',
                             files: [file]
                         });
-                        return; 
+                        return; // Share successful, stop here.
                     }
                 } catch (shareErr) {
-                    if (shareErr.name === 'AbortError') return;
+                    // Nếu người dùng chủ động tắt bảng chia sẻ (AbortError), không làm gì thêm
+                    if (shareErr.name === 'AbortError') {
+                        return;
+                    }
                     console.warn('Lỗi khi chia sẻ, đang chuyển sang tải xuống...', shareErr);
                 }
             }
             
-            await html2pdf().set(opt).from(wrapper).save();
+            // Fallback: Tải xuống trực tiếp cho Desktop hoặc khi mobile share bị lỗi
+            await html2pdf().set(opt).from(element).save();
             
         } catch (err) {
             console.error('Lỗi quá trình tạo PDF:', err);
             alert('Đã xảy ra lỗi khi tạo tệp PDF. Xin vui lòng thử lại.');
         } finally {
-            if (document.body.contains(wrapper)) wrapper.remove();
-            if (document.body.contains(loadingOverlay)) loadingOverlay.remove();
+            // Khôi phục DOM nếu chưa được khôi phục
+            if (document.body.contains(loadingOverlay)) {
+                for (let p of parents) {
+                    p.el.style.overflow = p.overflow;
+                    p.el.style.overflowY = p.overflowY;
+                    p.el.style.overflowX = p.overflowX;
+                    p.el.style.maxHeight = p.maxHeight;
+                    p.el.style.height = p.height;
+                    p.el.style.position = p.position;
+                }
+                loadingOverlay.remove();
+            }
         }
     }
 
