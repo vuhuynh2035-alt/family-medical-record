@@ -1831,10 +1831,18 @@ function setupEventListeners() {
         wrapper.appendChild(clone);
         document.body.appendChild(wrapper);
 
-        // Đợi DOM render clone
-        await new Promise(r => setTimeout(r, 300)); 
+        // Đảm bảo tất cả hình ảnh trong bản sao đã load xong hoàn toàn để tính toán chiều cao chính xác
+        const imgs = Array.from(wrapper.querySelectorAll('img'));
+        await Promise.all(imgs.map(img => new Promise(resolve => {
+            if (img.complete) resolve();
+            else { img.onload = resolve; img.onerror = resolve; }
+        })));
 
-        const docHeight = wrapper.scrollHeight;
+        // Đợi thêm một chút để trình duyệt hoàn tất render layout (dành cho máy yếu)
+        await new Promise(r => setTimeout(r, 1500)); 
+
+        // Tính toán chiều cao chính xác (cộng thêm 1 chút biên độ an toàn)
+        const docHeight = wrapper.scrollHeight + 50;
         let safeScale = 2;
         if (docHeight * safeScale > 14000) safeScale = 1.5;
         if (docHeight * safeScale > 14000) safeScale = 1;
