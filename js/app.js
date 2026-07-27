@@ -1789,12 +1789,23 @@ function setupEventListeners() {
         setTimeout(() => { loading.classList.add('hidden'); }, 3000);
     });
 
-    async function getPdfOpt(filename) {
+    async function getPdfOpt(element, filename) {
+        // Tính toán scale an toàn dựa trên chiều cao để tránh lỗi quá giới hạn Canvas của WebGL (thường là 16384px trên mobile)
+        const docHeight = element.scrollHeight;
+        let safeScale = 2; // Mặc định chất lượng cao nhất
+        if (docHeight * safeScale > 14000) safeScale = 1.5;
+        if (docHeight * safeScale > 14000) safeScale = 1; // Hạ xuống scale thấp hơn nếu file quá dài
+
         return {
             margin:       0.5,
             filename:     filename,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
+            html2canvas:  { 
+                scale: safeScale,
+                useCORS: true,
+                logging: false,
+                windowWidth: 800
+            },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
     }
@@ -1833,7 +1844,7 @@ function setupEventListeners() {
 
     async function downloadPdf(element, filename) {
         await withExpandedModal(element, async () => {
-            const opt = await getPdfOpt(filename);
+            const opt = await getPdfOpt(element, filename);
             await html2pdf().set(opt).from(element).save();
         });
     }
@@ -1864,7 +1875,7 @@ function setupEventListeners() {
 
         try {
             await withExpandedModal(element, async () => {
-                const opt = await getPdfOpt(filename);
+                const opt = await getPdfOpt(element, filename);
                 const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
                 const file = new File([pdfBlob], filename, { type: 'application/pdf' });
                 
