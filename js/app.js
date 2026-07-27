@@ -1789,7 +1789,39 @@ function setupEventListeners() {
         setTimeout(() => { loading.classList.add('hidden'); }, 3000);
     });
 
-    document.getElementById('btn-download-pdf').addEventListener('click', () => {
+    async function generateAndSharePdf(element, filename) {
+        const opt = {
+            margin:       0.5,
+            filename:     filename,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        if (navigator.share && navigator.canShare) {
+            try {
+                // Hiển thị trạng thái đang xử lý (tùy chọn)
+                const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+                const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+                
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: 'Tài liệu Y khoa',
+                        text: 'Tài liệu xuất từ ứng dụng Hồ sơ Sức khỏe Gia đình',
+                        files: [file]
+                    });
+                    return; // Thoát nếu chia sẻ thành công
+                }
+            } catch (e) {
+                console.warn('Không thể chia sẻ qua hệ thống, chuyển sang tải xuống thông thường.', e);
+            }
+        }
+        
+        // Fallback: Tải xuống bình thường nếu không hỗ trợ chia sẻ
+        html2pdf().set(opt).from(element).save();
+    }
+
+    document.getElementById('btn-download-pdf').addEventListener('click', async () => {
         const element = document.getElementById('report-preview-mode');
         
         const originalMaxHeight = element.style.maxHeight;
@@ -1797,45 +1829,59 @@ function setupEventListeners() {
         element.style.maxHeight = 'none';
         element.style.overflowY = 'visible';
 
-        const opt = {
-            margin:       0.5,
-            filename:     'Bao_Cao_Y_Khoa.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
+        await generateAndSharePdf(element, 'Bao_Cao_Y_Khoa.pdf');
         
-        html2pdf().set(opt).from(element).save().then(() => {
-            element.style.maxHeight = originalMaxHeight;
-            element.style.overflowY = originalOverflow;
-        });
+        element.style.maxHeight = originalMaxHeight;
+        element.style.overflowY = originalOverflow;
     });
 
     document.getElementById('btn-download-record-pdf').addEventListener('click', () => {
         const element = document.getElementById('view-record-content');
-        const opt = {
-            margin:       0.5,
-            filename:     'Chi_Tiet_Ho_So.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
+        generateAndSharePdf(element, 'Chi_Tiet_Ho_So.pdf');
     });
 
     document.getElementById('btn-download-assessment-pdf').addEventListener('click', () => {
         const element = document.getElementById('ai-assessment-content');
-        // Xóa text của các icon có thể xuất hiện trong h3 để làm tên file sạch
         let rawTitle = document.querySelector('#modal-ai-assessment .modal-header h3').innerText.trim();
         const titleText = rawTitle.replace(/psychiatry|travel_explore|auto_awesome/g, '').trim() || 'AI_Assessment';
-        const opt = {
-            margin:       0.5,
-            filename:     `${titleText}.pdf`.replace(/\s+/g, '_'),
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
+        generateAndSharePdf(element, `${titleText}.pdf`.replace(/\s+/g, '_'));
+    });
+
+    // Image Viewer Logic
+    document.getElementById('btn-download-viewer-image').addEventListener('click', () => {
+        const src = document.getElementById('viewer-image').src;
+        if (!src) return;
+        const link = document.createElement('a');
+        link.href = src;
+        link.download = 'hinh_anh_y_khoa.jpg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    document.getElementById('btn-share-viewer-image').addEventListener('click', async () => {
+        const src = document.getElementById('viewer-image').src;
+        if (!src) return;
+        
+        if (navigator.share && navigator.canShare) {
+            try {
+                const res = await fetch(src);
+                const blob = await res.blob();
+                const file = new File([blob], 'hinh_anh_y_khoa.jpg', { type: blob.type || 'image/jpeg' });
+                
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: 'Hình ảnh Y khoa',
+                        files: [file]
+                    });
+                    return;
+                }
+            } catch (e) {
+                console.warn('Không thể chia sẻ ảnh:', e);
+            }
+        }
+        // Fallback: Tải xuống bình thường
+        document.getElementById('btn-download-viewer-image').click();
     });
 
     // Report Editor Modal Logic
