@@ -1839,12 +1839,22 @@ function setupEventListeners() {
         // Đợi DOM cập nhật layout
         await new Promise(r => setTimeout(r, 200)); // Tăng thời gian chờ thêm 1 chút để render ổn định
 
+        // Tính toán scale an toàn dựa trên chiều cao để tránh lỗi quá giới hạn Canvas của trình duyệt (thường là 16384px)
+        const docHeight = document.documentElement.scrollHeight;
+        let safeScale = 2;
+        if (docHeight * safeScale > 15000) {
+            safeScale = 1.5;
+        }
+        if (docHeight * safeScale > 15000) {
+            safeScale = 1;
+        }
+
         const opt = {
             margin:       0.5,
             filename:     filename,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { 
-                scale: 2, 
+                scale: safeScale, 
                 useCORS: true, 
                 logging: false,
                 // Bắt buộc html2canvas phải render hết toàn bộ chiều cao của nội dung
