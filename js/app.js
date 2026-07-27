@@ -1798,27 +1798,40 @@ function setupEventListeners() {
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
 
-        if (navigator.share && navigator.canShare) {
-            try {
-                // Hiển thị trạng thái đang xử lý (tùy chọn)
-                const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
-                const file = new File([pdfBlob], filename, { type: 'application/pdf' });
-                
-                if (navigator.canShare({ files: [file] })) {
+        try {
+            // Generate the PDF blob first, awaiting the completion
+            const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
+            const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+            
+            // Check if Native Share is supported and can share the file
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
                     await navigator.share({
                         title: 'Tài liệu Y khoa',
                         text: 'Tài liệu xuất từ ứng dụng Hồ sơ Sức khỏe Gia đình',
                         files: [file]
                     });
-                    return; // Thoát nếu chia sẻ thành công
+                    return; // Share successful
+                } catch (shareErr) {
+                    console.warn('Lỗi khi chia sẻ qua hệ thống, tự động tải xuống:', shareErr);
+                    // Fallthrough to download if share is cancelled or fails
                 }
-            } catch (e) {
-                console.warn('Không thể chia sẻ qua hệ thống, chuyển sang tải xuống thông thường.', e);
             }
+            
+            // Fallback: Download the Blob directly
+            const url = URL.createObjectURL(pdfBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+        } catch (err) {
+            console.error('Lỗi quá trình tạo PDF:', err);
+            alert('Đã xảy ra lỗi khi tạo tệp PDF. Xin vui lòng thử lại.');
         }
-        
-        // Fallback: Tải xuống bình thường nếu không hỗ trợ chia sẻ
-        html2pdf().set(opt).from(element).save();
     }
 
     document.getElementById('btn-download-pdf').addEventListener('click', async () => {
