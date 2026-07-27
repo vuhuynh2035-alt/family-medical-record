@@ -1812,29 +1812,40 @@ function setupEventListeners() {
         // Lưu lại CSS gốc và mở rộng tất cả container để html2canvas không bị cắt chữ
         const parents = [];
         let curr = element;
-        while (curr && curr !== document.body) {
+        // Đi tới tận cùng là documentElement (thẻ <html>)
+        while (curr) {
             parents.push({
                 el: curr,
                 overflow: curr.style.overflow,
                 overflowY: curr.style.overflowY,
+                overflowX: curr.style.overflowX,
                 maxHeight: curr.style.maxHeight,
                 height: curr.style.height
             });
             curr.style.overflow = 'visible';
             curr.style.overflowY = 'visible';
+            curr.style.overflowX = 'visible';
             curr.style.maxHeight = 'none';
             curr.style.height = 'auto';
+            if (curr === document.documentElement) break;
             curr = curr.parentElement;
         }
 
         // Đợi DOM cập nhật layout
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 200)); // Tăng thời gian chờ thêm 1 chút để render ổn định
 
         const opt = {
             margin:       0.5,
             filename:     filename,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, logging: false },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                logging: false,
+                // Bắt buộc html2canvas phải render hết toàn bộ chiều cao của nội dung
+                windowWidth: document.documentElement.scrollWidth,
+                windowHeight: document.documentElement.scrollHeight
+            },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
@@ -1854,6 +1865,7 @@ function setupEventListeners() {
                         for (let p of parents) {
                             p.el.style.overflow = p.overflow;
                             p.el.style.overflowY = p.overflowY;
+                            p.el.style.overflowX = p.overflowX;
                             p.el.style.maxHeight = p.maxHeight;
                             p.el.style.height = p.height;
                         }
@@ -1887,6 +1899,7 @@ function setupEventListeners() {
                 for (let p of parents) {
                     p.el.style.overflow = p.overflow;
                     p.el.style.overflowY = p.overflowY;
+                    p.el.style.overflowX = p.overflowX;
                     p.el.style.maxHeight = p.maxHeight;
                     p.el.style.height = p.height;
                 }
