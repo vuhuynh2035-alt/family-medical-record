@@ -216,6 +216,16 @@ const HelpService = {
                     <li><strong>Điền thông tin:</strong> Nhập Tên, Giới tính, Ngày sinh, Mối quan hệ và Lưu lại. Hệ thống tự động tính tuổi.</li>
                     <li><strong>Xem hồ sơ:</strong> Sau khi tạo xong, một thẻ đại diện cho thành viên sẽ hiện ra. Nhấn trực tiếp vào thẻ đó để mở chi tiết <strong>Hồ sơ Bệnh án</strong> của người này.</li>
                 </ol>
+                <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 15px 0;">
+                <h3 style="color: #27ae60;">Hướng dẫn lấy API Key Miễn phí (Google Gemini)</h3>
+                <p style="font-size: 14px; line-height: 1.5; color: var(--text-color);">Để sử dụng các tính năng AI trích xuất bệnh án và phân tích chuyên sâu, bạn cần tự lấy một mã API Key hoàn toàn miễn phí từ Google (chỉ mất 2 phút).</p>
+                <ol style="font-size: 14px; line-height: 1.5; color: var(--text-color);">
+                    <li>Truy cập trang web: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2980b9; font-weight: bold;">Google AI Studio</a> và đăng nhập bằng tài khoản Gmail của bạn.</li>
+                    <li>Nhấn nút <strong>"Create API Key"</strong> màu xanh.</li>
+                    <li>Nhấn tiếp <strong>"Create API key in new project"</strong>. Đợi vài giây, Google sẽ cấp cho bạn một đoạn mã dài khoảng 40 ký tự.</li>
+                    <li>Copy đoạn mã đó. Quay lại ứng dụng này, bấm vào nút <strong>Cài đặt</strong> (Hình bánh răng ở góc trên bên phải màn hình).</li>
+                    <li>Dán mã vừa copy vào ô <strong>"API Key (Gemini)"</strong> và bấm <strong>Lưu cấu hình</strong>. Xong! Bạn đã có thể dùng AI thoải mái.</li>
+                </ol>
             `;
         } else if (viewId === 'view-member-detail') {
             html = `
