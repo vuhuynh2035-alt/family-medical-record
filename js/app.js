@@ -2806,19 +2806,34 @@ document.addEventListener('click', async (e) => {
                     const modal = document.getElementById('modal-view-record');
                     const record = currentRecords.find(r => r.id === modal.dataset.id);
                     const keyword = clickableRow.dataset.keyword;
-                    
-                    contentDiv.innerHTML = `<div style="display: flex; align-items: center; gap: 8px; color: #8e44ad;"><span class="loading-spinner" style="width: 14px; height: 14px; border-width: 2px; border-color: #8e44ad; border-right-color: transparent;"></span> Đang lấy thông tin tóm tắt...</div>`;
-                    
-                    try {
-                        const explanation = await AIService.getShortExplanation(keyword, record?.disease, record?.treatment);
-                        contentDiv.innerHTML = `
-                            <div style="margin-bottom: 12px; line-height: 1.5;">${UI.renderMarkdown(explanation)}</div>
-                            <button class="secondary-btn btn-open-deep-chat" data-keyword="${UI.escapeHtml(keyword)}" style="font-size: 12px; padding: 5px 10px; color: #8e44ad; border-color: #8e44ad;">
-                                <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">forum</span> Trao đổi chuyên sâu
-                            </button>
-                        `;
-                    } catch (err) {
-                        contentDiv.innerHTML = `<span style="color: var(--danger);">Không thể lấy thông tin: ${err.message}</span>`;
+                    const fieldIndex = record.dynamicFields.findIndex(f => f.key === keyword);
+                    const field = record.dynamicFields[fieldIndex];
+
+                    const renderExplanation = (text) => `
+                        <div style="margin-bottom: 12px; line-height: 1.5;">${UI.renderMarkdown(text)}</div>
+                        <button class="secondary-btn btn-open-deep-chat" data-keyword="${UI.escapeHtml(keyword)}" style="font-size: 12px; padding: 5px 10px; color: #8e44ad; border-color: #8e44ad;">
+                            <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">forum</span> Trao đổi chuyên sâu
+                        </button>
+                    `;
+
+                    if (field && field.explanation) {
+                        contentDiv.innerHTML = renderExplanation(field.explanation);
+                    } else {
+                        contentDiv.innerHTML = `<div style="display: flex; align-items: center; gap: 8px; color: #8e44ad;"><span class="loading-spinner" style="width: 14px; height: 14px; border-width: 2px; border-color: #8e44ad; border-right-color: transparent;"></span> Đang lấy thông tin tóm tắt...</div>`;
+                        
+                        try {
+                            const explanation = await AIService.getShortExplanation(keyword, record?.disease, record?.treatment);
+                            
+                            // Lưu lại offline để lần sau mở nhanh hơn (nếu tìm thấy field)
+                            if (field) {
+                                field.explanation = explanation;
+                                DataManager.saveRecord(currentMemberId, record);
+                            }
+
+                            contentDiv.innerHTML = renderExplanation(explanation);
+                        } catch (err) {
+                            contentDiv.innerHTML = `<span style="color: var(--danger);">Không thể lấy thông tin: ${err.message}</span>`;
+                        }
                     }
                 }
             } else {

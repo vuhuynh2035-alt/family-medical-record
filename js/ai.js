@@ -234,7 +234,7 @@ TUYỆT ĐỐI CHỈ TRẢ VỀ JSON, KHÔNG THÊM BẤT KỲ ĐOẠN VĂN BẢN
 - "treatment": Phương án điều trị hoặc đơn thuốc chi tiết.
 - "note": Lời khuyên của bác sĩ (kiêng cữ, ăn uống...).
 - "cost": Tổng chi phí (chỉ lấy con số, ví dụ 500000. Nếu không thấy, trả về 0).
-- "dynamicFields": Mảng các chỉ số xét nghiệm chi tiết hoặc chuyên sâu. Mỗi phần tử là một object có "key" (Tên chỉ số, vd: "Glucose", "AST"), "value" (Kết quả kèm đơn vị, vd: "5.5 mmol/L"), và "isAbnormal" (boolean: true nếu bất thường, false nếu bình thường). Nếu không có, để mảng rỗng [].
+- "dynamicFields": Mảng các chỉ số xét nghiệm chi tiết hoặc chuyên sâu. Mỗi phần tử là một object có "key" (Tên chỉ số, vd: "Glucose"), "value" (Kết quả kèm đơn vị), "isAbnormal" (boolean: true/false), và "explanation" (Giải thích siêu ngắn 1 câu về ý nghĩa của chỉ số này để hiển thị nhanh cho người dùng, vd: "Đường huyết, dùng để theo dõi bệnh tiểu đường"). Nếu không có, để mảng rỗng [].
 - "reminders": Mảng các nhắc nhở cần tạo (tái khám, lịch uống thuốc, tiêm chủng...). Bạn hãy tự động tính toán ngày tháng dựa vào ngày khám bệnh và lời dặn của bác sĩ. Mỗi phần tử là một object có:
   + "title": Tóm tắt nhắc nhở (vd: "Tái khám nội tiết", "Uống thuốc sáng").
   + "date": Ngày hẹn (định dạng YYYY-MM-DD). Cố gắng tính toán ngày chính xác từ ngày khám nếu bác sĩ hẹn "sau 7 ngày" hay "sau 1 tháng".
