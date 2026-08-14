@@ -861,6 +861,11 @@
         </div>
     </div>
 
+    <!-- Floating AI Button (Text Selection) -->
+    <div id="floating-ai-btn" class="floating-ai-btn hidden" title="Hỏi AI về nội dung này">
+        <span class="material-symbols-rounded ai-sparkle" style="font-size: 16px;">psychiatry</span> Hỏi AI
+    </div>
+
     <!-- View Record Detail Modal -->
     <div id="modal-view-record" class="modal-overlay hidden" role="dialog" aria-modal="true">
         <div class="modal-content neumorphic-modal modal-large">
@@ -874,11 +879,29 @@
                     <div id="view-record-report-data" style="margin-top: 20px;"></div>
                 </div>
                 
+                <!-- Chatbot UI Container -->
+                <div id="view-record-chat-container" class="chat-container hidden">
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="chat-message assistant">
+                            <p>Chào bạn, tôi là Trợ lý Y tế AI. Bạn có thắc mắc gì về hồ sơ khám bệnh này không?</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chat-input" class="chat-input" placeholder="Nhập câu hỏi của bạn (vd: Thuốc này có tác dụng phụ gì?)..." autocomplete="off">
+                        <button id="btn-chat-send" class="chat-btn-send" title="Gửi tin nhắn">
+                            <span class="material-symbols-rounded">send</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
                     <button type="button" class="icon-btn neumorphic-btn close-modal" title="Quay lại">
                         <span class="material-symbols-rounded">reply</span>
                     </button>
                     <div style="display: flex; gap: 10px;">
+                        <button type="button" id="btn-toggle-chat" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #8e44ad; border-color: #8e44ad;">
+                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">forum</span> Hỏi AI
+                        </button>
                         <button type="button" id="btn-download-record-pdf" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
                             <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">download</span> Lưu PDF
                         </button>

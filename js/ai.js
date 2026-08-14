@@ -490,5 +490,79 @@ Câu hỏi của người dùng: "${userQuestion}"`;
         } else {
             return await this.callGeminiAPI(systemInstruction, null, false);
         }
+    },
+
+    // 5. Phân tích thuốc chuyên sâu
+    async analyzeMedications(treatmentText) {
+        const prompt = `Bạn là một dược sĩ lâm sàng giàu kinh nghiệm. Dưới đây là nội dung phần "Điều trị / Thuốc" trích xuất từ một hồ sơ khám bệnh:
+"${treatmentText}"
+
+Hãy phân tích chuyên sâu về các loại thuốc (nếu có) trong nội dung trên. Yêu cầu định dạng bằng Markdown rõ ràng, dễ đọc, với các mục sau cho mỗi loại thuốc:
+- **Tên thuốc & Tác dụng chính:** Thuốc này dùng để chữa gì?
+- **Tác dụng phụ thường gặp:** Những triệu chứng cần lưu ý.
+- **Tương tác thuốc & Lưu ý khi dùng:** Có kiêng kỵ thức ăn nào không? Uống lúc no hay đói?
+
+Nếu văn bản trên không chứa tên thuốc rõ ràng hoặc chỉ là lời khuyên chung chung, hãy giải thích ngắn gọn ý nghĩa của lời khuyên đó.
+*LƯU Ý QUAN TRỌNG:* Cuối bài, luôn thêm dòng cảnh báo in nghiêng: "*Lưu ý: Thông tin trên chỉ mang tính chất tham khảo. Vui lòng luôn tuân thủ chính xác liều lượng và chỉ định của Bác sĩ điều trị. Không tự ý ngưng thuốc.*"`;
+
+        const provider = DataManager.getProviderAssessment(); // Dùng chung provider với Phân tích bệnh án
+        if (provider === 'openai') {
+            return await this.callOpenAI(prompt);
+        } else if (provider === 'anthropic') {
+            return await this.callAnthropic(prompt);
+        } else {
+            return await this.callGeminiAPI(prompt, null, false);
+        }
+    },
+
+    // 6. Hỏi đáp AI với Hồ sơ bệnh án
+    async chatWithRecord(record, chatHistory, userMessage) {
+        // Chuẩn bị context hồ sơ
+        let recordContext = `THÔNG TIN HỒ SƠ KHÁM BỆNH:
+- Ngày khám: ${record.date || 'Không rõ'}
+- Nơi khám: ${record.hospital || 'Không rõ'}
+- Chẩn đoán: ${record.disease || 'Không rõ'}
+- Điều trị/Thuốc: ${record.treatment || 'Không'}
+- Ghi chú/Lời khuyên: ${record.note || 'Không'}
+- Triệu chứng: ${record.symptoms || 'Không'}
+- Cận lâm sàng: ${record.labs || 'Không'}
+- Sinh hiệu: HA ${record.bp || '-'}, Nhịp tim ${record.hr || '-'}, Nhiệt độ ${record.temp || '-'}, SpO2 ${record.spo2 || '-'}
+`;
+        if (record.dynamicFields && record.dynamicFields.length > 0) {
+            recordContext += "- Các chỉ số xét nghiệm chi tiết:\n";
+            record.dynamicFields.forEach(f => {
+                recordContext += `  + ${f.key}: ${f.value} ${f.isAbnormal ? '(BẤT THƯỜNG)' : ''}\n`;
+            });
+        }
+
+        const systemPrompt = `Bạn là một trợ lý y tế AI. Dựa vào DUY NHẤT [THÔNG TIN HỒ SƠ KHÁM BỆNH] được cung cấp dưới đây, hãy trả lời câu hỏi của người bệnh một cách ngắn gọn, thân thiện và dễ hiểu.
+Nếu câu hỏi vượt ra ngoài phạm vi thông tin của hồ sơ, hãy dựa vào kiến thức y khoa nền tảng nhưng phải nói rõ: "Dựa vào kiến thức y khoa chung...".
+TUYỆT ĐỐI KHÔNG kê đơn thuốc mới, KHÔNG khuyên đổi liều thuốc, KHÔNG đưa ra chẩn đoán thay thế bác sĩ. 
+Nếu người dùng hỏi ý kiến chẩn đoán nghiêm trọng, hãy khuyên họ tái khám.
+
+[THÔNG TIN HỒ SƠ KHÁM BỆNH]
+${recordContext}
+`;
+        
+        let fullPrompt = systemPrompt + "\n\n[LỊCH SỬ TRÒ CHUYỆN]\n";
+        if (chatHistory && chatHistory.length > 0) {
+            chatHistory.forEach(msg => {
+                const roleName = msg.role === 'user' ? 'Bệnh nhân' : 'Trợ lý AI';
+                fullPrompt += `${roleName}: ${msg.content}\n`;
+            });
+        } else {
+            fullPrompt += "(Chưa có)\n";
+        }
+        
+        fullPrompt += `\nBệnh nhân vừa hỏi: "${userMessage}"\nHãy đóng vai Trợ lý AI để trả lời câu hỏi trên ngay lập tức. Đừng lặp lại câu hỏi.`;
+
+        const provider = DataManager.getProviderAssessment();
+        if (provider === 'openai') {
+            return await this.callOpenAI(fullPrompt, 0.4);
+        } else if (provider === 'anthropic') {
+            return await this.callAnthropic(fullPrompt, 0.4);
+        } else {
+            return await this.callGeminiAPI(fullPrompt, null, false, null, 0.4);
+        }
     }
 };

@@ -362,7 +362,21 @@ const UI = {
             <h4 style="color: var(--primary-blue); margin-bottom: 10px; font-size: 16px;"><span class="material-symbols-rounded" style="vertical-align: middle;">coronavirus</span> Chẩn đoán & Điều trị</h4>
             <div style="background: var(--bg-color); box-shadow: var(--shadow-inner); padding: 15px; border-radius: var(--radius-sm); margin-bottom: 20px;">
                 <p style="margin-bottom: 10px;"><strong>Chẩn đoán:</strong> ${this.escapeHtml(record.disease)}</p>
-                <p style="margin-bottom: 10px;"><strong>Điều trị/Thuốc:</strong><br>${record.treatment ? this.nl2br(record.treatment) : 'Không'}</p>
+                <div style="margin-bottom: 10px;">
+                    <strong>Điều trị/Thuốc:</strong><br>${record.treatment ? this.nl2br(record.treatment) : 'Không'}
+                    ${record.treatment && !record.medicationAnalysis ? `
+                    <div style="margin-top: 10px;">
+                        <button type="button" class="neumorphic-btn btn-analyze-meds" data-id="${this.escapeHtml(record.id)}" style="font-size: 13px; color: #d35400; display: flex; align-items: center; gap: 5px; padding: 5px 10px;">
+                            <span class="material-symbols-rounded ai-sparkle" style="font-size: 16px;">medication</span> Phân tích đơn thuốc chuyên sâu (AI)
+                        </button>
+                    </div>` : ''}
+                    
+                    ${record.medicationAnalysis ? `
+                    <div style="margin-top: 15px; padding: 15px; background: rgba(211, 84, 0, 0.05); border-left: 3px solid #d35400; border-radius: 8px;">
+                        <h5 style="color: #d35400; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded" style="font-size: 18px;">medication</span> Phân tích thuốc chuyên sâu</h5>
+                        <div class="markdown-body" style="font-size: 14px;">${this.renderMarkdown(record.medicationAnalysis)}</div>
+                    </div>` : ''}
+                </div>
                 ${record.note ? `<p style="margin-bottom: 10px; color: var(--danger);"><strong>Lời khuyên:</strong> ${this.escapeHtml(record.note)}</p>` : ''}
                 <p><strong>Chi phí:</strong> <span style="color: var(--primary-blue); font-weight: bold;">${this.formatCurrency(record.cost)}</span></p>
             </div>
@@ -397,7 +411,7 @@ const UI = {
             record.dynamicFields.forEach((f, idx) => {
                 const bg = idx % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent';
                 const color = f.isAbnormal ? '#e74c3c' : 'var(--primary-blue)';
-                html += `<tr style="background: ${bg}; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                html += `<tr class="clickable-row" data-keyword="${this.escapeHtml(f.key)}" title="Bấm để hỏi AI về chỉ số này" style="background: ${bg}; border-bottom: 1px solid rgba(0,0,0,0.05);">
                             <td style="padding: 12px;">${this.escapeHtml(f.key)}</td>
                             <td style="padding: 12px; font-weight: 600; color: ${color};">${this.escapeHtml(f.value)}</td>
                          </tr>`;
@@ -421,6 +435,19 @@ const UI = {
         }
         document.getElementById('view-record-form-data').innerHTML = html;
         this.enhanceA11y(document.getElementById('view-record-form-data'));
+        
+        // Save current record id to the modal for chat/actions reference
+        document.getElementById('modal-view-record').dataset.id = record.id;
+        
+        // Reset chat container state
+        document.getElementById('view-record-chat-container').classList.add('hidden');
+        document.getElementById('chat-messages').innerHTML = `
+            <div class="chat-message assistant">
+                <p>Chào bạn, tôi là Trợ lý Y tế AI. Bạn có thắc mắc gì về hồ sơ khám bệnh này không?</p>
+            </div>
+        `;
+        document.getElementById('chat-input').value = '';
+        window.currentRecordChatHistory = [];
 
         const reportData = document.getElementById('view-record-report-data');
         if (record.comprehensiveReport) {

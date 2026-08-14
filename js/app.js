@@ -2547,3 +2547,195 @@ document.addEventListener('click', (e) => {
     document.getElementById('modal-reminder-title').innerText = 'Sửa lịch hẹn';
     openModal('modal-reminder');
 });
+
+// --- AI Medication Analysis & Chatbot Events ---
+document.addEventListener('click', async (e) => {
+    // 1. Phân tích thuốc chuyên sâu
+    const btnAnalyzeMeds = e.target.closest('.btn-analyze-meds');
+    if (btnAnalyzeMeds) {
+        const id = btnAnalyzeMeds.dataset.id;
+        const record = currentRecords.find(r => r.id === id);
+        if (record && record.treatment) {
+            btnAnalyzeMeds.innerHTML = `<span class="loading-spinner" style="width: 14px; height: 14px; border-width: 2px; margin-right: 5px;"></span> Đang phân tích...`;
+            btnAnalyzeMeds.disabled = true;
+            try {
+                const analysis = await AIService.analyzeMedications(record.treatment);
+                record.medicationAnalysis = analysis;
+                DataManager.saveRecord(currentMemberId, record); // Lưu vào DB
+                await UI.renderRecordDetailModal(record); // Render lại form
+            } catch (err) {
+                alert("Lỗi khi phân tích thuốc: " + err.message);
+                btnAnalyzeMeds.innerHTML = `<span class="material-symbols-rounded ai-sparkle" style="font-size: 16px;">medication</span> Phân tích đơn thuốc chuyên sâu (AI)`;
+                btnAnalyzeMeds.disabled = false;
+            }
+        }
+        return;
+    }
+
+    // 2. Toggle Chat
+    const btnToggleChat = e.target.closest('#btn-toggle-chat');
+    if (btnToggleChat) {
+        const chatContainer = document.getElementById('view-record-chat-container');
+        chatContainer.classList.toggle('hidden');
+        if (!chatContainer.classList.contains('hidden')) {
+            // Scroll to chat
+            chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            document.getElementById('chat-input').focus();
+        }
+        return;
+    }
+
+    // 3. Send Chat
+    const btnChatSend = e.target.closest('#btn-chat-send');
+    if (btnChatSend) {
+        handleSendChat();
+        return;
+    }
+});
+
+// Handle Enter key for Chat Input
+document.addEventListener('keypress', (e) => {
+    if (e.target.id === 'chat-input' && e.key === 'Enter') {
+        handleSendChat();
+    }
+});
+
+async function handleSendChat() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    const modal = document.getElementById('modal-view-record');
+    const recordId = modal.dataset.id;
+    const record = currentRecords.find(r => r.id === recordId);
+    if (!record) return;
+
+    // Hiển thị tin nhắn user
+    const chatMessages = document.getElementById('chat-messages');
+    chatMessages.innerHTML += `
+        <div class="chat-message user">
+            <p>${UI.escapeHtml(msg)}</p>
+        </div>
+    `;
+    input.value = '';
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Hiển thị typing indicator
+    const typingId = 'typing-' + Date.now();
+    chatMessages.innerHTML += `
+        <div id="${typingId}" class="chat-message assistant chat-typing">
+            <p>AI đang suy nghĩ...</p>
+        </div>
+    `;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    const btnSend = document.getElementById('btn-chat-send');
+    btnSend.disabled = true;
+    input.disabled = true;
+
+    try {
+        if (!window.currentRecordChatHistory) window.currentRecordChatHistory = [];
+        const reply = await AIService.chatWithRecord(record, window.currentRecordChatHistory, msg);
+        
+        // Xóa typing
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) typingEl.remove();
+
+        // Hiển thị reply
+        chatMessages.innerHTML += `
+            <div class="chat-message assistant">
+                <div class="markdown-body" style="background: none; padding: 0;">${UI.renderMarkdown(reply)}</div>
+                <div style="font-size: 11px; color: var(--danger); margin-top: 10px; font-style: italic; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 5px;">* Lưu ý: Thông tin chỉ mang tính tham khảo. Hãy tham khảo ý kiến Bác sĩ.</div>
+            </div>
+        `;
+        
+        // Lưu lịch sử tạm thời
+        window.currentRecordChatHistory.push({ role: 'user', content: msg });
+        window.currentRecordChatHistory.push({ role: 'assistant', content: reply });
+        
+    } catch (err) {
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) typingEl.remove();
+        chatMessages.innerHTML += `
+            <div class="chat-message assistant" style="color: var(--danger);">
+                <p>Lỗi: ${err.message}</p>
+            </div>
+        `;
+    } finally {
+        btnSend.disabled = false;
+        input.disabled = false;
+        input.focus();
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+// --- UX Tương tác AI Nâng cao ---
+let currentSelectedText = "";
+const floatingBtn = document.getElementById('floating-ai-btn');
+
+function handleSelection(e) {
+    // Chỉ kích hoạt khi đang mở modal chi tiết hồ sơ
+    const modal = document.getElementById('modal-view-record');
+    if (!modal || modal.classList.contains('hidden')) return;
+
+    const selection = window.getSelection();
+    const text = selection.toString().trim();
+
+    if (text.length > 0 && text.length < 150) { // Không bôi đen quá dài
+        currentSelectedText = text;
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        
+        // Vị trí nút ngay trên đoạn bôi đen
+        floatingBtn.style.top = `${rect.top + window.scrollY - 40}px`;
+        floatingBtn.style.left = `${rect.left + window.scrollX + (rect.width / 2) - 40}px`;
+        floatingBtn.classList.remove('hidden');
+        floatingBtn.classList.add('visible');
+    } else {
+        if (!e.target.closest('#floating-ai-btn')) {
+            floatingBtn.classList.remove('visible');
+            setTimeout(() => {
+                if (!floatingBtn.classList.contains('visible')) {
+                    floatingBtn.classList.add('hidden');
+                }
+            }, 200);
+        }
+    }
+}
+
+document.addEventListener('mouseup', handleSelection);
+document.addEventListener('touchend', handleSelection);
+
+document.addEventListener('click', (e) => {
+    // Xử lý click vào nút nổi (Floating Button)
+    if (e.target.closest('#floating-ai-btn')) {
+        if (currentSelectedText) {
+            const chatContainer = document.getElementById('view-record-chat-container');
+            chatContainer.classList.remove('hidden');
+            chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            
+            const input = document.getElementById('chat-input');
+            input.value = `Hãy giải thích chi tiết cho tôi về: "${currentSelectedText}"`;
+            handleSendChat();
+            
+            window.getSelection().removeAllRanges();
+            floatingBtn.classList.remove('visible');
+            setTimeout(() => floatingBtn.classList.add('hidden'), 200);
+        }
+    }
+
+    // Xử lý click vào dòng bảng (Clickable Row)
+    const clickableRow = e.target.closest('.clickable-row');
+    if (clickableRow) {
+        const keyword = clickableRow.dataset.keyword;
+        if (keyword) {
+            const chatContainer = document.getElementById('view-record-chat-container');
+            chatContainer.classList.remove('hidden');
+            chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            
+            const input = document.getElementById('chat-input');
+            input.value = `Chỉ số "${keyword}" có ý nghĩa gì?`;
+            handleSendChat();
+        }
+    }
+});
