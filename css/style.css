@@ -1236,7 +1236,7 @@ input::placeholder {
 
 /* Floating AI Button */
 .floating-ai-btn {
-    position: absolute;
+    position: fixed;
     background: #8e44ad;
     color: white;
     padding: 6px 12px;

@@ -2673,8 +2673,7 @@ async function handleSendChat() {
 let currentSelectedText = "";
 const floatingBtn = document.getElementById('floating-ai-btn');
 
-function handleSelection(e) {
-    // Chỉ kích hoạt khi đang mở modal chi tiết hồ sơ
+document.addEventListener('selectionchange', () => {
     const modal = document.getElementById('modal-view-record');
     if (!modal || modal.classList.contains('hidden')) return;
 
@@ -2683,28 +2682,34 @@ function handleSelection(e) {
 
     if (text.length > 0 && text.length < 150) { // Không bôi đen quá dài
         currentSelectedText = text;
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        
-        // Vị trí nút ngay trên đoạn bôi đen
-        floatingBtn.style.top = `${rect.top + window.scrollY - 40}px`;
-        floatingBtn.style.left = `${rect.left + window.scrollX + (rect.width / 2) - 40}px`;
-        floatingBtn.classList.remove('hidden');
-        floatingBtn.classList.add('visible');
+        try {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            if (rect.width === 0 && rect.height === 0) return; // Invalid selection
+            
+            let top = rect.top - 40;
+            if (top < 10) top = rect.bottom + 10;
+            
+            floatingBtn.style.top = `${top}px`;
+            floatingBtn.style.left = `${rect.left + (rect.width / 2) - 40}px`;
+            floatingBtn.classList.remove('hidden');
+            floatingBtn.classList.add('visible');
+        } catch (e) {}
     } else {
-        if (!e.target.closest('#floating-ai-btn')) {
-            floatingBtn.classList.remove('visible');
-            setTimeout(() => {
-                if (!floatingBtn.classList.contains('visible')) {
-                    floatingBtn.classList.add('hidden');
-                }
-            }, 200);
-        }
+        // Chỉ ẩn sau một khoảng trễ nhỏ để tránh xung đột khi bấm nút
+        setTimeout(() => {
+            const currentText = window.getSelection().toString().trim();
+            if (currentText.length === 0) {
+                floatingBtn.classList.remove('visible');
+                setTimeout(() => {
+                    if (!floatingBtn.classList.contains('visible')) {
+                        floatingBtn.classList.add('hidden');
+                    }
+                }, 200);
+            }
+        }, 100);
     }
-}
-
-document.addEventListener('mouseup', handleSelection);
-document.addEventListener('touchend', handleSelection);
+});
 
 document.addEventListener('click', (e) => {
     // Xử lý click vào nút nổi (Floating Button)
