@@ -567,7 +567,6 @@ ${recordContext}
     },
 
     async getShortExplanation(keyword, disease, treatment) {
-        if (!this.keys) this.loadKeys();
         
         let prompt = `Bạn là chuyên gia y tế. Bệnh nhân đang được chẩn đoán: "${disease || 'Không rõ'}". Đơn thuốc: "${treatment || 'Không có'}".
 Hãy giải thích SIÊU NGẮN GỌN (chỉ 2-3 câu) về chỉ số/thuật ngữ y khoa sau: "${keyword}".

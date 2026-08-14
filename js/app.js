@@ -2813,7 +2813,7 @@ document.addEventListener('click', async (e) => {
                             </button>
                         `;
                     } catch (err) {
-                        contentDiv.innerHTML = `<span style="color: var(--danger);">Không thể lấy thông tin.</span>`;
+                        contentDiv.innerHTML = `<span style="color: var(--danger);">Không thể lấy thông tin: ${err.message}</span>`;
                     }
                 }
             } else {
