@@ -224,15 +224,16 @@ const HelpService = {
                     <li><strong>Hồ Sơ:</strong> Xem thông tin tổng quan. Có thể ấn nút Cây bút góc trên để sửa hoặc xoá thành viên.</li>
                     <li><strong>Lịch sử khám:</strong> Nơi lưu trữ các lần đi khám. 
                         <ul>
-                            <li>Nhấn <strong>Thêm Lượt Khám</strong>.</li>
-                            <li>Sử dụng chức năng <strong>Chọn tệp (Ảnh/PDF)</strong> để tải ảnh đơn thuốc/xét nghiệm.</li>
-                            <li>Nhấn <strong>Xử lý thông tin</strong> để AI tự động đọc và phân tích toàn bộ bệnh án.</li>
-                            <li>Kiểm tra lại kết quả và nhấn <strong>Lưu bệnh án</strong>.</li>
+                            <li>Nhấn <strong>Thêm Lượt Khám</strong> và tải ảnh/PDF lên.</li>
+                            <li>Nhấn <strong>Xử lý thông tin</strong> để AI tự động trích xuất bệnh án.</li>
+                            <li>Khi xem một bệnh án, bạn có thể <strong>nhấn vào các dòng chỉ số xét nghiệm</strong> để xem AI giải thích ngắn gọn ý nghĩa của chúng.</li>
+                            <li><strong>Trao đổi chuyên sâu:</strong> Nhấn nút "Trao đổi chuyên sâu" dưới dòng giải thích hoặc bôi đen bất kỳ đoạn văn bản nào trên màn hình để mở Màn hình Chat với AI.</li>
+                            <li><strong>Phân tích đơn thuốc:</strong> Nhấn nút "Phân tích đơn thuốc chuyên sâu" trong bệnh án để AI kiểm tra tương tác thuốc và tác dụng phụ.</li>
                         </ul>
                     </li>
                     <li><strong>Lịch hẹn:</strong> Đặt các lịch nhắc tái khám. Tới ngày, hệ thống sẽ báo chuông.</li>
                     <li><strong>Thống kê:</strong> Xem biểu đồ trực quan số lần đi khám của người này trong năm.</li>
-                    <li><strong>Kết thúc:</strong> Nhấn nút mũi tên <strong>Quay lại</strong> ở góc trên trái để về lại Trang chủ.</li>
+                    <li><strong>Tùy chỉnh AI:</strong> Bạn có thể vào <strong>Cài đặt</strong> (bánh răng ở màn hình chính) để tự do lựa chọn AI (Gemini, ChatGPT, Claude) xử lý các tính năng trò chuyện, tra cứu.</li>
                 </ol>
             `;
         } else {
