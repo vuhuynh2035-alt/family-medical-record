@@ -505,7 +505,7 @@ Hãy phân tích chuyên sâu về các loại thuốc (nếu có) trong nội d
 Nếu văn bản trên không chứa tên thuốc rõ ràng hoặc chỉ là lời khuyên chung chung, hãy giải thích ngắn gọn ý nghĩa của lời khuyên đó.
 *LƯU Ý QUAN TRỌNG:* Cuối bài, luôn thêm dòng cảnh báo in nghiêng: "*Lưu ý: Thông tin trên chỉ mang tính chất tham khảo. Vui lòng luôn tuân thủ chính xác liều lượng và chỉ định của Bác sĩ điều trị. Không tự ý ngưng thuốc.*"`;
 
-        const provider = DataManager.getProviderAssessment(); // Dùng chung provider với Phân tích bệnh án
+        const provider = DataManager.getProviderChat(); // Phân tích thuốc dùng chung provider với Chat
         if (provider === 'openai') {
             return await this.callOpenAI(prompt);
         } else if (provider === 'anthropic') {
@@ -556,7 +556,7 @@ ${recordContext}
         
         fullPrompt += `\nBệnh nhân vừa hỏi: "${userMessage}"\nHãy đóng vai Trợ lý AI để trả lời câu hỏi trên ngay lập tức. Đừng lặp lại câu hỏi.`;
 
-        const provider = DataManager.getProviderAssessment();
+        const provider = DataManager.getProviderChat();
         if (provider === 'openai') {
             return await this.callOpenAI(fullPrompt, 0.4);
         } else if (provider === 'anthropic') {
@@ -572,7 +572,7 @@ ${recordContext}
 Hãy giải thích SIÊU NGẮN GỌN (chỉ 2-3 câu) về chỉ số/thuật ngữ y khoa sau: "${keyword}".
 Không cần lời chào hỏi, đi thẳng vào giải thích ý nghĩa.`;
 
-        const provider = DataManager.getProviderAssessment();
+        const provider = DataManager.getProviderChat();
         if (provider === 'openai') {
             return await this.callOpenAI(prompt, 0.2);
         } else if (provider === 'anthropic') {

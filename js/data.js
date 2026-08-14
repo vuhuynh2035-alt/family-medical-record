@@ -55,6 +55,7 @@ const DataManager = {
             providerAssessment: 'gemini',
             providerSearch: 'gemini',
             providerTrend: 'gemini',
+            providerChat: 'gemini',
             // LƯU Ý: Google ngừng hỗ trợ (decommission) các model Gemini theo chu kỳ ~1 năm. Nếu
             // giá trị này báo lỗi "model không tồn tại", vào Cài đặt > bấm "Tải danh sách" để lấy
             // model còn hoạt động từ chính tài khoản của bạn thay vì sửa cứng trong mã nguồn.
@@ -92,6 +93,7 @@ const DataManager = {
     getProviderAssessment() { return this.getSettings().providerAssessment || this.getActiveProvider(); },
     getProviderSearch() { return this.getSettings().providerSearch || this.getActiveProvider(); },
     getProviderTrend() { return this.getSettings().providerTrend || this.getActiveProvider(); },
+    getProviderChat() { return this.getSettings().providerChat || this.getActiveProvider(); },
     getGeminiModel() {
         return this.getSettings().geminiModel;
     },

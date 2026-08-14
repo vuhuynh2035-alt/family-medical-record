@@ -460,6 +460,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (settings.providerTrend) document.getElementById('input-ai-provider-trend').value = settings.providerTrend;
     else if (settings.activeProvider) document.getElementById('input-ai-provider-trend').value = settings.activeProvider;
+
+    if (settings.providerChat) document.getElementById('input-ai-provider-chat').value = settings.providerChat;
+    else if (settings.activeProvider) document.getElementById('input-ai-provider-chat').value = settings.activeProvider;
     if (settings.geminiModel) {
         const select = document.getElementById('input-gemini-model');
         if (!Array.from(select.options).some(opt => opt.value === settings.geminiModel)) {
@@ -741,6 +744,7 @@ function setupEventListeners() {
         const providerAssessment = document.getElementById('input-ai-provider-assessment').value;
         const providerSearch = document.getElementById('input-ai-provider-search').value;
         const providerTrend = document.getElementById('input-ai-provider-trend').value;
+        const providerChat = document.getElementById('input-ai-provider-chat').value;
         
         const geminiModel = document.getElementById('input-gemini-model').value;
         const openaiModel = document.getElementById('input-openai-model') ? document.getElementById('input-openai-model').value.trim() : '';
@@ -753,6 +757,7 @@ function setupEventListeners() {
             providerAssessment: providerAssessment,
             providerSearch: providerSearch,
             providerTrend: providerTrend,
+            providerChat: providerChat,
             activeProvider: providerAssessment, // kept for backward compatibility
             geminiModel: geminiModel,
             openaiModel: openaiModel,
