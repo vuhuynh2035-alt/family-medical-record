@@ -411,9 +411,16 @@ const UI = {
             record.dynamicFields.forEach((f, idx) => {
                 const bg = idx % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent';
                 const color = f.isAbnormal ? '#e74c3c' : 'var(--primary-blue)';
-                html += `<tr class="clickable-row" data-keyword="${this.escapeHtml(f.key)}" title="Bấm để hỏi AI về chỉ số này" style="background: ${bg}; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                html += `<tr class="clickable-row" data-keyword="${this.escapeHtml(f.key)}" title="Bấm để xem giải thích ngắn" style="background: ${bg}; border-bottom: 1px solid rgba(0,0,0,0.05);">
                             <td style="padding: 12px;">${this.escapeHtml(f.key)}</td>
                             <td style="padding: 12px; font-weight: 600; color: ${color};">${this.escapeHtml(f.value)}</td>
+                         </tr>
+                         <tr class="inline-info-row hidden" id="inline-info-${idx}">
+                            <td colspan="2" style="padding: 0;">
+                                <div class="inline-info-content" id="inline-info-content-${idx}">
+                                    <!-- Loaded by JS -->
+                                </div>
+                            </td>
                          </tr>`;
             });
             html += `</table>`;
@@ -439,15 +446,9 @@ const UI = {
         // Save current record id to the modal for chat/actions reference
         document.getElementById('modal-view-record').dataset.id = record.id;
         
-        // Reset chat container state
-        document.getElementById('view-record-chat-container').classList.add('hidden');
-        document.getElementById('chat-messages').innerHTML = `
-            <div class="chat-message assistant">
-                <p>Chào bạn, tôi là Trợ lý Y tế AI. Bạn có thắc mắc gì về hồ sơ khám bệnh này không?</p>
-            </div>
-        `;
-        document.getElementById('chat-input').value = '';
-        window.currentRecordChatHistory = [];
+        // Reset deep chat state just in case
+        document.getElementById('modal-deep-chat').classList.add('hidden');
+        window.currentDeepChatHistory = [];
 
         const reportData = document.getElementById('view-record-report-data');
         if (record.comprehensiveReport) {

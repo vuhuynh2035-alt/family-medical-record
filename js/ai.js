@@ -564,5 +564,22 @@ ${recordContext}
         } else {
             return await this.callGeminiAPI(fullPrompt, null, false, null, 0.4);
         }
+    },
+
+    async getShortExplanation(keyword, disease, treatment) {
+        if (!this.keys) this.loadKeys();
+        
+        let prompt = `Bạn là chuyên gia y tế. Bệnh nhân đang được chẩn đoán: "${disease || 'Không rõ'}". Đơn thuốc: "${treatment || 'Không có'}".
+Hãy giải thích SIÊU NGẮN GỌN (chỉ 2-3 câu) về chỉ số/thuật ngữ y khoa sau: "${keyword}".
+Không cần lời chào hỏi, đi thẳng vào giải thích ý nghĩa.`;
+
+        const provider = DataManager.getProviderAssessment();
+        if (provider === 'openai') {
+            return await this.callOpenAI(prompt, 0.2);
+        } else if (provider === 'anthropic') {
+            return await this.callAnthropic(prompt, 0.2);
+        } else {
+            return await this.callGeminiAPI(prompt, null, false, null, 0.2);
+        }
     }
 };

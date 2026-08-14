@@ -146,7 +146,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.1.0</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.2.0</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -589,7 +589,7 @@
 
 
                 <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    Phiên bản <strong>v2.1.0</strong> (Mới cập nhật tính năng Tương tác AI)
+                    Phiên bản <strong>v2.2.0</strong> (Nâng cấp luồng hội thoại AI chuyên sâu)
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
@@ -882,20 +882,7 @@
                     <div id="view-record-report-data" style="margin-top: 20px;"></div>
                 </div>
                 
-                <!-- Chatbot UI Container -->
-                <div id="view-record-chat-container" class="chat-container hidden">
-                    <div id="chat-messages" class="chat-messages">
-                        <div class="chat-message assistant">
-                            <p>Chào bạn, tôi là Trợ lý Y tế AI. Bạn có thắc mắc gì về hồ sơ khám bệnh này không?</p>
-                        </div>
-                    </div>
-                    <div class="chat-input-container">
-                        <input type="text" id="chat-input" class="chat-input" placeholder="Nhập câu hỏi của bạn (vd: Thuốc này có tác dụng phụ gì?)..." autocomplete="off">
-                        <button id="btn-chat-send" class="chat-btn-send" title="Gửi tin nhắn">
-                            <span class="material-symbols-rounded">send</span>
-                        </button>
-                    </div>
-                </div>
+                <!-- Old Chat Container Removed -->
 
                 <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
                     <button type="button" class="icon-btn neumorphic-btn close-modal" title="Quay lại">
@@ -1093,6 +1080,33 @@
                 <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Hệ thống tự động lưu lại tối đa 10 bản ghi khi bạn Đóng ứng dụng (nếu có sự thay đổi dữ liệu).</p>
                 <div id="auto-backup-list" style="max-height: 60vh; overflow-y: auto;">
                     <!-- Injected by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deep Chat Modal -->
+    <div id="modal-deep-chat" class="modal-overlay hidden" role="dialog" aria-modal="true" style="z-index: 10000;">
+        <div class="modal-content neumorphic-modal modal-large" style="display: flex; flex-direction: column; height: 90vh; max-height: 900px; padding: 0;">
+            <div class="modal-header" style="padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <h3 id="deep-chat-title" style="display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded ai-sparkle" style="color: #8e44ad;">psychiatry</span>
+                    Trao đổi chuyên sâu
+                </h3>
+                <button class="icon-btn close-modal"><span class="material-symbols-rounded">reply</span></button>
+            </div>
+            
+            <div class="modal-body" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; background: var(--bg-color);">
+                <div id="deep-chat-messages" class="chat-messages" style="flex: 1; border: none; border-radius: 0; margin-top: 0; height: 100%; overflow-y: auto;">
+                    <div class="chat-message assistant">
+                        <p>Đang phân tích thông tin chi tiết...</p>
+                    </div>
+                </div>
+                <div class="chat-input-container" style="border-radius: 0; border-top: 1px solid rgba(0,0,0,0.05); padding: 15px 20px;">
+                    <input type="text" id="deep-chat-input" class="chat-input" placeholder="Nhập câu hỏi chuyên sâu..." autocomplete="off">
+                    <button id="btn-deep-chat-send" class="chat-btn-send" title="Gửi tin nhắn">
+                        <span class="material-symbols-rounded">send</span>
+                    </button>
                 </div>
             </div>
         </div>

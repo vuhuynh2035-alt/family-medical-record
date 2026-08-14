@@ -2593,16 +2593,16 @@ document.addEventListener('click', async (e) => {
     }
 });
 
-// Handle Enter key for Chat Input
+// Handle Enter key for Deep Chat Input
 document.addEventListener('keypress', (e) => {
-    if (e.target.id === 'chat-input' && e.key === 'Enter') {
-        handleSendChat();
+    if (e.target.id === 'deep-chat-input' && e.key === 'Enter') {
+        handleDeepChatSend();
     }
 });
 
-async function handleSendChat() {
-    const input = document.getElementById('chat-input');
-    const msg = input.value.trim();
+async function handleDeepChatSend(initialMessage = null) {
+    const input = document.getElementById('deep-chat-input');
+    const msg = initialMessage || input.value.trim();
     if (!msg) return;
 
     const modal = document.getElementById('modal-view-record');
@@ -2610,8 +2610,18 @@ async function handleSendChat() {
     const record = currentRecords.find(r => r.id === recordId);
     if (!record) return;
 
+    const chatMessages = document.getElementById('deep-chat-messages');
+    
+    // Nếu là tin nhắn đầu tiên (tự động hỏi)
+    if (initialMessage) {
+        chatMessages.innerHTML = `
+            <div class="chat-message assistant">
+                <p>Chào bạn, tôi đang phân tích chuyên sâu hồ sơ này...</p>
+            </div>
+        `;
+    }
+
     // Hiển thị tin nhắn user
-    const chatMessages = document.getElementById('chat-messages');
     chatMessages.innerHTML += `
         <div class="chat-message user">
             <p>${UI.escapeHtml(msg)}</p>
@@ -2629,13 +2639,13 @@ async function handleSendChat() {
     `;
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    const btnSend = document.getElementById('btn-chat-send');
+    const btnSend = document.getElementById('btn-deep-chat-send');
     btnSend.disabled = true;
     input.disabled = true;
 
     try {
-        if (!window.currentRecordChatHistory) window.currentRecordChatHistory = [];
-        const reply = await AIService.chatWithRecord(record, window.currentRecordChatHistory, msg);
+        if (!window.currentDeepChatHistory) window.currentDeepChatHistory = [];
+        const reply = await AIService.chatWithRecord(record, window.currentDeepChatHistory, msg);
         
         // Xóa typing
         const typingEl = document.getElementById(typingId);
@@ -2649,9 +2659,9 @@ async function handleSendChat() {
             </div>
         `;
         
-        // Lưu lịch sử tạm thời
-        window.currentRecordChatHistory.push({ role: 'user', content: msg });
-        window.currentRecordChatHistory.push({ role: 'assistant', content: reply });
+        // Lưu lịch sử
+        window.currentDeepChatHistory.push({ role: 'user', content: msg });
+        window.currentDeepChatHistory.push({ role: 'assistant', content: reply });
         
     } catch (err) {
         const typingEl = document.getElementById(typingId);
@@ -2664,7 +2674,7 @@ async function handleSendChat() {
     } finally {
         btnSend.disabled = false;
         input.disabled = false;
-        input.focus();
+        if (!initialMessage) input.focus();
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 }
@@ -2680,12 +2690,12 @@ document.addEventListener('selectionchange', () => {
     const selection = window.getSelection();
     const text = selection.toString().trim();
 
-    if (text.length > 0 && text.length < 150) { // Không bôi đen quá dài
+    if (text.length > 0 && text.length < 150) {
         currentSelectedText = text;
         try {
             const range = selection.getRangeAt(0);
             const rect = range.getBoundingClientRect();
-            if (rect.width === 0 && rect.height === 0) return; // Invalid selection
+            if (rect.width === 0 && rect.height === 0) return;
             
             let top = rect.top - 40;
             if (top < 10) top = rect.bottom + 10;
@@ -2696,7 +2706,6 @@ document.addEventListener('selectionchange', () => {
             floatingBtn.classList.add('visible');
         } catch (e) {}
     } else {
-        // Chỉ ẩn sau một khoảng trễ nhỏ để tránh xung đột khi bấm nút
         setTimeout(() => {
             const currentText = window.getSelection().toString().trim();
             if (currentText.length === 0) {
@@ -2711,17 +2720,65 @@ document.addEventListener('selectionchange', () => {
     }
 });
 
-document.addEventListener('click', (e) => {
-    // Xử lý click vào nút nổi (Floating Button)
+function openDeepChatModal(keyword = null) {
+    document.getElementById('modal-deep-chat').classList.remove('hidden');
+    
+    // Khởi tạo lịch sử chat mới
+    window.currentDeepChatHistory = [];
+    document.getElementById('deep-chat-messages').innerHTML = '';
+    
+    if (keyword) {
+        handleDeepChatSend(`Hãy phân tích chuyên sâu cho tôi về: "${keyword}"`);
+    } else {
+        document.getElementById('deep-chat-messages').innerHTML = `
+            <div class="chat-message assistant">
+                <p>Chào bạn, tôi là Trợ lý Y tế AI. Bạn muốn trao đổi chuyên sâu về vấn đề gì trong hồ sơ này?</p>
+            </div>
+        `;
+    }
+}
+
+document.addEventListener('click', async (e) => {
+    // 1. Phân tích thuốc chuyên sâu
+    const btnAnalyzeMeds = e.target.closest('.btn-analyze-meds');
+    if (btnAnalyzeMeds) {
+        const id = btnAnalyzeMeds.dataset.id;
+        const record = currentRecords.find(r => r.id === id);
+        if (record && record.treatment) {
+            btnAnalyzeMeds.innerHTML = `<span class="loading-spinner" style="width: 14px; height: 14px; border-width: 2px; margin-right: 5px;"></span> Đang phân tích...`;
+            btnAnalyzeMeds.disabled = true;
+            try {
+                const analysis = await AIService.analyzeMedications(record.treatment);
+                record.medicationAnalysis = analysis;
+                DataManager.saveRecord(currentMemberId, record);
+                await UI.renderRecordDetailModal(record);
+            } catch (err) {
+                alert("Lỗi khi phân tích thuốc: " + err.message);
+                btnAnalyzeMeds.innerHTML = `<span class="material-symbols-rounded ai-sparkle" style="font-size: 16px;">medication</span> Phân tích đơn thuốc chuyên sâu (AI)`;
+                btnAnalyzeMeds.disabled = false;
+            }
+        }
+        return;
+    }
+
+    // 2. Toggle Chat (Hỏi AI chung) -> Mở Deep Chat
+    const btnToggleChat = e.target.closest('#btn-toggle-chat');
+    if (btnToggleChat) {
+        openDeepChatModal();
+        return;
+    }
+
+    // 3. Send Deep Chat
+    const btnDeepChatSend = e.target.closest('#btn-deep-chat-send');
+    if (btnDeepChatSend) {
+        handleDeepChatSend();
+        return;
+    }
+
+    // 4. Bôi đen văn bản (Floating Button) -> Mở Deep Chat
     if (e.target.closest('#floating-ai-btn')) {
         if (currentSelectedText) {
-            const chatContainer = document.getElementById('view-record-chat-container');
-            chatContainer.classList.remove('hidden');
-            chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            
-            const input = document.getElementById('chat-input');
-            input.value = `Hãy giải thích chi tiết cho tôi về: "${currentSelectedText}"`;
-            handleSendChat();
+            openDeepChatModal(currentSelectedText);
             
             window.getSelection().removeAllRanges();
             floatingBtn.classList.remove('visible');
@@ -2729,18 +2786,47 @@ document.addEventListener('click', (e) => {
         }
     }
 
-    // Xử lý click vào dòng bảng (Clickable Row)
+    // 5. Clickable Row (Mở Inline Info)
     const clickableRow = e.target.closest('.clickable-row');
     if (clickableRow) {
-        const keyword = clickableRow.dataset.keyword;
-        if (keyword) {
-            const chatContainer = document.getElementById('view-record-chat-container');
-            chatContainer.classList.remove('hidden');
-            chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            
-            const input = document.getElementById('chat-input');
-            input.value = `Chỉ số "${keyword}" có ý nghĩa gì?`;
-            handleSendChat();
+        const nextRow = clickableRow.nextElementSibling;
+        if (nextRow && nextRow.classList.contains('inline-info-row')) {
+            // Toggle
+            if (nextRow.classList.contains('hidden')) {
+                nextRow.classList.remove('hidden');
+                
+                const contentDiv = nextRow.querySelector('.inline-info-content');
+                if (contentDiv.innerHTML.includes('Loaded by JS') || contentDiv.innerHTML.trim() === '') {
+                    // Lấy record hiện tại
+                    const modal = document.getElementById('modal-view-record');
+                    const record = currentRecords.find(r => r.id === modal.dataset.id);
+                    const keyword = clickableRow.dataset.keyword;
+                    
+                    contentDiv.innerHTML = `<div style="display: flex; align-items: center; gap: 8px; color: #8e44ad;"><span class="loading-spinner" style="width: 14px; height: 14px; border-width: 2px; border-color: #8e44ad; border-right-color: transparent;"></span> Đang lấy thông tin tóm tắt...</div>`;
+                    
+                    try {
+                        const explanation = await AIService.getShortExplanation(keyword, record?.disease, record?.treatment);
+                        contentDiv.innerHTML = `
+                            <div style="margin-bottom: 12px; line-height: 1.5;">${UI.renderMarkdown(explanation)}</div>
+                            <button class="secondary-btn btn-open-deep-chat" data-keyword="${UI.escapeHtml(keyword)}" style="font-size: 12px; padding: 5px 10px; color: #8e44ad; border-color: #8e44ad;">
+                                <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">forum</span> Trao đổi chuyên sâu
+                            </button>
+                        `;
+                    } catch (err) {
+                        contentDiv.innerHTML = `<span style="color: var(--danger);">Không thể lấy thông tin.</span>`;
+                    }
+                }
+            } else {
+                nextRow.classList.add('hidden');
+            }
         }
+        return;
+    }
+    
+    // 6. Nút "Trao đổi chuyên sâu" bên trong Inline Info
+    const btnOpenDeepChat = e.target.closest('.btn-open-deep-chat');
+    if (btnOpenDeepChat) {
+        const keyword = btnOpenDeepChat.dataset.keyword;
+        openDeepChatModal(keyword);
     }
 });

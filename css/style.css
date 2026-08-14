@@ -1274,3 +1274,22 @@ input::placeholder {
 .clickable-row:hover {
     background: rgba(142, 68, 173, 0.1) !important;
 }
+
+/* Inline Info Row */
+.inline-info-row {
+    background: #fdfbfd;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.inline-info-content {
+    padding: 15px;
+    font-size: 14px;
+    color: var(--text-color);
+    animation: slideDown 0.3s ease-out;
+    border-left: 3px solid #8e44ad;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
