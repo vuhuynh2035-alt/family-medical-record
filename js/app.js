@@ -243,9 +243,18 @@ function setupPinLockListeners() {
         }
     });
 
-    // btn-forgot-pin đã được loại bỏ để tăng cường bảo mật.
-
-
+    document.getElementById('btn-forgot-pin-reset').addEventListener('click', () => {
+        if (confirm('CẢNH BÁO NGUY HIỂM: Hành động này sẽ XÓA TOÀN BỘ dữ liệu hồ sơ bệnh án đang lưu trên máy này để khôi phục cài đặt gốc, giúp bạn vào lại ứng dụng. Bạn có chắc chắn muốn xóa mọi thứ không?')) {
+            if (confirm('Đây là xác nhận cuối cùng. Mọi dữ liệu sẽ bị xóa VĨNH VIỄN và không thể khôi phục. Bạn vẫn muốn tiếp tục?')) {
+                localStorage.clear();
+                if (window.indexedDB) {
+                    indexedDB.deleteDatabase('FamilyMedicalRecordDB');
+                }
+                alert('Đã xóa toàn bộ dữ liệu. Ứng dụng sẽ khởi động lại.');
+                window.location.reload();
+            }
+        }
+    });
 
     document.getElementById('btn-enable-pin').addEventListener('click', () => showPinSetupForm());
     document.getElementById('btn-change-pin').addEventListener('click', () => showPinSetupForm());
