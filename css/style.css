@@ -1271,6 +1271,14 @@ input::placeholder {
     transition: background 0.2s;
 }
 
+.clickable-row td:first-child {
+    text-decoration: underline;
+    text-decoration-style: dashed;
+    text-decoration-color: rgba(41, 128, 185, 0.5); /* subtle blue */
+    text-underline-offset: 4px;
+    color: var(--primary-blue);
+}
+
 .clickable-row:hover {
     background: rgba(142, 68, 173, 0.1) !important;
 }
