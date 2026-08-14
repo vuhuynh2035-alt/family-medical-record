@@ -419,8 +419,26 @@ window.addEventListener('beforeinstallprompt', (e) => {
     }
 });
 
-// --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
+// ==================== KHỞI TẠO ỨNG DỤNG ====================
+document.addEventListener('DOMContentLoaded', async () => {
+    // Tự động đồng bộ số phiên bản từ sw.js để tránh quên cập nhật giao diện
+    try {
+        const swText = await fetch('sw.js?t=' + Date.now()).then(r => r.text());
+        const match = swText.match(/const SW_VERSION\s*=\s*['"](v[^'"]+)['"]/);
+        if (match && match[1]) {
+            const version = match[1];
+            document.querySelectorAll('.version-tag').forEach(el => el.textContent = version);
+            
+            // Cập nhật text trong modal Settings (ví dụ: Phiên bản v2.2.6)
+            const settingsContent = document.getElementById('modal-settings')?.innerHTML;
+            if (settingsContent) {
+                document.getElementById('modal-settings').innerHTML = settingsContent.replace(/Phiên bản <strong>v[^<]+<\/strong>/, `Phiên bản <strong>${version}</strong>`);
+            }
+        }
+    } catch (e) {
+        console.warn("Không thể tự động đồng bộ phiên bản", e);
+    }
+
     initDashboard();
     setupEventListeners();
     setupPinLockListeners();
