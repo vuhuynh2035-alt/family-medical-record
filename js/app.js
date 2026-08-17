@@ -2867,4 +2867,53 @@ document.addEventListener('click', async (e) => {
         const keyword = btnOpenDeepChat.dataset.keyword;
         openDeepChatModal(keyword);
     }
+    // 7. Nút "Cách tạo Key"
+    const btnCreateKey = e.target.closest('.btn-create-key');
+    if (btnCreateKey) {
+        e.preventDefault();
+        const provider = btnCreateKey.dataset.provider;
+        const modal = document.getElementById('modal-api-key-guide');
+        const titleEl = document.getElementById('api-key-guide-title');
+        const contentEl = document.getElementById('api-key-guide-content');
+        
+        if (provider === 'gemini') {
+            titleEl.innerHTML = '<span style="color: #27ae60;">Hướng dẫn tạo API Key Google Gemini (Miễn phí)</span>';
+            contentEl.innerHTML = `
+                <p>Google Gemini là AI mặc định và bắt buộc phải có để đọc ảnh bệnh án. Hiện tại Google cho phép dùng hoàn toàn miễn phí.</p>
+                <ol style="margin-left: 20px;">
+                    <li style="margin-bottom: 10px;">Mở trang <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2980b9; font-weight: bold;">Google AI Studio</a> và đăng nhập bằng tài khoản Gmail của bạn.</li>
+                    <li style="margin-bottom: 10px;">Bấm nút <strong>"Create API Key"</strong> màu xanh.</li>
+                    <li style="margin-bottom: 10px;">Chọn <strong>"Create API key in new project"</strong>. Quá trình tạo mất vài giây.</li>
+                    <li style="margin-bottom: 10px;">Bạn sẽ thấy một chuỗi ký tự dài (thường bắt đầu bằng <code>AIzaSy...</code>). Bấm nút Copy (Sao chép).</li>
+                    <li>Quay lại màn hình Cài đặt của phần mềm này, dán chuỗi đó vào ô <strong>Google Gemini API Key</strong> rồi lưu lại.</li>
+                </ol>
+            `;
+        } else if (provider === 'openai') {
+            titleEl.innerHTML = '<span style="color: #10a37f;">Hướng dẫn tạo API Key OpenAI (ChatGPT)</span>';
+            contentEl.innerHTML = `
+                <p>OpenAI (nhà phát triển của ChatGPT) cung cấp API rất thông minh nhưng yêu cầu nạp tiền trả trước (Pay-as-you-go).</p>
+                <ol style="margin-left: 20px;">
+                    <li style="margin-bottom: 10px;">Mở trang <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #2980b9; font-weight: bold;">OpenAI Platform</a> và đăng nhập.</li>
+                    <li style="margin-bottom: 10px;">(Nếu đây là lần đầu dùng API, bạn cần vào mục <strong>Settings > Billing</strong> để thêm thẻ thanh toán và nạp tối thiểu 5$).</li>
+                    <li style="margin-bottom: 10px;">Tại mục <strong>API Keys</strong>, bấm nút <strong>"Create new secret key"</strong>.</li>
+                    <li style="margin-bottom: 10px;">Nhập tên tùy ý (ví dụ "App So Kham") rồi bấm Create.</li>
+                    <li style="margin-bottom: 10px;">Copy chuỗi ký tự hiển thị ra (bắt đầu bằng <code>sk-proj-...</code>). <em>Lưu ý: Mã này chỉ hiện ra 1 lần duy nhất.</em></li>
+                    <li>Dán mã đó vào ô <strong>OpenAI API Key</strong> của phần mềm và lưu lại.</li>
+                </ol>
+            `;
+        } else if (provider === 'anthropic') {
+            titleEl.innerHTML = '<span style="color: #d35400;">Hướng dẫn tạo API Key Anthropic (Claude)</span>';
+            contentEl.innerHTML = `
+                <p>Claude của Anthropic nổi tiếng với khả năng đọc hiểu lập luận dài và ngôn ngữ mượt mà. Giống như OpenAI, bạn cần nạp tiền trả trước.</p>
+                <ol style="margin-left: 20px;">
+                    <li style="margin-bottom: 10px;">Mở trang <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color: #2980b9; font-weight: bold;">Anthropic Console</a> và đăng nhập.</li>
+                    <li style="margin-bottom: 10px;">Vào mục <strong>Billing</strong> để nạp tiền vào tài khoản (thường tối thiểu 5$).</li>
+                    <li style="margin-bottom: 10px;">Quay lại mục <strong>API Keys</strong>, bấm nút <strong>"Create Key"</strong>.</li>
+                    <li style="margin-bottom: 10px;">Đặt tên cho key và copy đoạn mã (thường bắt đầu bằng <code>sk-ant-...</code>).</li>
+                    <li>Dán mã đó vào ô <strong>Anthropic API Key</strong> của phần mềm và lưu lại.</li>
+                </ol>
+            `;
+        }
+        modal.classList.remove('hidden');
+    }
 });
