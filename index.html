@@ -64,12 +64,7 @@
                 <div id="unlock-error" class="lock-error hidden" role="alert">Mã PIN không đúng, vui lòng thử lại.</div>
                 <button type="submit" class="primary-btn neumorphic-btn magic-btn" style="width:100%; justify-content:center; margin-top:15px;">Mở khóa</button>
             </form>
-            <div id="biometric-login-container" class="hidden" style="margin-top: 15px; text-align: center;">
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Hoặc</p>
-                <button type="button" id="btn-biometric-login" class="secondary-btn neumorphic-btn" style="width:100%; justify-content:center; border-radius: 25px; padding: 12px;">
-                    <span class="material-symbols-rounded">fingerprint</span> Đăng nhập bằng Sinh trắc học
-                </button>
-            </div>
+
             
             <div style="margin-top: 25px; text-align: center;">
                 <button type="button" id="btn-forgot-pin-reset" style="background: none; border: none; color: var(--danger-color); font-size: 13px; text-decoration: underline; cursor: pointer; padding: 5px;">
@@ -161,7 +156,7 @@
                     <button id="btn-help" class="icon-btn header-btn" title="Hướng dẫn sử dụng" data-help-title="Hướng dẫn sử dụng" data-help-desc="Bật chế độ hướng dẫn để tìm hiểu cách sử dụng các tính năng trên màn hình.">
                         <span class="material-symbols-rounded">help</span>
                     </button>
-                    <button id="btn-settings" class="icon-btn header-btn" title="Cài đặt" data-help-title="Bảng Cài đặt" data-help-desc="Thiết lập bảo mật (Mã PIN, Sinh trắc học) và cấu hình Trí tuệ Nhân tạo.">
+                    <button id="btn-settings" class="icon-btn header-btn" title="Cài đặt" data-help-title="Bảng Cài đặt" data-help-desc="Thiết lập bảo mật (Mã PIN) và cấu hình Trí tuệ Nhân tạo.">
                         <span class="material-symbols-rounded">settings</span>
                     </button>
                     <button id="btn-exit-app" class="icon-btn header-btn" title="Đóng chương trình" data-help-title="Thoát ứng dụng" data-help-desc="Đóng an toàn chương trình để bảo mật dữ liệu.">
@@ -471,23 +466,7 @@
 
                 <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
 
-                <div id="biometric-settings-container" class="hidden">
-                    <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">fingerprint</span> Đăng nhập bằng Sinh trắc học</h4>
-                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
-                        Mở khóa ứng dụng nhanh chóng bằng Vân tay hoặc Khuôn mặt (yêu cầu thiết bị có hỗ trợ).
-                    </p>
-                    <div id="biometric-status-off">
-                        <button type="button" id="btn-enable-biometric" class="secondary-btn neumorphic-btn" style="width:100%; justify-content:center;" data-help-title="Kích hoạt Sinh trắc học" data-help-desc="Sử dụng vân tay hoặc FaceID để mở khóa ứng dụng thay vì phải nhập mã PIN mỗi lần.">
-                            <span class="material-symbols-rounded">fingerprint</span> Bật Sinh trắc học
-                        </button>
-                    </div>
-                    <div id="biometric-status-on" class="hidden">
-                        <button type="button" id="btn-disable-biometric" class="neumorphic-btn danger" style="width:100%; justify-content:center; background:#fff1f0; border:1px solid #ffccc7;">
-                            Tắt Sinh trắc học
-                        </button>
-                    </div>
-                    <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
-                </div>
+
 
                 <details style="margin-bottom: 20px; border-radius: 12px;" data-help-title="Cấu hình AI" data-help-desc="Bấm vào để mở rộng cài đặt API Key và phân công tác vụ cho các hệ thống Trí tuệ Nhân tạo khác nhau.">
                     <summary class="neumorphic-btn" style="font-weight: bold; cursor: pointer; color: var(--primary-blue); display: flex; align-items: center; font-size: 16px; padding: 15px; border-radius: 12px; transition: all 0.3s ease;">
