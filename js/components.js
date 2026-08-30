@@ -513,66 +513,85 @@ const UI = {
                 </div>`;
         }
 
-        // 4. Tài liệu & Hình ảnh gốc đính kèm (Collapsible Accordion ở cuối trang)
-        const images = record.originalImages || (record.originalImage ? [record.originalImage] : []);
-        if (images.length > 0) {
-            html += `
-                <div class="attached-docs-collapsible" style="margin-top: 18px; border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; background: var(--bg-color); box-shadow: var(--shadow-outer);">
-                    <button type="button" id="btn-toggle-attached-docs" class="btn-toggle-attached-docs" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(52, 152, 219, 0.08); border: none; cursor: pointer; text-align: left; transition: background 0.2s;">
-                        <span style="font-size: 14px; font-weight: 600; color: var(--primary-blue); display: flex; align-items: center; gap: 6px;">
-                            <span class="material-symbols-rounded" style="font-size: 20px;">folder_open</span>
-                            Tài liệu & Hình ảnh gốc đính kèm (${images.length})
-                        </span>
-                        <span style="display: flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--primary-blue); font-weight: 600;">
-                            <span id="attached-docs-toggle-text">Xem tài liệu</span>
-                            <span class="material-symbols-rounded" id="attached-docs-toggle-icon" style="font-size: 20px; transition: transform 0.3s ease;">expand_more</span>
-                        </span>
-                    </button>
-                    
-                    <div id="attached-docs-body" class="hidden" style="padding: 14px; background: white; border-top: 1px solid rgba(0,0,0,0.06); animation: slideDown 0.25s ease-out;">
-                        <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
-                            <button type="button" class="btn-print-all-docs neumorphic-btn" data-record-id="${this.escapeHtml(record.id)}" style="font-size: 12px; padding: 5px 12px; color: #27ae60; border: 1px solid #27ae60; background: white; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-                                <span class="material-symbols-rounded" style="font-size: 16px;">print</span> In toàn bộ tài liệu
-                            </button>
-                        </div>
-                        <div class="attached-docs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">
-            `;
+        document.getElementById('view-record-form-data').innerHTML = html;
+        this.enhanceA11y(document.getElementById('view-record-form-data'));
 
-            for (let i = 0; i < images.length; i++) {
-                const img = images[i];
-                let src = img;
-                if (img.startsWith('img_')) {
-                    src = await ImageStore.getImage(img);
-                }
-                const safeSrc = src || '';
-                
-                html += `
-                    <div class="attached-doc-card" data-img="${this.escapeHtml(img)}" data-index="${i + 1}">
-                        <div class="attached-doc-thumb-wrap btn-view-img" data-img="${this.escapeHtml(img)}" title="Bấm để xem phóng to chi tiết">
-                            <span class="attached-doc-badge">Trang ${i + 1}</span>
-                            <img src="${this.escapeHtml(safeSrc)}" class="attached-doc-thumb" alt="Tài liệu gốc ${i + 1}">
+        // 4. Báo cáo nhận xét AI chuyên sâu (ở giữa)
+        const reportData = document.getElementById('view-record-report-data');
+        if (record.comprehensiveReport) {
+            reportData.style.display = 'block';
+            reportData.innerHTML = this.renderMarkdown(record.comprehensiveReport);
+        } else {
+            reportData.style.display = 'none';
+            reportData.innerHTML = '';
+        }
+
+        // 5. Tài liệu & Hình ảnh gốc đính kèm (Collapsible Accordion ở CUỐI CÙNG của toàn bộ trang)
+        const docsContainer = document.getElementById('view-record-attached-docs-data');
+        const images = record.originalImages || (record.originalImage ? [record.originalImage] : []);
+        
+        if (docsContainer) {
+            if (images.length > 0) {
+                let docsHtml = `
+                    <div class="attached-docs-collapsible" style="border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; background: var(--bg-color); box-shadow: var(--shadow-outer);">
+                        <button type="button" id="btn-toggle-attached-docs" class="btn-toggle-attached-docs" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(52, 152, 219, 0.08); border: none; cursor: pointer; text-align: left; transition: background 0.2s;">
+                            <span style="font-size: 14px; font-weight: 600; color: var(--primary-blue); display: flex; align-items: center; gap: 6px;">
+                                <span class="material-symbols-rounded" style="font-size: 20px;">folder_open</span>
+                                Tài liệu & Hình ảnh gốc đính kèm (${images.length})
+                            </span>
+                            <span style="display: flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--primary-blue); font-weight: 600;">
+                                <span id="attached-docs-toggle-text">Xem tài liệu</span>
+                                <span class="material-symbols-rounded" id="attached-docs-toggle-icon" style="font-size: 20px; transition: transform 0.3s ease;">expand_more</span>
+                            </span>
+                        </button>
+                        
+                        <div id="attached-docs-body" class="hidden" style="padding: 14px; background: white; border-top: 1px solid rgba(0,0,0,0.06); animation: slideDown 0.25s ease-out;">
+                            <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+                                <button type="button" class="btn-print-all-docs neumorphic-btn" data-record-id="${this.escapeHtml(record.id)}" style="font-size: 12px; padding: 5px 12px; color: #27ae60; border: 1px solid #27ae60; background: white; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                    <span class="material-symbols-rounded" style="font-size: 16px;">print</span> In toàn bộ tài liệu
+                                </button>
+                            </div>
+                            <div class="attached-docs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">
+                `;
+
+                for (let i = 0; i < images.length; i++) {
+                    const img = images[i];
+                    let src = img;
+                    if (img.startsWith('img_')) {
+                        src = await ImageStore.getImage(img);
+                    }
+                    const safeSrc = src || '';
+                    
+                    docsHtml += `
+                        <div class="attached-doc-card" data-img="${this.escapeHtml(img)}" data-index="${i + 1}">
+                            <div class="attached-doc-thumb-wrap btn-view-img" data-img="${this.escapeHtml(img)}" title="Bấm để xem phóng to chi tiết">
+                                <span class="attached-doc-badge">Trang ${i + 1}</span>
+                                <img src="${this.escapeHtml(safeSrc)}" class="attached-doc-thumb" alt="Tài liệu gốc ${i + 1}">
+                            </div>
+                            <div class="attached-doc-actions">
+                                <button type="button" class="attached-doc-btn btn-view-img" data-img="${this.escapeHtml(img)}" title="Phóng to xem nét">
+                                    <span class="material-symbols-rounded" style="font-size: 15px;">zoom_in</span> Xem
+                                </button>
+                                <button type="button" class="attached-doc-btn print-btn btn-print-single-doc" data-img="${this.escapeHtml(img)}" title="In tài liệu này">
+                                    <span class="material-symbols-rounded" style="font-size: 15px;">print</span> In
+                                </button>
+                            </div>
                         </div>
-                        <div class="attached-doc-actions">
-                            <button type="button" class="attached-doc-btn btn-view-img" data-img="${this.escapeHtml(img)}" title="Phóng to xem nét">
-                                <span class="material-symbols-rounded" style="font-size: 15px;">zoom_in</span> Xem
-                            </button>
-                            <button type="button" class="attached-doc-btn print-btn btn-print-single-doc" data-img="${this.escapeHtml(img)}" title="In tài liệu này">
-                                <span class="material-symbols-rounded" style="font-size: 15px;">print</span> In
-                            </button>
+                    `;
+                }
+
+                docsHtml += `
+                            </div>
                         </div>
                     </div>
                 `;
+                docsContainer.innerHTML = docsHtml;
+                docsContainer.style.display = 'block';
+            } else {
+                docsContainer.innerHTML = '';
+                docsContainer.style.display = 'none';
             }
-
-            html += `
-                        </div>
-                    </div>
-                </div>
-            `;
         }
-
-        document.getElementById('view-record-form-data').innerHTML = html;
-        this.enhanceA11y(document.getElementById('view-record-form-data'));
         
         // Save current record id to the modal for chat/actions reference
         document.getElementById('modal-view-record').dataset.id = record.id;
@@ -580,14 +599,6 @@ const UI = {
         // Reset deep chat state just in case
         document.getElementById('modal-deep-chat').classList.add('hidden');
         window.currentDeepChatHistory = [];
-
-        const reportData = document.getElementById('view-record-report-data');
-        if (record.comprehensiveReport) {
-            reportData.style.display = 'block';
-            reportData.innerHTML = this.renderMarkdown(record.comprehensiveReport);
-        } else {
-            reportData.style.display = 'none';
-        }
     },
 
     // ==================== 4. Render Statistics ====================
