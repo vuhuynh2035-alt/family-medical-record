@@ -219,7 +219,7 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.3.2';
+const CURRENT_APP_VERSION = 'v2.3.3';
 let newWorker = null;
 
 function showUpdateToast(newVersion = '') {
