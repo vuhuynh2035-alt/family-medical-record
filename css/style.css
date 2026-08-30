@@ -1593,49 +1593,91 @@ input::placeholder {
     animation: pulseGlow 1.5s infinite;
 }
 
+/* Sóng âm thanh động nhấp nhô sống động */
+.sound-wave-bars {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 14px;
+    vertical-align: middle;
+}
+
+.sound-wave-bars .bar {
+    width: 2.5px;
+    background: currentColor;
+    border-radius: 2px;
+    animation: soundWaveAnim 1s ease-in-out infinite alternate;
+}
+
+.sound-wave-bars .bar.b1 { height: 5px; animation-delay: 0.1s; }
+.sound-wave-bars .bar.b2 { height: 12px; animation-delay: 0.35s; }
+.sound-wave-bars .bar.b3 { height: 8px; animation-delay: 0.2s; }
+.sound-wave-bars .bar.b4 { height: 14px; animation-delay: 0.45s; }
+.sound-wave-bars .bar.b5 { height: 6px; animation-delay: 0.15s; }
+
+@keyframes soundWaveAnim {
+    0% { height: 3px; }
+    50% { height: 14px; }
+    100% { height: 4px; }
+}
+
+/* Khung nội dung đang được đọc phát sáng viền neon xanh dịu */
+.reading-active-container {
+    box-shadow: 0 0 0 2.5px #0284c7, 0 0 25px rgba(2, 132, 199, 0.4) !important;
+    border-radius: 12px !important;
+    transition: box-shadow 0.3s ease;
+    animation: readingPulse 2.5s infinite alternate;
+}
+
+@keyframes readingPulse {
+    from { box-shadow: 0 0 0 2px #0284c7, 0 0 15px rgba(2, 132, 199, 0.25); }
+    to { box-shadow: 0 0 0 3px #38bdf8, 0 0 28px rgba(56, 189, 248, 0.45); }
+}
+
 @keyframes pulseGlow {
-    0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.5); }
+    0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.6); }
     70% { box-shadow: 0 0 0 8px rgba(2, 132, 199, 0); }
     100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
 }
 
 .tts-player-bar {
     position: fixed;
-    bottom: 24px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(15, 23, 42, 0.92);
+    background: rgba(15, 23, 42, 0.95);
     color: white;
-    padding: 10px 18px;
+    padding: 10px 16px;
     border-radius: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(14px);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 12px;
     z-index: 10015;
-    min-width: 290px;
-    max-width: 90vw;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    min-width: 310px;
+    max-width: 92vw;
+    border: 1px solid rgba(56, 189, 248, 0.35);
     animation: slideUpFade 0.3s ease-out;
 }
 
 .tts-player-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex: 1;
     overflow: hidden;
 }
 
 .tts-player-title {
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: #f1f5f9;
+    color: #e0f2fe;
+    max-width: 220px;
 }
 
 .tts-pulse-icon {
@@ -1650,7 +1692,7 @@ input::placeholder {
 .tts-player-controls {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .tts-ctrl-btn {
