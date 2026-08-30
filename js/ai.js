@@ -232,31 +232,32 @@ const AIService = {
      * @returns {Promise<object>} object dữ liệu hồ sơ đã trích xuất
      */
     async extractDataFromImage(base64Images) {
-        const prompt = `Bạn là một trợ lý y tế chuyên nghiệp. Hãy đọc toàn bộ các hình ảnh đính kèm (phiếu kết quả xét nghiệm, hồ sơ khám bệnh, đơn thuốc, phim X-quang, v.v.) và tổng hợp trích xuất các thông tin sau. Nếu có nhiều ảnh, hãy kết hợp thông tin một cách logic.
+        const prompt = `Bạn là một trợ lý y tế chuyên nghiệp. Hãy đọc toàn bộ các hình ảnh đính kèm (phiếu kết quả xét nghiệm, hồ sơ khám bệnh, sổ tiêm chủng, đơn thuốc, phim X-quang, v.v.) và tổng hợp trích xuất các thông tin sau. Nếu có nhiều ảnh, hãy kết hợp thông tin một cách logic.
 TUYỆT ĐỐI CHỈ TRẢ VỀ JSON, KHÔNG THÊM BẤT KỲ ĐOẠN VĂN BẢN HAY LỜI CHÀO NÀO KHÁC. Trích xuất dữ liệu thành cấu trúc JSON nghiêm ngặt với các key sau:
-- "date": Ngày khám bệnh (định dạng YYYY-MM-DD). Nếu không có, hãy để chuỗi rỗng "".
-- "hospital": Tên bệnh viện hoặc phòng khám.
-- "doctor": Tên bác sĩ điều trị.
-- "type": Phân loại khám. BẮT BUỘC chọn ĐÚNG NGUYÊN VĂN một trong các giá trị sau (không tự đặt ra giá trị khác, không diễn giải lại bằng từ ngữ khác dù ý nghĩa tương đương — luôn chọn đúng 1 nhãn có sẵn dưới đây để cùng một loại hồ sơ luôn được phân loại nhất quán giữa các lần đọc khác nhau): "Khám sức khỏe tổng quát", "Bệnh lý cấp tính (Nhẹ)", "Bệnh lý cấp tính (Nặng)", "Bệnh lý mạn tính", "Khám thai", "Tiêm chủng", "Nha khoa". Nếu ảnh chỉ là phiếu kết quả xét nghiệm đơn thuần (chưa có chẩn đoán/kết luận của bác sĩ để xác định là cấp tính hay mạn tính), hãy chọn "Khám sức khỏe tổng quát".
+- "date": Ngày khám/tiêm chủng (định dạng YYYY-MM-DD). Nếu không có, hãy để chuỗi rỗng "".
+- "hospital": Tên bệnh viện, trạm y tế hoặc trung tâm tiêm chủng.
+- "doctor": Tên bác sĩ điều trị/người tiêm.
+- "type": Phân loại khám. BẮT BUỘC chọn ĐÚNG NGUYÊN VĂN một trong các giá trị sau (không tự đặt ra giá trị khác, không diễn giải lại bằng từ ngữ khác dù ý nghĩa tương đương — luôn chọn đúng 1 nhãn có sẵn dưới đây để cùng một loại hồ sơ luôn được phân loại nhất quán giữa các lần đọc khác nhau): "Khám sức khỏe tổng quát", "Bệnh lý cấp tính (Nhẹ)", "Bệnh lý cấp tính (Nặng)", "Bệnh lý mạn tính", "Khám thai", "Tiêm chủng", "Nha khoa". Nếu là phiếu/sổ tiêm phòng vắc xin, BẮT BUỘC chọn "Tiêm chủng". Nếu ảnh chỉ là phiếu kết quả xét nghiệm đơn thuần, chọn "Khám sức khỏe tổng quát".
 - "bp": Huyết áp (vd: "120/80").
 - "hr": Nhịp tim (vd: 80 - số nguyên).
 - "temp": Nhiệt độ (vd: 37.0 - số thực).
 - "spo2": Nồng độ oxy trong máu (vd: 98 - số nguyên).
 - "symptoms": Lý do khám hoặc các triệu chứng lâm sàng.
 - "labs": Tóm tắt các kết quả xét nghiệm cận lâm sàng (máu, X-Quang, siêu âm...).
-- "disease": Chẩn đoán bệnh hoặc kết luận chính xác.
-- "treatment": Phương án điều trị hoặc đơn thuốc chi tiết.
-- "note": Lời khuyên của bác sĩ (kiêng cữ, ăn uống...).
+- "disease": Chẩn đoán bệnh hoặc tên vắc xin tiêm chủng (kèm số mũi, vd: "Tiêm vắc xin 6 trong 1 (Hexaxim) mũi 1").
+- "treatment": Phương án điều trị, đơn thuốc, hoặc chi tiết vắc xin đã tiêm (tên thuốc, số lô, đường tiêm).
+- "note": Lời khuyên của bác sĩ, theo dõi phản ứng sau tiêm hoặc kiêng cữ.
 - "cost": Tổng chi phí (chỉ lấy con số, ví dụ 500000. Nếu không thấy, trả về 0).
 - "dynamicFields": Mảng các chỉ số xét nghiệm chi tiết hoặc chuyên sâu. Mỗi phần tử là một object có "key" (Tên chỉ số, vd: "Glucose"), "value" (Kết quả kèm đơn vị), "isAbnormal" (boolean: true/false), và "explanation" (Giải thích siêu ngắn 1 câu về ý nghĩa của chỉ số này để hiển thị nhanh cho người dùng, vd: "Đường huyết, dùng để theo dõi bệnh tiểu đường"). Nếu không có, để mảng rỗng [].
-- "reminders": Mảng các nhắc nhở cần tạo (tái khám, lịch uống thuốc, tiêm chủng...). Bạn hãy tự động tính toán ngày tháng dựa vào ngày khám bệnh và lời dặn của bác sĩ. Mỗi phần tử là một object có:
-  + "title": Tóm tắt nhắc nhở (vd: "Tái khám nội tiết", "Uống thuốc sáng").
-  + "date": Ngày hẹn (định dạng YYYY-MM-DD). Cố gắng tính toán ngày chính xác từ ngày khám nếu bác sĩ hẹn "sau 7 ngày" hay "sau 1 tháng".
+- "reminders": Mảng các nhắc nhở cần tạo (tái khám, lịch uống thuốc, lịch hẹn tiêm phòng mũi kế tiếp...). Bạn hãy tự động tính toán ngày tháng dựa vào ngày khám/tiêm và lời dặn của bác sĩ hoặc phác đồ tiêm chủng chuẩn. Mỗi phần tử là một object có:
+  + "title": Tóm tắt nhắc nhở (vd: "Tiêm mũi 2 vắc xin 6 trong 1", "Tái khám nội tiết", "Uống thuốc sáng").
+  + "date": Ngày hẹn (định dạng YYYY-MM-DD). Cố gắng tính toán ngày chính xác từ ngày khám/tiêm nếu bác sĩ hẹn "sau 30 ngày" hay "sau 1 tháng".
   + "time": Giờ nhắc nhở (định dạng HH:MM, mặc định "08:00" nếu không có giờ cụ thể).
   + "note": Ghi chú hoặc lời dặn chi tiết của bác sĩ.
   Nếu không có bất kỳ lời dặn dò, hẹn tái khám hay đơn thuốc nào, để mảng rỗng [].
+- "vaccineInfo": Nếu đây là hồ sơ tiêm chủng, trả về object: { "name": string, "dose": number/string, "diseaseTarget": string, "nextDoseDate": "YYYY-MM-DD", "nextDoseTitle": string, "careInstructions": string, "sideEffects": string }. Nếu không phải tiêm chủng, để null.
 
-Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy để chuỗi rỗng "" (hoặc 0 đối với số, [] đối với mảng).`;
+Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy để chuỗi rỗng "" (hoặc 0 đối với số, [] đối với mảng, null đối với vaccineInfo).`;
 
         // temperature = 0: đây là tác vụ trích xuất/phân loại dữ liệu (không phải viết văn), nên
         // ưu tiên tuyệt đối tính nhất quán — cùng 1 ảnh đọc nhiều lần nên ra cùng 1 kết quả, thay
@@ -594,5 +595,366 @@ Không cần lời chào hỏi, đi thẳng vào giải thích ý nghĩa.`;
         } else {
             return await this.callGeminiAPI(prompt, null, false, null, 0.2);
         }
+    },
+
+    // ==================== 7. VACCINE INTELLIGENCE (HỖ TRỢ TIÊM CHỦNG THÔNG MINH) ====================
+    VACCINE_DATABASE: [
+        {
+            id: '6in1',
+            keywords: ['6 trong 1', '6in1', '6 in 1', 'hexaxim', 'infanrix hexa', 'bạch hầu, ho gà, uốn ván, bại liệt, hib, viêm gan b'],
+            name: 'Vắc xin 6 trong 1 (Hexaxim / Infanrix Hexa)',
+            disease: 'Phòng 6 bệnh nguy hiểm: Bạch hầu, Ho gà, Uốn ván, Bại liệt, Viêm gan B và các bệnh do vi khuẩn Hib (Viêm phổi, Viêm màng não mủ).',
+            schedule: 'Phác đồ 3 mũi cơ bản (2, 3, 4 tháng tuổi - mỗi mũi cách nhau 1 tháng), mũi 4 nhắc lại lúc 16-18 tháng tuổi.',
+            totalDoses: 4,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 30, title: 'Tiêm mũi 2 vắc xin 6 trong 1 (Hexaxim/Infanrix)' },
+                2: { nextDose: 3, intervalDays: 30, title: 'Tiêm mũi 3 vắc xin 6 trong 1 (Hexaxim/Infanrix)' },
+                3: { nextDose: 4, intervalDays: 365, title: 'Tiêm mũi 4 nhắc lại vắc xin 6 trong 1 (lúc 16-18 tháng tuổi)' }
+            },
+            sideEffects: 'Sốt nhẹ 37.5°C - 38.5°C (thường trong 24-48h đầu), sưng đỏ, đau tại vị trí tiêm, quấy khóc nhẹ, biếng ăn thoáng qua.',
+            careInstructions: 'Mặc quần áo thoáng mát, thấm hút mồ hôi. Chườm mát (khăn sạch thấm nước mát) tại vị trí tiêm để giảm sưng đau, tuyệt đối KHÔNG đắp khoai tây hay chanh lên vết tiêm. Cho bú nhiều lần hoặc uống nhiều nước. Dùng hạ sốt Paracetamol (10-15mg/kg/lần) nếu sốt >= 38.5°C.',
+            warningSigns: 'Sốt cao liên tục >= 39°C không đáp ứng thuốc hạ sốt, co giật, khóc thét liên tục > 3 giờ, khó thở, thở rít, tím tái quanh môi, li bì khó đánh thức, phát ban toàn thân.'
+        },
+        {
+            id: '5in1',
+            keywords: ['5 trong 1', '5in1', '5 in 1', 'pentaxim', 'quinvaxem', 'sii'],
+            name: 'Vắc xin 5 trong 1 (Pentaxim / SII)',
+            disease: 'Phòng 5 bệnh: Bạch hầu, Ho gà, Uốn ván, Bại liệt (hoặc Viêm gan B), và Hib.',
+            schedule: 'Phác đồ 3 mũi cơ bản (2, 3, 4 tháng tuổi - mỗi mũi cách 1 tháng), mũi 4 nhắc lại lúc 16-18 tháng.',
+            totalDoses: 4,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 30, title: 'Tiêm mũi 2 vắc xin 5 trong 1' },
+                2: { nextDose: 3, intervalDays: 30, title: 'Tiêm mũi 3 vắc xin 5 trong 1' },
+                3: { nextDose: 4, intervalDays: 365, title: 'Tiêm mũi 4 nhắc lại vắc xin 5 trong 1' }
+            },
+            sideEffects: 'Sốt nhẹ, quấy khóc, sưng đỏ vết tiêm trong 1-2 ngày.',
+            careInstructions: 'Theo dõi nhiệt độ mỗi 2-4h, cho trẻ bú nhiều, dùng thuốc hạ sốt theo chỉ định khi sốt >= 38.5°C.',
+            warningSigns: 'Sốt cao liên tục, co giật, thở gấp, tím tái.'
+        },
+        {
+            id: 'pneumo',
+            keywords: ['phế cầu', 'synflorix', 'prevenar', 'prevenar 13', 'streptococcus pneumoniae'],
+            name: 'Vắc xin Phế cầu (Synflorix / Prevenar 13)',
+            disease: 'Phòng ngừa Viêm phổi, Viêm màng não, Viêm tai giữa cấp và Nhiễm trùng huyết do phế cầu khuẩn Streptococcus pneumoniae.',
+            schedule: 'Trẻ nhỏ: 3 mũi cơ bản (cách nhau 1 tháng) + 1 mũi nhắc lại sau mũi 3 ít nhất 6 tháng (lúc 11-15 tháng tuổi). Người lớn/người già: 1 liều duy nhất.',
+            totalDoses: 4,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 30, title: 'Tiêm mũi 2 vắc xin Phế cầu (Synflorix/Prevenar)' },
+                2: { nextDose: 3, intervalDays: 30, title: 'Tiêm mũi 3 vắc xin Phế cầu' },
+                3: { nextDose: 4, intervalDays: 180, title: 'Tiêm mũi 4 nhắc lại vắc xin Phế cầu' }
+            },
+            sideEffects: 'Đau, sưng cứng tại chỗ tiêm, sốt nhẹ, chán ăn, quấy khóc trong 24-48h.',
+            careInstructions: 'Chườm mát chỗ tiêm, cho trẻ bú nhiều, không xoa dầu nóng vào vết tiêm.',
+            warningSigns: 'Sốt cao >= 39°C, phát ban, thở rít, co giật.'
+        },
+        {
+            id: 'rota',
+            keywords: ['rota', 'rotarix', 'rotateq', 'rotavin'],
+            name: 'Vắc xin ngừa Rota Virus (Rotarix / Rotateq / Rotavin)',
+            disease: 'Phòng ngừa Viêm dạ dày - ruột cấp tính và Tiêu chảy mất nước nặng do Rotavirus.',
+            schedule: 'Rotarix (uống 2 liều, cách 1 tháng, hoàn thành trước 6 tháng tuổi). Rotateq (uống 3 liều, cách 1 tháng, hoàn thành trước 8 tháng tuổi).',
+            totalDoses: 2,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 30, title: 'Uống liều 2 vắc xin ngừa Rota Virus' },
+                2: { nextDose: 3, intervalDays: 30, title: 'Uống liều 3 vắc xin Rota (nếu dùng phác đồ Rotateq 3 liều)' }
+            },
+            sideEffects: 'Nôn trớ nhẹ, đi ngoài phân lỏng nhẹ trong 1-2 ngày.',
+            careInstructions: 'Cho uống từng thìa nhỏ, không cho bú quá no ngay sau khi uống vắc xin 15-30 phút.',
+            warningSigns: 'Nôn ói liên tục, tiêu chảy phân có máu, khóc thắt từng cơn do đau bụng.'
+        },
+        {
+            id: 'flu',
+            keywords: ['cúm', 'vaxigrip', 'vaxigrip tetra', 'influvac', 'gc flu', 'influenza'],
+            name: 'Vắc xin Cúm mùa (Vaxigrip Tetra / Influvac Tetra)',
+            disease: 'Phòng ngừa Cúm mùa do các chủng virus cúm A (H1N1, H3N2) và cúm B.',
+            schedule: 'Trẻ 6 tháng - dưới 9 tuổi chưa từng tiêm cúm: 2 mũi cách nhau 1 tháng. Trẻ >= 9 tuổi và người lớn: 1 mũi/năm (tiêm nhắc định kỳ hàng năm).',
+            totalDoses: 2,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 30, title: 'Tiêm mũi 2 vắc xin Cúm mùa (hoặc tiêm nhắc hàng năm)' },
+                2: { nextDose: 'Nhắc lại hàng năm', intervalDays: 365, title: 'Tiêm nhắc lại vắc xin Cúm mùa định kỳ hàng năm' }
+            },
+            sideEffects: 'Đau mỏi cơ, sưng nhẹ bắp tay, sốt nhẹ hoặc ớn lạnh thoáng qua trong 24h.',
+            careInstructions: 'Nghỉ ngơi, uống đủ nước, vận động nhẹ nhàng cánh tay để giảm ê ẩm.',
+            warningSigns: 'Khó thở, phát ban nổi mề đay toàn thân, sưng mặt hoặc môi.'
+        },
+        {
+            id: 'hpv',
+            keywords: ['hpv', 'gardasil', 'gardasil 9', 'gardasil 4', 'ung thư cổ tử cung', 'sùi mào gà'],
+            name: 'Vắc xin HPV (Gardasil 9 / Gardasil 4)',
+            disease: 'Phòng ngừa Ung thư cổ tử cung, ung thư âm hộ/âm đạo/hậu môn, ung thư vòm họng và sùi mào gà sinh dục do virus HPV.',
+            schedule: 'Từ 9 - 14 tuổi: Phác đồ 2 mũi (0 - 6 tháng). Từ 15 - 45 tuổi: Phác đồ 3 mũi (0 - 2 - 6 tháng: mũi 2 cách mũi 1 là 2 tháng, mũi 3 cách mũi 2 là 4 tháng).',
+            totalDoses: 3,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 60, title: 'Tiêm mũi 2 vắc xin HPV (Gardasil)' },
+                2: { nextDose: 3, intervalDays: 120, title: 'Tiêm mũi 3 vắc xin HPV (Gardasil)' }
+            },
+            sideEffects: 'Đau nhức bắp tay chỗ tiêm, sưng đỏ, sốt nhẹ, mệt mỏi hoặc đau đầu thoáng qua.',
+            careInstructions: 'Ngồi nghỉ tại chỗ theo dõi ít nhất 30 phút sau tiêm để phòng ngừa phản xạ choáng ngất.',
+            warningSigns: 'Choáng ngất kéo dài, nổi mề đay, khó thở, thở rít.'
+        },
+        {
+            id: 'varicella',
+            keywords: ['thủy đậu', 'varivax', 'varicella', 'varilrix', 'trái rạ'],
+            name: 'Vắc xin Thủy đậu (Varivax / Varicella / Varilrix)',
+            disease: 'Phòng bệnh Thủy đậu (Trái rạ) và các biến chứng nguy hiểm như viêm phổi, viêm não, nhiễm trùng da.',
+            schedule: 'Trẻ em từ 9-12 tháng trở lên: 2 mũi. Trẻ nhỏ: Mũi 2 cách mũi 1 ít nhất 3 tháng (hoặc lúc 4-6 tuổi). Người lớn/trẻ >= 13 tuổi: Mũi 2 cách mũi 1 ít nhất 1 tháng.',
+            totalDoses: 2,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 90, title: 'Tiêm mũi 2 vắc xin Thủy đậu' }
+            },
+            sideEffects: 'Sưng đau vết tiêm, có thể nổi vài nốt ban dạng phỏng nước nhẹ sau 1-2 tuần.',
+            careInstructions: 'Giữ vệ sinh da sạch sẽ, không chà xát hoặc làm vỡ các nốt ban nếu có.',
+            warningSigns: 'Sốt cao, nốt phỏng mưng mủ lan rộng toàn thân, lơ mơ.'
+        },
+        {
+            id: 'mmr',
+            keywords: ['sởi', 'quai bị', 'rubella', 'mmr', 'mmr ii', 'priorix', 'sởi - quai bị - rubella'],
+            name: 'Vắc xin Sởi - Quai bị - Rubella (MMR II / Priorix)',
+            disease: 'Phòng 3 bệnh truyền nhiễm nguy hiểm: Sởi (viêm phổi, viêm não), Quai bị (viêm tinh hoàn/buồng trứng), và Rubella (hội chứng Rubella bẩm sinh).',
+            schedule: 'Mũi 1 lúc 9 hoặc 12 tháng tuổi, mũi 2 nhắc lại sau 3-5 năm (lúc 4-6 tuổi) hoặc cách mũi 1 ít nhất 1 tháng đối với người lớn.',
+            totalDoses: 2,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 365 * 3, title: 'Tiêm mũi 2 nhắc lại vắc xin Sởi - Quai bị - Rubella (MMR)' }
+            },
+            sideEffects: 'Sốt nhẹ, phát ban dạng sởi thoáng qua sau 7-12 ngày, sưng nhẹ tuyến mang tai.',
+            careInstructions: 'Theo dõi thân nhiệt, uống nhiều nước ấm, nghỉ ngơi.',
+            warningSigns: 'Sốt cao liên tục, phát ban dày đặc kèm ho rũ rượi, co giật.'
+        },
+        {
+            id: 'je',
+            keywords: ['viêm não nhật bản', 'imojev', 'jevax'],
+            name: 'Vắc xin Viêm não Nhật Bản (Imojev / Jevax)',
+            disease: 'Phòng bệnh Viêm não Nhật Bản B do virus truyền qua muỗi Culex gây tổn thương hệ thần kinh trung ương vĩnh viễn.',
+            schedule: 'Imojev: Mũi 1 lúc 9 tháng tuổi, mũi 2 sau mũi 1 là 1 năm. Jevax: Mũi 1, mũi 2 sau 1-2 tuần, mũi 3 sau 1 năm, sau đó mỗi 3 năm tiêm nhắc 1 lần.',
+            totalDoses: 2,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 365, title: 'Tiêm mũi 2 vắc xin Viêm não Nhật Bản (Imojev)' }
+            },
+            sideEffects: 'Đau chỗ tiêm, sốt nhẹ, mệt mỏi trong 1-2 ngày.',
+            careInstructions: 'Cho trẻ nghỉ ngơi, uống nhiều nước, chườm mát khi cần.',
+            warningSigns: 'Sốt cao, co giật, nôn vọt, đau đầu dữ dội, li bì.'
+        },
+        {
+            id: 'tetanus',
+            keywords: ['uốn ván', 'vat', 'tetavax', 'td', 'boostrix'],
+            name: 'Vắc xin Uốn ván (VAT / Boostrix / Td)',
+            disease: 'Phòng bệnh Uốn ván do độc tố trực khuẩn Clostridium tetani xâm nhập qua vết thương trầy xước, rách da.',
+            schedule: 'Phụ nữ mang thai: Mũi 1 khi thai > 20 tuần, mũi 2 cách ít nhất 1 tháng (trước sinh 1 tháng). Người có vết thương: tiêm ngay + mũi nhắc sau 1 tháng và 6 tháng. Tiêm nhắc định kỳ 10 năm/lần.',
+            totalDoses: 3,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 30, title: 'Tiêm mũi 2 vắc xin Uốn ván' },
+                2: { nextDose: 3, intervalDays: 180, title: 'Tiêm mũi 3 nhắc lại vắc xin Uốn ván' }
+            },
+            sideEffects: 'Đau buốt, sưng cứng tại bắp tay tiêm (rất phổ biến), sốt nhẹ.',
+            careInstructions: 'Không xoa bóp bắp tay, có thể chườm mát nhẹ nhàng để giảm nhức.',
+            warningSigns: 'Cứng hàm, co cứng cơ, sưng nề lan rộng toàn cánh tay.'
+        },
+        {
+            id: 'rabies',
+            keywords: ['dại', 'verorab', 'abhayrab', 'rabies', 'chó cắn', 'mèo cắn'],
+            name: 'Vắc xin phòng Bệnh Dại (Verorab / Abhayrab)',
+            disease: 'Phòng bệnh Dại sau khi bị động vật (chó, mèo, dơi...) cắn, cào hoặc liếm vào vết thương hở.',
+            schedule: 'Phác đồ tiêm bắp 5 mũi sau phơi nhiễm: Ngày 0 - 3 - 7 - 14 - 28. Phác đồ tiêm trong da 4 lần: Ngày 0, 3, 7, 28.',
+            totalDoses: 5,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 3, title: 'Tiêm mũi 2 vắc xin phòng Dại (Ngày 3)' },
+                2: { nextDose: 3, intervalDays: 4, title: 'Tiêm mũi 3 vắc xin phòng Dại (Ngày 7)' },
+                3: { nextDose: 4, intervalDays: 7, title: 'Tiêm mũi 4 vắc xin phòng Dại (Ngày 14)' },
+                4: { nextDose: 5, intervalDays: 14, title: 'Tiêm mũi 5 vắc xin phòng Dại (Ngày 28)' }
+            },
+            sideEffects: 'Đau tại chỗ tiêm, sốt nhẹ, đau đầu, mệt mỏi.',
+            careInstructions: 'Tuyệt đối KHÔNG bỏ dở phác đồ, phải tiêm đúng ngày hẹn để đảm bảo kháng thể.',
+            warningSigns: 'Sốt cao, co giật, sợ gió, sợ nước.'
+        },
+        {
+            id: 'hepb',
+            keywords: ['viêm gan b', 'engerix b', 'euvax b', 'gene-hbvax'],
+            name: 'Vắc xin Viêm gan B (Engerix B / Euvax B)',
+            disease: 'Phòng bệnh Viêm gan virus B mạn tính, xơ gan và ung thư gan nguyên phát.',
+            schedule: 'Người lớn/trẻ em: Phác đồ 3 mũi (0 - 1 - 6 tháng: mũi 2 cách mũi 1 là 1 tháng, mũi 3 cách mũi 2 là 5 tháng).',
+            totalDoses: 3,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 30, title: 'Tiêm mũi 2 vắc xin Viêm gan B' },
+                2: { nextDose: 3, intervalDays: 150, title: 'Tiêm mũi 3 vắc xin Viêm gan B' }
+            },
+            sideEffects: 'Đau nhẹ tại chỗ tiêm, sốt nhẹ thoáng qua.',
+            careInstructions: 'Nghỉ ngơi, ăn uống đầy đủ dinh dưỡng.',
+            warningSigns: 'Dị ứng, mề đay toàn thân, khó thở.'
+        },
+        {
+            id: 'hepa',
+            keywords: ['viêm gan a', 'avaxim', 'havax', 'mepaquin'],
+            name: 'Vắc xin Viêm gan A (Avaxim / Havax)',
+            disease: 'Phòng bệnh Viêm gan virus A lây truyền qua đường ăn uống, nước sinh hoạt.',
+            schedule: 'Phác đồ 2 liều cách nhau 6 - 12 tháng.',
+            totalDoses: 2,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 180, title: 'Tiêm mũi 2 nhắc lại vắc xin Viêm gan A' }
+            },
+            sideEffects: 'Đau chỗ tiêm, mệt mỏi nhẹ.',
+            careInstructions: 'Uống đủ nước, ăn chín uống sôi.',
+            warningSigns: 'Vàng da, sốt cao kéo dài.'
+        },
+        {
+            id: 'meningo',
+            keywords: ['não mô cầu', 'menactra', 'bexsero', 'mengoc bc', 'neisseria meningitidis'],
+            name: 'Vắc xin Não mô cầu (Menactra / Bexsero / Mengoc BC)',
+            disease: 'Phòng Viêm màng não mủ và Nhiễm khuẩn huyết tối cấp do vi khuẩn não mô cầu nhóm A, C, Y, W-135 hoặc nhóm B.',
+            schedule: 'Menactra (ACWY): Trẻ 9-23 tháng tiêm 2 liều cách 3 tháng; trẻ >= 2 tuổi tiêm 1 liều. Bexsero (nhóm B): 2 liều cách nhau 1-2 tháng. Mengoc BC (nhóm B+C): 2 liều cách 6-8 tuần.',
+            totalDoses: 2,
+            nextDoseRules: {
+                1: { nextDose: 2, intervalDays: 60, title: 'Tiêm mũi 2 vắc xin Não mô cầu' }
+            },
+            sideEffects: 'Đau nhức chỗ tiêm, sốt, cáu kỉnh ở trẻ nhỏ.',
+            careInstructions: 'Chườm mát, cho trẻ bú nhiều, theo dõi thân nhiệt.',
+            warningSigns: 'Sốt cao, xuất hiện các nốt ban xuất huyết hoại tử trên da, nôn vọt, cứng gáy.'
+        }
+    ],
+
+    /**
+     * Tìm thông tin vắc xin phù hợp trong từ điển dựa vào văn bản
+     * @param {string} text - tên bệnh, đơn thuốc, ghi chú
+     * @returns {object|null}
+     */
+    findVaccineInfo(text) {
+        if (!text) return null;
+        const lower = text.toLowerCase();
+        for (const vac of this.VACCINE_DATABASE) {
+            if (vac.keywords.some(kw => lower.includes(kw))) {
+                return vac;
+            }
+        }
+        return null;
+    },
+
+    /**
+     * Trích xuất số mũi tiêm hiện tại từ văn bản (VD: "mũi 1", "mũi 2", "liều 1", "dose 1")
+     * @param {string} text
+     * @returns {number}
+     */
+    extractDoseNumber(text) {
+        if (!text) return 1;
+        const match = text.match(/mũi\s*(\d+)|liều\s*(\d+)|lần\s*(\d+)|dose\s*(\d+)/i);
+        if (match) {
+            return parseInt(match[1] || match[2] || match[3] || match[4], 10);
+        }
+        if (/nhắc lại|tiêm nhắc/i.test(text)) return 4;
+        return 1;
+    },
+
+    /**
+     * Tính toán ngày hẹn và thông tin mũi tiêm tiếp theo
+     * @param {string} vaccineText - Tên vắc xin / chẩn đoán / ghi chú
+     * @param {string} injectedDate - Ngày tiêm (YYYY-MM-DD)
+     * @param {number} [overrideDose] - Mũi số mấy nếu đã biết
+     * @returns {object|null}
+     */
+    calculateNextVaccineDose(vaccineText, injectedDate, overrideDose = null) {
+        const vac = this.findVaccineInfo(vaccineText);
+        const currentDose = overrideDose || this.extractDoseNumber(vaccineText);
+        const baseDate = injectedDate ? new Date(injectedDate) : new Date();
+        if (isNaN(baseDate.getTime())) return null;
+
+        if (vac && vac.nextDoseRules && vac.nextDoseRules[currentDose]) {
+            const rule = vac.nextDoseRules[currentDose];
+            const nextDate = new Date(baseDate.getTime() + rule.intervalDays * 24 * 60 * 60 * 1000);
+            const nextDateStr = nextDate.toISOString().split('T')[0];
+
+            return {
+                isVaccine: true,
+                vaccineId: vac.id,
+                vaccineName: vac.name,
+                diseaseTarget: vac.disease,
+                currentDose: currentDose,
+                nextDose: rule.nextDose,
+                nextDoseTitle: rule.title,
+                nextDoseDate: nextDateStr,
+                intervalDays: rule.intervalDays,
+                schedule: vac.schedule,
+                sideEffects: vac.sideEffects,
+                careInstructions: vac.careInstructions,
+                warningSigns: vac.warningSigns,
+                defaultNote: `Nhắc lịch tiêm: ${rule.title}. Mang theo sổ tiêm chủng, kiểm tra sức khỏe tốt trước khi tiêm.`
+            };
+        }
+
+        // Nếu là tiêm chủng nhưng không khớp vắc xin cụ thể, mặc định gợi ý mũi sau 30 ngày
+        const isGenericVaccine = /tiêm phòng|tiêm chủng|vắc xin|vaccine/i.test(vaccineText);
+        if (isGenericVaccine) {
+            const nextDate = new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+            const nextDateStr = nextDate.toISOString().split('T')[0];
+            return {
+                isVaccine: true,
+                vaccineId: 'generic',
+                vaccineName: vaccineText,
+                diseaseTarget: 'Phòng ngừa bệnh truyền nhiễm',
+                currentDose: currentDose,
+                nextDose: currentDose + 1,
+                nextDoseTitle: `Tiêm mũi ${currentDose + 1} (${vaccineText})`,
+                nextDoseDate: nextDateStr,
+                intervalDays: 30,
+                schedule: 'Tham khảo lịch hẹn trên sổ tiêm chủng hoặc tư vấn của bác sĩ.',
+                sideEffects: 'Sốt nhẹ, sưng đau vị trí tiêm trong 24-48h.',
+                careInstructions: 'Theo dõi thân nhiệt, chườm mát chỗ tiêm, uống nhiều nước.',
+                warningSigns: 'Sốt cao liên tục >= 39°C, co giật, khó thở, phát ban toàn thân.',
+                defaultNote: `Nhắc lịch tiêm: Tiêm mũi tiếp theo. Mang theo sổ tiêm chủng.`
+            };
+        }
+
+        return null;
+    },
+
+    /**
+     * Tạo bài viết tư vấn chuyên sâu về Vắc xin (dùng từ điển chuẩn + AI)
+     * @param {string} vaccineText - Tên vắc xin / chẩn đoán
+     * @param {string} injectedDate - Ngày tiêm
+     * @param {string} [memberName] - Tên người tiêm
+     * @returns {Promise<string>} Markdown bài viết tư vấn
+     */
+    async getVaccineConsultation(vaccineText, injectedDate = '', memberName = '') {
+        const info = this.calculateNextVaccineDose(vaccineText, injectedDate);
+        if (info && info.vaccineId !== 'generic') {
+            return `### 💉 Cẩm nang Y khoa: ${info.vaccineName}
+
+#### 1. Bệnh phòng ngừa
+- **Tác dụng:** ${info.diseaseTarget}
+
+#### 2. Phác đồ tiêm chủng chuẩn
+- **Lịch tiêm:** ${info.schedule}
+${info.nextDoseDate ? `- **Dự kiến mũi tiếp theo (${info.nextDoseTitle}):** Ngày **${info.nextDoseDate}** (cách mũi vừa tiêm khoảng ${info.intervalDays} ngày).` : ''}
+
+#### 3. Phản ứng phụ thường gặp sau tiêm
+- ${info.sideEffects}
+
+#### 4. Hướng dẫn chăm sóc tại nhà
+- ${info.careInstructions}
+
+#### 5. 🚨 Dấu hiệu nguy hiểm cần đưa đi khám ngay
+- ${info.warningSigns}
+
+---
+*Lưu ý: Thông tin trên mang tính chất tham khảo chuẩn y khoa. Vui lòng luôn mang theo Sổ tiêm chủng và tuân thủ chỉ định của Bác sĩ tại cơ sở tiêm chủng.*`;
+        }
+
+        // Nếu là loại vắc xin chưa có trong từ điển, gọi AI tra cứu chuyên sâu
+        const prompt = `Bạn là một bác sĩ chuyên gia tiêm chủng vắc xin hàng đầu. Bệnh nhân${memberName ? ' ' + memberName : ''} vừa tiêm loại vắc xin sau: "${vaccineText}" vào ngày ${injectedDate || 'gần đây'}.
+Hãy cung cấp một bài viết hướng dẫn chuyên sâu chi tiết bằng định dạng Markdown rõ ràng, bao gồm:
+1. **Thông tin loại Vắc xin & Tác dụng:** Vắc xin này phòng ngừa bệnh gì? Hiệu quả bảo vệ?
+2. **Phác đồ tiêm chuẩn:** Cần tiêm bao nhiêu mũi? Khoảng cách giữa các mũi là bao lâu? (Gợi ý cụ thể ngày tiêm mũi tiếp theo nếu có ngày tiêm).
+3. **Phản ứng phụ thường gặp:** Sốt, sưng đau, quấy khóc... và thời gian kéo dài.
+4. **Hướng dẫn chăm sóc & Hạ sốt:** Cách chườm vết tiêm, dùng thuốc hạ sốt an toàn, dinh dưỡng.
+5. **Dấu hiệu cảnh báo cấp cứu:** Những biểu hiện bất thường nào cần đưa ngay đến bệnh viện?
+
+Viết với văn phong khoa học, chuẩn y khoa, ân cần và dễ hiểu.`;
+
+        const provider = DataManager.getProviderSearch();
+        if (provider === 'openai') {
+            return await this.callOpenAI(prompt, 0.2);
+        } else if (provider === 'anthropic') {
+            return await this.callAnthropic(prompt, 0.2);
+        } else {
+            return await this.callGeminiAPI(prompt, null, false, null, 0.2);
+        }
     }
 };
+

@@ -1301,3 +1301,27 @@ input::placeholder {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Vaccine Intelligence & Next-Dose Schedule Styles */
+.vaccine-detail-card {
+    transition: all 0.3s ease;
+}
+
+.vaccine-detail-card:hover {
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.12);
+}
+
+.btn-create-vaccine-reminder-inline {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-create-vaccine-reminder-inline:hover {
+    background: #27ae60 !important;
+    color: white !important;
+    transform: translateY(-1px);
+}
+

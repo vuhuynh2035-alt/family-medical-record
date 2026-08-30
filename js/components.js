@@ -440,6 +440,58 @@ const UI = {
             }
             html += `</div>`;
         }
+
+        // Kiểm tra thông tin tiêm chủng & phác đồ
+        const isVaccineRecord = record.type === 'Tiêm chủng' || (record.type && record.type.toLowerCase().includes('tiêm')) || (typeof AIService !== 'undefined' && AIService.findVaccineInfo(record.disease || record.treatment));
+        const btnVaccineGuide = document.getElementById('btn-view-vaccine-guide');
+        if (btnVaccineGuide) {
+            if (isVaccineRecord) {
+                btnVaccineGuide.classList.remove('hidden');
+                btnVaccineGuide.dataset.vaccineText = record.disease || record.treatment || 'Tiêm chủng';
+                btnVaccineGuide.dataset.date = record.date || '';
+            } else {
+                btnVaccineGuide.classList.add('hidden');
+            }
+        }
+
+        if (isVaccineRecord && typeof AIService !== 'undefined') {
+            const vInfo = AIService.calculateNextVaccineDose(record.disease || record.treatment || record.symptoms || '', record.date);
+            if (vInfo) {
+                html += `
+                <div class="vaccine-detail-card" style="background: linear-gradient(135deg, rgba(39, 174, 96, 0.06), rgba(22, 160, 133, 0.06)); border: 1px solid rgba(39, 174, 96, 0.25); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(39, 174, 96, 0.15); padding-bottom: 10px;">
+                        <h4 style="color: #27ae60; margin: 0; font-size: 16px; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded">vaccines</span> Thông tin & Phác đồ Tiêm chủng
+                        </h4>
+                        <span style="background: #27ae60; color: white; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">Mũi ${vInfo.currentDose}</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
+                        <p style="margin: 0;"><strong>Tên vắc xin:</strong> ${this.escapeHtml(vInfo.vaccineName)}</p>
+                        <p style="margin: 0;"><strong>Phòng bệnh:</strong> ${this.escapeHtml(vInfo.diseaseTarget)}</p>
+                        <p style="margin: 0;"><strong>Phác đồ chuẩn:</strong> ${this.escapeHtml(vInfo.schedule)}</p>
+                        ${vInfo.nextDoseDate ? `
+                        <div style="background: white; border: 1px solid #27ae60; border-radius: 8px; padding: 10px 14px; margin-top: 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                            <div>
+                                <strong style="color: #27ae60;"><span class="material-symbols-rounded" style="vertical-align: middle; font-size: 18px;">event</span> Gợi ý mũi tiếp theo (${this.escapeHtml(vInfo.nextDoseTitle)}):</strong>
+                                <span style="font-weight: 700; color: var(--text-color); margin-left: 5px;">${this.formatDate(vInfo.nextDoseDate)}</span>
+                                <span style="font-size: 12px; color: var(--text-muted); display: block;">(Cách mũi vừa tiêm ~${vInfo.intervalDays} ngày)</span>
+                            </div>
+                            <button type="button" class="btn-create-vaccine-reminder-inline neumorphic-btn" data-title="${this.escapeHtml(vInfo.nextDoseTitle)}" data-date="${this.escapeHtml(vInfo.nextDoseDate)}" data-note="${this.escapeHtml(vInfo.defaultNote)}" style="font-size: 12px; padding: 5px 12px; color: #27ae60; background: rgba(39,174,96,0.1); border: 1px solid #27ae60; font-weight: 600;">
+                                + Đặt lịch nhắc
+                            </button>
+                        </div>
+                        ` : ''}
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(0,0,0,0.08); font-size: 13px; color: var(--text-color);">
+                            <p style="margin: 0 0 4px 0;"><strong>⚠️ Phản ứng sau tiêm:</strong> ${this.escapeHtml(vInfo.sideEffects)}</p>
+                            <p style="margin: 0 0 4px 0;"><strong>💡 Hướng dẫn chăm sóc:</strong> ${this.escapeHtml(vInfo.careInstructions)}</p>
+                            <p style="margin: 0; color: #e74c3c;"><strong>🚨 Cần đi khám ngay nếu:</strong> ${this.escapeHtml(vInfo.warningSigns)}</p>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+        }
+
         document.getElementById('view-record-form-data').innerHTML = html;
         this.enhanceA11y(document.getElementById('view-record-form-data'));
         
