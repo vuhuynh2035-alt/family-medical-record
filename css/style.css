@@ -978,58 +978,6 @@ input::placeholder {
     100% { box-shadow: 0 0 10px rgba(255,204,0,0.5); }
 }
 
-/* Tooltip container */
-.help-tooltip {
-    position: absolute;
-    background: #fff;
-    color: #333;
-    padding: 12px 16px;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-    width: max-content;
-    max-width: 250px;
-    z-index: 9002;
-    pointer-events: auto;
-    font-family: 'Inter', sans-serif;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: tooltipFadeIn 0.3s forwards ease-out;
-}
-.help-tooltip::before {
-    content: '';
-    position: absolute;
-    width: 0; height: 0;
-    border-style: solid;
-}
-/* Arrow pointing Up (tooltip is below element) */
-.help-tooltip.arrow-up::before {
-    top: -8px; left: 20px;
-    border-width: 0 8px 8px 8px;
-    border-color: transparent transparent #fff transparent;
-}
-/* Arrow pointing Down (tooltip is above element) */
-.help-tooltip.arrow-down::before {
-    bottom: -8px; left: 20px;
-    border-width: 8px 8px 0 8px;
-    border-color: #fff transparent transparent transparent;
-}
-/* Arrow pointing Left (tooltip is right of element) */
-.help-tooltip.arrow-left::before {
-    left: -8px; top: 20px;
-    border-width: 8px 8px 8px 0;
-    border-color: transparent #fff transparent transparent;
-}
-/* Arrow pointing Right (tooltip is left of element) */
-.help-tooltip.arrow-right::before {
-    right: -8px; top: 20px;
-    border-width: 8px 0 8px 8px;
-    border-color: transparent transparent transparent #fff;
-}
-
-@keyframes tooltipFadeIn {
-    to { opacity: 1; transform: translateY(0); }
-}
-
 .help-tooltip-title {
     font-weight: 700;
     font-size: 15px;

@@ -135,75 +135,76 @@ const HelpService = {
             // 1. Create Glowing Box
             const box = document.createElement('div');
             box.className = 'help-highlight-box';
-            // Dùng chung biến `padding` đã khai báo ở trên (không khai báo `const padding` lần 2
-            // trong cùng scope — bản gốc bị lỗi "Identifier 'padding' has already been declared",
-            // khiến TOÀN BỘ file help.js không parse được, nút trợ giúp "?" không hoạt động).
             box.style.top = (rect.top - padding) + 'px';
             box.style.left = (rect.left - padding) + 'px';
             box.style.width = (rect.width + padding * 2) + 'px';
             box.style.height = (rect.height + padding * 2) + 'px';
+            box.style.cursor = 'pointer';
+            box.style.pointerEvents = 'auto';
+
+            box.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Highlight active box
+                document.querySelectorAll('.help-highlight-box').forEach(b => {
+                    b.style.boxShadow = '0 0 0 2px #e67e22, 0 0 15px rgba(230,126,34,0.5)';
+                });
+                box.style.boxShadow = '0 0 0 4px #fff, 0 0 25px rgba(230,126,34,1)';
+                
+                // Update Info Panel
+                const infoPanel = document.getElementById('help-info-panel');
+                if (infoPanel) {
+                    infoPanel.innerHTML = `
+                        <div style="font-weight: 700; color: #e67e22; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <span class="material-symbols-rounded">info</span> ${title}
+                        </div>
+                        <div style="font-size: 14px; color: #333; line-height: 1.5; margin-top: 8px;">
+                            ${desc}
+                        </div>
+                    `;
+                    infoPanel.style.transform = 'translateX(-50%) scale(1.05)';
+                    setTimeout(() => infoPanel.style.transform = 'translateX(-50%) scale(1)', 150);
+                }
+            });
             
             this.layer.appendChild(box);
-
-            // 2. Create Tooltip
-            const tooltip = document.createElement('div');
-            tooltip.className = 'help-tooltip';
-            tooltip.innerHTML = `
-                <div class="help-tooltip-title"><span class="material-symbols-rounded">info</span> ${title}</div>
-                <div class="help-tooltip-desc">${desc}</div>
-            `;
-            
-            this.layer.appendChild(tooltip);
-
-            // Calculate position for tooltip
-            let tooltipTop = 0;
-            let tooltipLeft = 0;
-            let arrowClass = '';
-            
-            const pos = el.getAttribute('data-help-pos') || 'bottom';
-
-            if (pos === 'right') {
-                arrowClass = 'arrow-left';
-                tooltipTop = rect.top + (rect.height / 2) - 30; // 30 is approx half tooltip height
-                tooltipLeft = rect.right + padding + 15;
-            } else if (pos === 'left') {
-                arrowClass = 'arrow-right';
-                tooltipTop = rect.top + (rect.height / 2) - 30;
-                // We'll set a default left, but we might need to adjust after it's in DOM
-                // since we don't know the exact width. We assume max-width 250px.
-                tooltipLeft = rect.left - padding - 250 - 15; 
-            } else if (pos === 'top') {
-                arrowClass = 'arrow-down';
-                tooltipTop = rect.top - padding - 80;
-                tooltipLeft = rect.left + (rect.width / 2) - 30;
-            } else { // bottom (default)
-                arrowClass = 'arrow-up';
-                tooltipTop = rect.bottom + padding + 15;
-                tooltipLeft = rect.left + (rect.width / 2) - 30;
-                
-                // If it goes off screen bottom, place above
-                if (tooltipTop + 100 > window.innerHeight) {
-                    tooltipTop = rect.top - padding - 80;
-                    arrowClass = 'arrow-down';
-                }
-            }
-            
-            // Boundary checks for top/left
-            if (tooltipTop < 10) tooltipTop = 10;
-            if (tooltipTop + 100 > window.innerHeight) tooltipTop = window.innerHeight - 100;
-            if (tooltipLeft < 10) tooltipLeft = 10;
-            if (tooltipLeft + 250 > window.innerWidth) tooltipLeft = window.innerWidth - 260;
-            
-            tooltip.classList.add(arrowClass);
-            tooltip.style.top = tooltipTop + 'px';
-            tooltip.style.left = tooltipLeft + 'px';
-            
-            // For 'left' position, if it's too wide, we fix it by forcing the right side
-            if (pos === 'left') {
-                tooltip.style.left = 'auto';
-                tooltip.style.right = (window.innerWidth - rect.left + padding + 15) + 'px';
-            }
         });
+
+        // Create Info Panel
+        const infoPanel = document.createElement('div');
+        infoPanel.id = 'help-info-panel';
+        infoPanel.className = 'neumorphic-panel';
+        infoPanel.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            background: white;
+            z-index: 9005;
+            padding: 15px 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            pointer-events: auto;
+            transition: transform 0.15s ease;
+        `;
+        infoPanel.innerHTML = `
+            <div style="font-weight: 700; color: #e67e22; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span class="material-symbols-rounded">touch_app</span> Hướng dẫn tính năng
+            </div>
+            <div style="font-size: 14px; color: #555; line-height: 1.5; margin-top: 8px;">
+                Chạm vào các ô sáng trên màn hình để xem giải thích chi tiết. Chạm ra ngoài để thoát.
+            </div>
+        `;
+        
+        // Prevent clicks on info panel from closing help mode
+        infoPanel.addEventListener('click', (e) => e.stopPropagation());
+        
+        this.layer.appendChild(infoPanel);
     },
 
     showWorkflowGuide() {
