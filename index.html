@@ -881,35 +881,19 @@
                 <h3 id="view-record-title">Chi tiết Hồ sơ</h3>
                 <button class="icon-btn close-modal"><span class="material-symbols-rounded">reply</span></button>
             </div>
-            <div class="modal-body">
-                <div id="view-record-content" class="record-detail-content markdown-body" style="background: white; padding: 20px; border-radius: 12px; font-size: 15px; line-height: 1.6; color: var(--text-color);">
+            <div class="modal-body" style="padding: 0; margin-bottom: 10px;">
+                <div id="view-record-content" class="record-detail-content markdown-body">
                     <div id="view-record-form-data"></div>
-                    <div id="view-record-report-data" style="margin-top: 20px;"></div>
+                    <div id="view-record-report-data" style="margin-top: 18px;"></div>
                 </div>
-                
-                <!-- Old Chat Container Removed -->
 
-                <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    <button type="button" class="icon-btn neumorphic-btn close-modal" title="Quay lại">
-                        <span class="material-symbols-rounded">reply</span>
-                    </button>
-                    <div style="display: flex; gap: 10px;">
-                        <button type="button" id="btn-view-vaccine-guide" class="secondary-btn neumorphic-btn hidden" style="font-size: 13px; color: #16a085; border-color: #16a085;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">vaccines</span> Cẩm nang Vắc xin
-                        </button>
-                        <button type="button" id="btn-toggle-chat" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #8e44ad; border-color: #8e44ad;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">forum</span> Hỏi AI
-                        </button>
-                        <button type="button" id="btn-download-record-pdf" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">download</span> Lưu PDF
-                        </button>
-                        <button type="button" id="btn-share-record" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #2563eb; border-color: #2563eb;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">share</span> Chia sẻ
-                        </button>
-                    </div>
-                    <button type="button" class="icon-btn neumorphic-btn btn-scroll-modal-top" title="Về đầu trang">
-                        <span class="material-symbols-rounded">arrow_upward</span>
-                    </button>
+                <div class="modal-footer-actions" style="margin-top: 16px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 14px; width: 100%; box-sizing: border-box;">
+                    <button type="button" class="secondary-btn neumorphic-btn close-modal" style="font-size: 12.5px; padding: 7px 14px; font-weight: 500;">Đóng</button>
+                    <button type="button" id="btn-view-vaccine-guide" class="secondary-btn neumorphic-btn hidden" style="font-size: 12.5px; padding: 7px 14px; color: #16a085; border-color: #16a085; font-weight: 500;">Cẩm nang Vắc xin</button>
+                    <button type="button" id="btn-toggle-chat" class="secondary-btn neumorphic-btn" style="font-size: 12.5px; padding: 7px 14px; color: #8e44ad; border-color: #8e44ad; font-weight: 500;">Hỏi AI</button>
+                    <button type="button" id="btn-download-record-pdf" class="secondary-btn neumorphic-btn" style="font-size: 12.5px; padding: 7px 14px; color: #27ae60; border-color: #27ae60; font-weight: 500;">Lưu PDF</button>
+                    <button type="button" id="btn-share-record" class="secondary-btn neumorphic-btn" style="font-size: 12.5px; padding: 7px 14px; color: #2563eb; border-color: #2563eb; font-weight: 500;">Chia sẻ</button>
+                    <button type="button" class="secondary-btn neumorphic-btn btn-scroll-modal-top" title="Về đầu trang" style="font-size: 12.5px; padding: 7px 12px; font-weight: 500;">Đầu trang</button>
                 </div>
             </div>
         </div>
@@ -922,27 +906,17 @@
                 <h3><span class="material-symbols-rounded ai-sparkle">psychiatry</span> AI Nhận xét tình trạng</h3>
                 <button class="icon-btn close-modal"><span class="material-symbols-rounded">reply</span></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 0; margin-bottom: 10px;">
                 <div id="ai-assessment-loading" class="ai-loading hidden">
                     <span class="loading-spinner"></span> AI đang tổng hợp và phân tích hồ sơ...
                 </div>
                 <div id="ai-assessment-content" class="ai-result-content"></div>
                 
-                <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    <button type="button" class="icon-btn neumorphic-btn close-modal" title="Quay lại">
-                        <span class="material-symbols-rounded">reply</span>
-                    </button>
-                    <div style="display: flex; gap: 10px;">
-                        <button type="button" id="btn-download-assessment-pdf" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #27ae60; border-color: #27ae60;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">download</span> Lưu PDF
-                        </button>
-                        <button type="button" id="btn-share-assessment" class="secondary-btn neumorphic-btn" style="font-size: 13px; color: #2563eb; border-color: #2563eb;">
-                            <span class="material-symbols-rounded" style="font-size:16px; margin-right:5px; vertical-align:middle;">share</span> Chia sẻ
-                        </button>
-                    </div>
-                    <button type="button" class="icon-btn neumorphic-btn btn-scroll-modal-top" title="Về đầu trang">
-                        <span class="material-symbols-rounded">arrow_upward</span>
-                    </button>
+                <div class="modal-footer-actions" style="margin-top: 16px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 14px; width: 100%; box-sizing: border-box;">
+                    <button type="button" class="secondary-btn neumorphic-btn close-modal" style="font-size: 12.5px; padding: 7px 14px; font-weight: 500;">Đóng</button>
+                    <button type="button" id="btn-download-assessment-pdf" class="secondary-btn neumorphic-btn" style="font-size: 12.5px; padding: 7px 14px; color: #27ae60; border-color: #27ae60; font-weight: 500;">Lưu PDF</button>
+                    <button type="button" id="btn-share-assessment" class="secondary-btn neumorphic-btn" style="font-size: 12.5px; padding: 7px 14px; color: #2563eb; border-color: #2563eb; font-weight: 500;">Chia sẻ</button>
+                    <button type="button" class="secondary-btn neumorphic-btn btn-scroll-modal-top" title="Về đầu trang" style="font-size: 12.5px; padding: 7px 12px; font-weight: 500;">Đầu trang</button>
                 </div>
             </div>
         </div>
