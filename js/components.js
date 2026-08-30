@@ -726,31 +726,60 @@ const UI = {
             return;
         }
 
+        const now = new Date();
         reminders.forEach(rm => {
+            const rmDate = new Date(rm.datetime);
+            const isPast = rmDate < now;
+            
+            let statusObj = { text: '', color: '', bg: '', border: '', isCompleted: !!rm.completed, isOverdue: false, isUpcoming: false };
+            
+            if (rm.completed) {
+                statusObj.text = 'Đã hoàn thành';
+                statusObj.color = '#10b981';
+                statusObj.bg = '#d1fae5';
+                statusObj.border = '#10b981';
+                statusObj.isCompleted = true;
+            } else if (isPast) {
+                statusObj.text = 'Quá hạn';
+                statusObj.color = '#e11d48';
+                statusObj.bg = '#ffe4e6';
+                statusObj.border = '#e11d48';
+                statusObj.isOverdue = true;
+            } else {
+                statusObj.text = 'Sắp tới';
+                statusObj.color = '#f39c12';
+                statusObj.bg = '#fef3c7';
+                statusObj.border = '#f39c12';
+                statusObj.isUpcoming = true;
+            }
+
             const el = document.createElement('div');
-            el.className = 'record-item'; // Reuse record-item style
-            el.style.borderLeft = rm.notified ? '4px solid var(--text-muted)' : '4px solid var(--warning)';
+            el.className = 'record-item'; 
+            el.style.borderLeft = `4px solid ${statusObj.border}`;
+            
+            if (statusObj.isOverdue || statusObj.isCompleted) {
+                el.style.opacity = '0.6';
+                if (statusObj.isOverdue) el.style.backgroundColor = 'rgba(225, 29, 72, 0.05)';
+            }
 
             const memberNameHtml = showMemberName ? `<strong>👤 ${this.escapeHtml(rm.memberName)}</strong><br>` : '';
-            const statusHtml = rm.notified
-                ? `<span class="type-badge type-routine" style="background:#e0e0e0; color:#666;">Đã qua</span>`
-                : `<span class="type-badge type-severe" style="background:#f39c12; color:#fff;">Sắp tới</span>`;
+            const statusHtml = `<span class="type-badge" style="background:${statusObj.bg}; color:${statusObj.color};">${statusObj.text}</span>`;
 
             el.innerHTML = `
                 <div class="record-header" style="margin-bottom: 5px;">
-                    <span class="record-date" style="color: ${rm.notified ? 'var(--text-muted)' : 'var(--warning)'}">${this.escapeHtml(this.formatDate(rm.date))} ${this.escapeHtml(rm.time)}</span>
+                    <span class="record-date" style="color: ${statusObj.border}">${this.escapeHtml(this.formatDate(rm.date))} ${this.escapeHtml(rm.time)}</span>
                     ${statusHtml}
                 </div>
                 <div class="record-body" style="grid-template-columns: 1fr;">
-                    <div class="record-detail">
+                    <div class="record-detail" style="${statusObj.isCompleted ? 'text-decoration: line-through;' : ''}">
                         ${memberNameHtml}
                         <span class="material-symbols-rounded">alarm</span> <strong>${this.escapeHtml(rm.title)}</strong>
                     </div>
                     ${rm.note ? `<div class="record-detail"><span class="material-symbols-rounded">notes</span> ${this.escapeHtml(rm.note)}</div>` : ''}
                 </div>
                 <div class="record-actions" style="margin-top: 10px;">
-                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:var(--text-muted); font-size:13px; margin-right:auto;">
-                        <input type="checkbox" class="chk-delete-reminder" data-id="${this.escapeHtml(rm.id)}" aria-label="Xóa lịch hẹn: ${this.escapeHtml(rm.title)}"> Xóa
+                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer; font-weight:600; color:${rm.completed ? '#10b981' : 'var(--text-muted)'}; font-size:14px; margin-right:auto;">
+                        <input type="checkbox" class="chk-complete-reminder" data-id="${this.escapeHtml(rm.id)}" aria-label="Hoàn thành lịch hẹn" ${rm.completed ? 'checked' : ''} style="width:16px;height:16px;"> Hoàn thành
                     </label>
                     ${!showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-go-member" data-id="${this.escapeHtml(rm.memberId)}" title="Xem hồ sơ"><span class="material-symbols-rounded">person</span></button>`}
                     ${showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-edit-reminder" data-id="${this.escapeHtml(rm.id)}" title="Sửa lịch hẹn"><span class="material-symbols-rounded">edit</span></button>`}

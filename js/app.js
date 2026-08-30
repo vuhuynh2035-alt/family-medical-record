@@ -2380,7 +2380,29 @@ function reloadRecordsAndStats() {
 
     // Load reminders for this member
     const memberReminders = DataManager.getReminders().filter(r => r.memberId === currentMemberId);
-    UI.renderRemindersList(memberReminders, 'member-reminders-list', false);
+    
+    const now = new Date();
+    const group1 = [], group2 = [], group3 = [];
+    
+    memberReminders.forEach(rm => {
+        if (rm.completed) {
+            group3.push(rm);
+        } else if (new Date(rm.datetime) < now) {
+            group2.push(rm);
+        } else {
+            group1.push(rm);
+        }
+    });
+    
+    const sortByClosest = (a, b) => Math.abs(new Date(a.datetime) - now) - Math.abs(new Date(b.datetime) - now);
+    
+    group1.sort(sortByClosest);
+    group2.sort(sortByClosest);
+    group3.sort(sortByClosest);
+    
+    const sortedReminders = [...group1, ...group2, ...group3];
+    
+    UI.renderRemindersList(sortedReminders, 'member-reminders-list', false);
 }
 
 function applyFilters() {
@@ -2431,11 +2453,28 @@ function getOffsetMs(val, unit) {
 function checkReminders() {
     const allReminders = DataManager.getReminders();
     const now = new Date();
-    let pendingCount = 0;
+    
+    // Auto-delete logic: > 3 months (90 days) and either completed or overdue
+    const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
+    const toDeleteIds = [];
+    allReminders.forEach(rm => {
+        const rmDate = new Date(rm.datetime);
+        if ((rm.completed || rmDate < now) && (now - rmDate > THREE_MONTHS_MS)) {
+            toDeleteIds.push(rm.id);
+        }
+    });
+    if (toDeleteIds.length > 0) {
+        toDeleteIds.forEach(id => DataManager.deleteReminder(id));
+        // Need to fetch fresh data after deletion
+        return checkReminders();
+    }
+
     let alarmTriggered = null;
     let modified = false;
 
     allReminders.forEach(rm => {
+        if (rm.completed) return; // Skip checking alarms for completed reminders
+
         const rmDate = new Date(rm.datetime);
         let offsets = [];
         if (rm.selected_offsets && Array.isArray(rm.selected_offsets)) {
@@ -2449,32 +2488,24 @@ function checkReminders() {
         }
 
         if (!rm.notified_offsets) rm.notified_offsets = {};
-        let hasPending = false;
         
         offsets.forEach(offset => {
             if (offset.ms > 0 || offset.id === '0') {
                 const triggerTime = new Date(rmDate.getTime() - offset.ms);
-                if (now >= triggerTime) {
-                    if (!rm.notified_offsets[offset.id]) {
-                        alarmTriggered = rm;
-                        rm.notified_offsets[offset.id] = true;
-                        modified = true;
-                    }
-                } else {
-                    hasPending = true;
+                if (now >= triggerTime && !rm.notified_offsets[offset.id]) {
+                    alarmTriggered = rm;
+                    rm.notified_offsets[offset.id] = true;
+                    modified = true;
                 }
             }
         });
-        
-        if (hasPending) {
-            pendingCount++;
-        }
     });
 
     if (modified) {
         localStorage.setItem('family_reminders', JSON.stringify(allReminders));
     }
 
+    const pendingCount = allReminders.filter(rm => !rm.completed).length;
     UI.updateNotificationBadge(pendingCount);
 
     if (alarmTriggered) {
@@ -2546,19 +2577,22 @@ function showAlarmModal(rm) {
 function openNotifications() {
     const allReminders = DataManager.getReminders();
     
-    const mapped = allReminders.map(rm => {
-        const member = DataManager.getMemberById(rm.memberId);
-        return { ...rm, memberName: member ? member.name : 'Đã xóa' };
-    });
+    const now = new Date();
     
-    mapped.sort((a, b) => {
-        if (a.notified === b.notified) {
-            return new Date(a.datetime) - new Date(b.datetime);
-        }
-        return a.notified ? 1 : -1;
+    const pendingReminders = allReminders
+        .filter(rm => !rm.completed)
+        .map(rm => {
+            const member = DataManager.getMemberById(rm.memberId);
+            return { ...rm, memberName: member ? member.name : 'Đã xóa' };
+        });
+    
+    pendingReminders.sort((a, b) => {
+        const diffA = Math.abs(new Date(a.datetime) - now);
+        const diffB = Math.abs(new Date(b.datetime) - now);
+        return diffA - diffB;
     });
 
-    UI.renderRemindersList(mapped, 'notifications-list', true);
+    UI.renderRemindersList(pendingReminders, 'notifications-list', true);
     openModal('modal-notifications');
 }
 
@@ -2600,9 +2634,15 @@ function hideBackupReminder() {
 
 // Event Delegation for Delete/Go to Member
 document.addEventListener('change', (e) => {
-    if (e.target.classList.contains('chk-delete-reminder')) {
+    if (e.target.classList.contains('chk-complete-reminder')) {
         const id = e.target.dataset.id;
-        DataManager.deleteReminder(id);
+        const isCompleted = e.target.checked;
+        const reminders = DataManager.getReminders();
+        const rm = reminders.find(r => r.id === id);
+        if (rm) {
+            rm.completed = isCompleted;
+            DataManager.saveReminder(rm);
+        }
         
         if (!document.getElementById('modal-notifications').classList.contains('hidden')) {
             openNotifications();
