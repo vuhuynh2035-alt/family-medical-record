@@ -219,7 +219,7 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.4.0';
+const CURRENT_APP_VERSION = 'v2.5.1';
 let newWorker = null;
 let latestDetectedVersion = '';
 
@@ -3821,4 +3821,138 @@ document.querySelectorAll('input[name="tts_voice_provider"]').forEach(radio => {
         showToast('Đã lưu cài đặt giọng đọc.');
         setTimeout(() => document.getElementById('modal-tts-settings').classList.add('hidden'), 500);
     });
+});
+
+
+// ==================== CLOUD SYNC (GIA ĐÌNH) ====================
+const CloudSync = {
+    apiKey: localStorage.getItem('cloud_sync_api_key') || '',
+    binId: localStorage.getItem('cloud_sync_bin_id') || '',
+    
+    saveConfig(binId, apiKey) {
+        this.binId = binId.trim();
+        this.apiKey = apiKey.trim();
+        localStorage.setItem('cloud_sync_bin_id', this.binId);
+        localStorage.setItem('cloud_sync_api_key', this.apiKey);
+    },
+
+    clearConfig() {
+        this.binId = '';
+        this.apiKey = '';
+        localStorage.removeItem('cloud_sync_bin_id');
+        localStorage.removeItem('cloud_sync_api_key');
+    },
+
+    isConfigured() {
+        return this.binId && this.apiKey;
+    },
+
+    updateStatus(msg, isError = false) {
+        const box = document.getElementById('cloud-sync-status-box');
+        const text = document.getElementById('cloud-sync-status-text');
+        if (box && text) {
+            box.style.display = 'block';
+            box.style.backgroundColor = isError ? 'rgba(231, 76, 60, 0.1)' : 'rgba(46, 204, 113, 0.1)';
+            box.style.color = isError ? '#e74c3c' : '#27ae60';
+            text.innerText = msg;
+        }
+        if (isError) {
+            console.error('Cloud Sync Error:', msg);
+        }
+    },
+
+    async syncDown() {
+        if (!this.isConfigured()) return;
+        this.updateStatus('Đang tải dữ liệu từ đám mây...');
+        try {
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}/latest`, {
+                method: 'GET',
+                headers: {
+                    'X-Master-Key': this.apiKey
+                }
+            });
+            if (!res.ok) throw new Error('Không thể kết nối. Kiểm tra lại Bin ID và API Key.');
+            
+            const json = await res.json();
+            const remoteData = json.record;
+
+            if (remoteData && remoteData.localStorage) {
+                const success = await DataManager.importData(JSON.stringify(remoteData));
+                if (success) {
+                    this.updateStatus('Đã đồng bộ thành công dữ liệu mới nhất!');
+                    if (typeof initDashboard === 'function') initDashboard();
+                    if (document.getElementById('view-member-detail')?.classList.contains('active') && window.currentMember) {
+                        if (typeof renderMemberDetail === 'function') renderMemberDetail(window.currentMember);
+                    }
+                } else {
+                    this.updateStatus('Lỗi khi nạp dữ liệu từ đám mây.', true);
+                }
+            } else {
+                this.updateStatus('Kho dữ liệu trống hoặc không đúng định dạng.', true);
+            }
+        } catch (err) {
+            this.updateStatus(err.message, true);
+        }
+    },
+
+    async syncUp() {
+        if (!this.isConfigured()) return;
+        this.updateStatus('Đang đẩy dữ liệu lên đám mây...');
+        try {
+            const backupStr = await DataManager.exportData();
+            const payload = JSON.parse(backupStr);
+
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': this.apiKey
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error('Không thể tải lên đám mây. Kiểm tra quyền của API Key.');
+            this.updateStatus('Đã đẩy dữ liệu thành công lên hệ thống chung!');
+        } catch (err) {
+            this.updateStatus(err.message, true);
+        }
+    }
+};
+window.CloudSync = CloudSync;
+
+// ==================== BINDING CLOUD SYNC EVENTS ====================
+document.addEventListener('DOMContentLoaded', () => {
+    const inputBinId = document.getElementById('sync-bin-id');
+    const inputApiKey = document.getElementById('sync-api-key');
+
+    document.getElementById('btn-sync-connect')?.addEventListener('click', () => {
+        const bin = inputBinId.value.trim();
+        const key = inputApiKey.value.trim();
+        if (!bin || !key) return CloudSync.updateStatus('Vui lòng nhập đủ Bin ID và API Key!', true);
+        CloudSync.saveConfig(bin, key);
+        CloudSync.syncDown();
+    });
+
+    document.getElementById('btn-sync-push')?.addEventListener('click', () => {
+        const bin = inputBinId.value.trim();
+        const key = inputApiKey.value.trim();
+        if (!bin || !key) return CloudSync.updateStatus('Vui lòng nhập đủ Bin ID và API Key!', true);
+        if (!confirm('Hành động này sẽ ghi đè dữ liệu trên mây bằng dữ liệu máy bạn. Bạn có chắc không?')) return;
+        CloudSync.saveConfig(bin, key);
+        CloudSync.syncUp();
+    });
+
+    document.getElementById('btn-sync-clear')?.addEventListener('click', () => {
+        if (!confirm('Bạn có muốn ngắt kết nối đồng bộ không? Dữ liệu trên máy không bị ảnh hưởng.')) return;
+        CloudSync.clearConfig();
+        inputBinId.value = '';
+        inputApiKey.value = '';
+        CloudSync.updateStatus('Đã ngắt kết nối Cloud Sync.');
+    });
+
+    if (CloudSync.isConfigured()) {
+        setTimeout(() => {
+            CloudSync.syncDown();
+        }, 1500);
+    }
 });
