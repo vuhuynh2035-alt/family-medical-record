@@ -1,5 +1,5 @@
 {
-  "version": "v2.3.7",
-  "updatedAt": "2026-08-30T13:43:00Z",
-  "releaseNotes": "Nâng cao vị trí nút Quay lại cạnh trái (top 42%) vừa vặn thao tác 1 tay."
+  "version": "v2.3.8",
+  "updatedAt": "2026-08-30T13:45:00Z",
+  "releaseNotes": "Kiểm tra cập nhật siêu tốc tức thì, tự động đối chiếu chính xác phiên bản trên màn hình."
 }

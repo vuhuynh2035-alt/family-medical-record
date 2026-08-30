@@ -219,12 +219,18 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.3.7';
+const CURRENT_APP_VERSION = 'v2.3.8';
 let newWorker = null;
 let latestDetectedVersion = '';
 
+function getRunningAppVersion() {
+    const tag = document.querySelector('.version-tag');
+    return tag ? tag.innerText.trim() : CURRENT_APP_VERSION;
+}
+
 function showUpdateToast(newVersion) {
-    if (!newVersion || newVersion === CURRENT_APP_VERSION) {
+    const runningVer = getRunningAppVersion();
+    if (!newVersion || newVersion === runningVer || newVersion === CURRENT_APP_VERSION) {
         document.getElementById('update-toast')?.classList.add('hidden');
         return;
     }
@@ -247,7 +253,8 @@ function showUpdateToast(newVersion) {
 }
 
 function checkForRemoteUpdate() {
-    // Kiểm tra version.json với no-cache để luôn lấy phiên bản mới nhất từ server/GitHub
+    const runningVer = getRunningAppVersion();
+    // Kiểm tra version.json với no-cache để lấy phiên bản mới nhất từ server
     fetch('./version.json?t=' + Date.now(), { cache: 'no-store' })
         .then(res => {
             if (!res.ok) throw new Error('Cannot fetch version.json');
@@ -255,8 +262,8 @@ function checkForRemoteUpdate() {
         })
         .then(data => {
             if (data && data.version) {
-                if (data.version === CURRENT_APP_VERSION) {
-                    // Đang ở phiên bản mới nhất -> Đóng thông báo nếu đang mở
+                if (data.version === runningVer || data.version === CURRENT_APP_VERSION) {
+                    // Đang ở phiên bản mới nhất -> Đóng thông báo ngay
                     document.getElementById('update-toast')?.classList.add('hidden');
                 } else {
                     showUpdateToast(data.version);
@@ -268,6 +275,10 @@ function checkForRemoteUpdate() {
         });
 }
 
+// Kiểm tra phiên bản ngay lập tức khi mã JS chạy, không cần đợi
+checkForRemoteUpdate();
+document.addEventListener('DOMContentLoaded', checkForRemoteUpdate);
+
 // PWA Service Worker Registration & Reliable Update Detection
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -277,11 +288,11 @@ if ('serviceWorker' in navigator) {
             // Tự động kiểm tra bản cập nhật mới
             try { reg.update(); } catch(e){}
 
-            // Tự động kiểm tra cập nhật mỗi 5 phút
+            // Tự động kiểm tra cập nhật mỗi 3 phút
             setInterval(() => {
                 try { reg.update(); } catch(e){}
                 checkForRemoteUpdate();
-            }, 5 * 60 * 1000);
+            }, 3 * 60 * 1000);
 
             // Kiểm tra cập nhật mỗi khi người dùng chuyển lại tab ứng dụng
             document.addEventListener('visibilitychange', () => {
@@ -293,9 +304,6 @@ if ('serviceWorker' in navigator) {
         }).catch(err => {
             console.log('Service Worker registration error: ', err);
         });
-
-        // Kiểm tra phiên bản từ xa sau 2 giây
-        setTimeout(checkForRemoteUpdate, 2000);
     });
 
     let isRefreshing = false;
