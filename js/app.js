@@ -219,7 +219,7 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.3.8';
+const CURRENT_APP_VERSION = 'v2.3.9';
 let newWorker = null;
 let latestDetectedVersion = '';
 
@@ -3392,7 +3392,7 @@ const TTSService = {
     },
 
     splitIntoChunks(text, maxChunkLength = 100) {
-        // Tách văn bản thành các câu ngắn (dưới 100 ký tự) để không bao giờ bị đứng/treo trên điện thoại
+        // Tách văn bản thành các câu ngắn để không bao giờ bị đứng/treo trên điện thoại
         const rawSentences = text.split(/([.,;!?\n]+)/);
         const chunks = [];
         let cur = '';
@@ -3408,7 +3408,27 @@ const TTSService = {
             }
         }
         if (cur) chunks.push(cur);
-        return chunks.filter(c => c.length > 1);
+        
+        // Đảm bảo tuyệt đối không có chunk nào vượt quá maxChunkLength (nếu câu thiếu dấu câu)
+        const finalChunks = [];
+        for (let c of chunks) {
+            if (c.length > maxChunkLength) {
+                const words = c.split(' ');
+                let temp = '';
+                for (let w of words) {
+                    if ((temp + ' ' + w).length <= maxChunkLength) {
+                        temp += (temp ? ' ' : '') + w;
+                    } else {
+                        if (temp) finalChunks.push(temp);
+                        temp = w;
+                    }
+                }
+                if (temp) finalChunks.push(temp);
+            } else {
+                finalChunks.push(c);
+            }
+        }
+        return finalChunks.filter(c => c.length > 1);
     },
 
     buildRecordSpokenText(record) {

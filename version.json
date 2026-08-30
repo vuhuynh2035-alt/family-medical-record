@@ -1,5 +1,5 @@
 {
-  "version": "v2.3.8",
-  "updatedAt": "2026-08-30T13:45:00Z",
-  "releaseNotes": "Kiểm tra cập nhật siêu tốc tức thì, tự động đối chiếu chính xác phiên bản trên màn hình."
+  "version": "v2.3.9",
+  "updatedAt": "2026-08-30T13:50:40Z",
+  "releaseNotes": "Bổ sung các nút đọc riêng biệt vào từng khung, và khắc phục lỗi lặp lại âm thanh (bug Android TTS) khi đoạn văn bản quá dài."
 }
