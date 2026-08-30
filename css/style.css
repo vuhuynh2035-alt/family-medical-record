@@ -1526,7 +1526,7 @@ input::placeholder {
 .floating-left-back-btn {
     position: fixed;
     left: 0;
-    top: 50%;
+    top: 42%;
     transform: translateY(-50%);
     z-index: 10006;
     background: rgba(41, 128, 185, 0.52);

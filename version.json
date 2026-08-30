@@ -1,5 +1,5 @@
 {
-  "version": "v2.3.6",
-  "updatedAt": "2026-08-30T13:42:00Z",
-  "releaseNotes": "Thêm nút đọc riêng cho từng khung nội dung, tối ưu đọc toàn bộ hồ sơ y tế."
+  "version": "v2.3.7",
+  "updatedAt": "2026-08-30T13:43:00Z",
+  "releaseNotes": "Nâng cao vị trí nút Quay lại cạnh trái (top 42%) vừa vặn thao tác 1 tay."
 }
