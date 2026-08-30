@@ -219,7 +219,7 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.7.0';
+const CURRENT_APP_VERSION = 'v2.7.1';
 let newWorker = null;
 let latestDetectedVersion = '';
 
@@ -739,41 +739,93 @@ function setupEventListeners() {
         showToast("Đã lưu Cấu hình Đa AI.");
     });
 
+    // Helper tải file backup về máy
+    function triggerDownloadBackup(jsonData, fileName) {
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function generateBackupFileName() {
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const yy = String(now.getFullYear()).slice(-2);
+        const hour = String(now.getHours()).padStart(2, '0');
+        const minute = String(now.getMinutes()).padStart(2, '0');
+        return `medical_backup_${dd}${mm}${yy}_${hour}${minute}.json`;
+    }
+
     // Backup & Restore
-    document.getElementById('btn-export-data').addEventListener('click', async () => {
+    document.getElementById('btn-export-data')?.addEventListener('click', async () => {
+        const btn = document.getElementById('btn-export-data');
+        const originalText = btn.innerHTML;
         try {
-            const btn = document.getElementById('btn-export-data');
-            const originalText = btn.innerHTML;
             btn.innerHTML = '<span class="material-symbols-rounded" style="vertical-align: text-bottom; font-size: 20px;">hourglass_empty</span> Đang tạo...';
             btn.disabled = true;
 
             const jsonData = await DataManager.exportData();
-            const blob = new Blob([jsonData], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            const now = new Date();
-            const dd = String(now.getDate()).padStart(2, '0');
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const yy = String(now.getFullYear()).slice(-2);
-            const hour = String(now.getHours()).padStart(2, '0');
-            const minute = String(now.getMinutes()).padStart(2, '0');
-            a.download = `medical_backup_${dd}${mm}${yy}${hour}${minute}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const fileName = generateBackupFileName();
+            triggerDownloadBackup(jsonData, fileName);
 
             // Ghi lại mốc backup gần nhất để tắt nhắc nhở định kỳ cho đến lần hạn tiếp theo
             DataManager.saveSettings({ lastBackupAt: Date.now(), backupReminderSnoozeUntil: null });
             hideBackupReminder();
-
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            showToast('Đã tải file sao lưu về máy thành công!');
         } catch (e) {
             alert("Lỗi khi sao lưu dữ liệu: " + e.message);
-            document.getElementById('btn-export-data').disabled = false;
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // Chia sẻ file backup trực tiếp qua Zalo, Email, Messenger, AirDrop...
+    document.getElementById('btn-share-backup')?.addEventListener('click', async () => {
+        const btn = document.getElementById('btn-share-backup');
+        const originalText = btn.innerHTML;
+        try {
+            btn.innerHTML = '<span class="material-symbols-rounded" style="vertical-align: text-bottom; font-size: 20px;">hourglass_empty</span> Đang chuẩn bị...';
+            btn.disabled = true;
+
+            const jsonData = await DataManager.exportData();
+            const fileName = generateBackupFileName();
+            const file = new File([jsonData], fileName, { type: 'application/json' });
+
+            DataManager.saveSettings({ lastBackupAt: Date.now(), backupReminderSnoozeUntil: null });
+            hideBackupReminder();
+
+            // Kiểm tra hỗ trợ Web Share API (thường hoạt động tốt trên điện thoại & trình duyệt hiện đại)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        title: 'Hồ sơ Y tế Gia đình',
+                        text: 'File sao lưu hồ sơ y tế gia đình. Mở ứng dụng và bấm "Khôi Phục" để nạp dữ liệu.',
+                        files: [file]
+                    });
+                    showToast('Đã mở bảng chia sẻ thành công!');
+                } catch (shareErr) {
+                    if (shareErr.name !== 'AbortError') {
+                        triggerDownloadBackup(jsonData, fileName);
+                        showToast('Đã tải file sao lưu về máy.');
+                    }
+                }
+            } else {
+                // Fallback cho trình duyệt máy tính không hỗ trợ gửi file trực tiếp
+                triggerDownloadBackup(jsonData, fileName);
+                alert(`Trình duyệt của bạn không hỗ trợ mở trực tiếp danh sách ứng dụng chia sẻ.\n\nFile sao lưu "${fileName}" đã được TẢI VỀ máy của bạn. Bạn chỉ cần đính kèm file này để gửi qua Zalo, Messenger hoặc Email!`);
+            }
+        } catch (e) {
+            alert("Lỗi khi chia sẻ dữ liệu: " + e.message);
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
     });
 

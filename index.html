@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=2.7.0">
+    <link rel="stylesheet" href="css/style.css?v=2.7.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
@@ -45,11 +45,11 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.7.0"></script>
-    <script defer src="js/ai.js?v=2.7.0"></script>
-    <script defer src="js/components.js?v=2.7.0"></script>
-    <script defer src="js/help.js?v=2.7.0"></script>
-    <script defer src="js/app.js?v=2.7.0"></script>
+    <script defer src="js/data.js?v=2.7.1"></script>
+    <script defer src="js/ai.js?v=2.7.1"></script>
+    <script defer src="js/components.js?v=2.7.1"></script>
+    <script defer src="js/help.js?v=2.7.1"></script>
+    <script defer src="js/app.js?v=2.7.1"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -146,7 +146,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.7.0</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.7.1</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -414,18 +414,21 @@
                 <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">save</span> Sao Lưu & Khôi Phục Dữ Liệu</h4>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Lưu trữ toàn bộ hồ sơ y tế thành một file dự phòng, hoặc khôi phục dữ liệu từ file.</p>
-                    <div style="display: flex; gap: 15px;">
-                        <button id="btn-export-data" class="primary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                            <span class="material-symbols-rounded">download</span> Sao Lưu
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btn-export-data" type="button" class="primary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13.5px;" data-help-title="Sao Lưu (Tải về)" data-help-desc="Tải toàn bộ hồ sơ y tế về máy dưới dạng 1 file .json">
+                            <span class="material-symbols-rounded">download</span> Tải File
                         </button>
-                        <button id="btn-import-data" class="secondary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                            <span class="material-symbols-rounded">upload</span> Khôi Phục
+                        <button id="btn-share-backup" type="button" class="primary-btn neumorphic-btn" style="flex: 1.2; display: flex; align-items: center; justify-content: center; gap: 5px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; font-size: 13.5px;" data-help-title="Chia sẻ File" data-help-desc="Tự động mở bảng chia sẻ để gửi thẳng file sao lưu qua Zalo, Messenger, Gmail, AirDrop...">
+                            <span class="material-symbols-rounded">share</span> Gửi Zalo / Mail
                         </button>
                     </div>
                     
-                    <div style="margin-top: 5px;">
-                        <button id="btn-show-auto-backups" class="secondary-btn neumorphic-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                            <span class="material-symbols-rounded">history</span> Khôi phục từ bản lưu tự động
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <button id="btn-import-data" type="button" class="secondary-btn neumorphic-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13.5px;" data-help-title="Khôi Phục" data-help-desc="Nạp dữ liệu từ file sao lưu (.json) vào ứng dụng.">
+                            <span class="material-symbols-rounded">upload</span> Khôi Phục
+                        </button>
+                        <button id="btn-show-auto-backups" type="button" class="secondary-btn neumorphic-btn" style="flex: 1.2; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13.5px;" data-help-title="Bản lưu tự động" data-help-desc="Xem danh sách các bản lưu tự động được lưu trên máy">
+                            <span class="material-symbols-rounded">history</span> Bản lưu tự động
                         </button>
                     </div>
                     
@@ -594,7 +597,7 @@
 
 
                 <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    Phiên bản <strong class="version-tag">v2.7.0</strong> (Tối ưu giao diện Mobile và Cache AI Offline)
+                    Phiên bản <strong class="version-tag">v2.7.1</strong> (Tối ưu giao diện Mobile và Cache AI Offline)
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
