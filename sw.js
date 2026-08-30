@@ -1,5 +1,5 @@
-const SW_VERSION = 'v2.3.3';
-const BUILD_TIME = '2026-08-30_13:28';
+const SW_VERSION = 'v2.3.4';
+const BUILD_TIME = '2026-08-30_13:33';
 
 self.addEventListener('install', (e) => {
   // Không tự động gọi self.skipWaiting() để tránh tự động tải lại trang gây khó chịu

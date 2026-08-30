@@ -219,7 +219,7 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.3.3';
+const CURRENT_APP_VERSION = 'v2.3.4';
 let newWorker = null;
 let latestDetectedVersion = CURRENT_APP_VERSION;
 
