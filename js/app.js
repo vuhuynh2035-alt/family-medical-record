@@ -3051,6 +3051,10 @@ async function promptSmartRemindersModal(memberId, recordData) {
     currentSmartRemindersToSave = [];
     const parsedReminders = [];
 
+    const now = new Date();
+    const baseDateStr = recordData.date || new Date().toISOString().split('T')[0];
+    const baseDate = new Date(baseDateStr);
+
     try {
         const aiResult = await AIService.extractSmartReminders(recordData);
         
@@ -3059,23 +3063,39 @@ async function promptSmartRemindersModal(memberId, recordData) {
                 aiResult.medications.forEach(med => {
                     const days = med.days || 5;
                     const times = med.times || ['08:00', '20:00'];
-                    parsedReminders.push({
-                        type: 'medication',
-                        title: `Uống thuốc: ${med.name}`,
-                        desc: `Uống ${times.length} lần/ngày trong ${days} ngày (Tổng cộng: ${times.length * days} lượt nhắc)`,
-                        medData: med
-                    });
+                    
+                    let validDosesCount = 0;
+                    for (let d = 0; d < days; d++) {
+                        const targetDate = new Date(baseDate.getTime() + d * 24 * 60 * 60 * 1000);
+                        const dateStr = targetDate.toISOString().split('T')[0];
+                        times.forEach(t => {
+                            if (new Date(`${dateStr}T${t}:00`) > now) {
+                                validDosesCount++;
+                            }
+                        });
+                    }
+
+                    if (validDosesCount > 0) {
+                        parsedReminders.push({
+                            type: 'medication',
+                            title: `Uống thuốc: ${med.name}`,
+                            desc: `Uống ${times.length} lần/ngày trong ${days} ngày (Còn ${validDosesCount} lượt nhắc có hiệu lực)`,
+                            medData: med
+                        });
+                    }
                 });
             }
             
             if (aiResult.followup && aiResult.followup.date) {
-                parsedReminders.push({
-                    type: 'followup',
-                    title: 'Tái khám',
-                    desc: `Ngày hẹn: ${UI.formatDate(aiResult.followup.date)} - Ghi chú: ${aiResult.followup.note || 'Không có'}`,
-                    date: aiResult.followup.date,
-                    note: aiResult.followup.note
-                });
+                if (new Date(`${aiResult.followup.date}T08:00:00`) > now) {
+                    parsedReminders.push({
+                        type: 'followup',
+                        title: 'Tái khám',
+                        desc: `Ngày hẹn: ${UI.formatDate(aiResult.followup.date)} - Ghi chú: ${aiResult.followup.note || 'Không có'}`,
+                        date: aiResult.followup.date,
+                        note: aiResult.followup.note
+                    });
+                }
             }
         }
     } catch (e) {
@@ -3089,13 +3109,15 @@ async function promptSmartRemindersModal(memberId, recordData) {
     if (isVaccine && typeof AIService !== 'undefined') {
         const vInfo = AIService.calculateNextVaccineDose(recordData.disease || recordData.treatment || recordData.symptoms || '', recordData.date);
         if (vInfo && vInfo.nextDoseDate) {
-            parsedReminders.push({
-                type: 'vaccine',
-                title: vInfo.nextDoseTitle || `Tiêm mũi tiếp theo (${vInfo.vaccineName || 'Vắc xin'})`,
-                desc: `Ngày hẹn: ${UI.formatDate(vInfo.nextDoseDate)} - Bệnh phòng ngừa: ${vInfo.diseaseTarget}`,
-                date: vInfo.nextDoseDate,
-                note: vInfo.defaultNote
-            });
+            if (new Date(`${vInfo.nextDoseDate}T08:00:00`) > now) {
+                parsedReminders.push({
+                    type: 'vaccine',
+                    title: vInfo.nextDoseTitle || `Tiêm mũi tiếp theo (${vInfo.vaccineName || 'Vắc xin'})`,
+                    desc: `Ngày hẹn: ${UI.formatDate(vInfo.nextDoseDate)} - Bệnh phòng ngừa: ${vInfo.diseaseTarget}`,
+                    date: vInfo.nextDoseDate,
+                    note: vInfo.defaultNote
+                });
+            }
         }
     }
 
@@ -3135,6 +3157,7 @@ document.getElementById('btn-save-smart-reminders')?.addEventListener('click', (
         return;
     }
 
+    const now = new Date();
     const baseDateStr = document.getElementById('record-date')?.value || new Date().toISOString().split('T')[0];
     const baseDate = new Date(baseDateStr);
 
@@ -3153,29 +3176,35 @@ document.getElementById('btn-save-smart-reminders')?.addEventListener('click', (
                 const dateStr = targetDate.toISOString().split('T')[0];
                 
                 times.forEach(t => {
-                    DataManager.saveReminder({
-                        memberId: memberId,
-                        title: rmData.title,
-                        date: dateStr,
-                        time: t,
-                        datetime: `${dateStr}T${t}:00`,
-                        note: `Đơn thuốc ngày thứ ${d + 1}/${days}`,
-                        selected_offsets: ["0"], // Nhắc đúng giờ
-                        completed: false
-                    });
+                    const dt = new Date(`${dateStr}T${t}:00`);
+                    if (dt > now) {
+                        DataManager.saveReminder({
+                            memberId: memberId,
+                            title: rmData.title,
+                            date: dateStr,
+                            time: t,
+                            datetime: `${dateStr}T${t}:00`,
+                            note: `Đơn thuốc ngày thứ ${d + 1}/${days}`,
+                            selected_offsets: ["0"], // Nhắc đúng giờ
+                            completed: false
+                        });
+                    }
                 });
             }
         } else {
-            DataManager.saveReminder({
-                memberId: memberId,
-                title: rmData.title,
-                date: rmData.date,
-                time: '08:00',
-                datetime: `${rmData.date}T08:00:00`,
-                note: rmData.note,
-                selected_offsets: ["0", "86400000", "259200000"], // Nhắc trước 3 ngày, 1 ngày, và đúng lúc
-                completed: false
-            });
+            const dt = new Date(`${rmData.date}T08:00:00`);
+            if (dt > now) {
+                DataManager.saveReminder({
+                    memberId: memberId,
+                    title: rmData.title,
+                    date: rmData.date,
+                    time: '08:00',
+                    datetime: `${rmData.date}T08:00:00`,
+                    note: rmData.note,
+                    selected_offsets: ["0", "86400000", "259200000"], // Nhắc trước 3 ngày, 1 ngày, và đúng lúc
+                    completed: false
+                });
+            }
         }
     });
 
