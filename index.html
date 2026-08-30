@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -11,12 +11,12 @@
          script-src KHÔNG có 'unsafe-inline' — mọi xử lý sự kiện đã chuyển hết sang addEventListener. -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
         font-src 'self' https://fonts.gstatic.com;
         img-src 'self' data: blob: https://ui-avatars.com https://upload.wikimedia.org;
         media-src 'self' https://actions.google.com;
-        connect-src 'self' https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com wss://*.firebasedatabase.app;
+        connect-src 'self' https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 
         object-src 'none';
         base-uri 'self';
         form-action 'self';
@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=2.6.2">
+    <link rel="stylesheet" href="css/style.css?v=2.7.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
@@ -45,11 +45,11 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.6.2"></script>
-    <script defer src="js/ai.js?v=2.6.2"></script>
-    <script defer src="js/components.js?v=2.6.2"></script>
-    <script defer src="js/help.js?v=2.6.2"></script>
-    <script defer src="js/app.js?v=2.6.2"></script>
+    <script defer src="js/data.js?v=2.7.0"></script>
+    <script defer src="js/ai.js?v=2.7.0"></script>
+    <script defer src="js/components.js?v=2.7.0"></script>
+    <script defer src="js/help.js?v=2.7.0"></script>
+    <script defer src="js/app.js?v=2.7.0"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -146,7 +146,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.6.2</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.7.0</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -583,42 +583,7 @@
                     </div>
                 </details>
 
-                <details style="margin-bottom: 20px; border-radius: 12px;" data-help-title="Đồng bộ Đám mây (Firebase)" data-help-desc="Kết nối các thiết bị qua Firebase Realtime Database để đồng bộ tự động theo thời gian thực.">
-                    <summary class="neumorphic-btn" style="font-weight: bold; cursor: pointer; color: var(--primary-blue); display: flex; align-items: center; font-size: 16px; padding: 15px; border-radius: 12px; transition: all 0.3s ease;">
-                        <span class="material-symbols-rounded" style="margin-right: 8px; font-size: 24px;">cloud_sync</span>
-                        <span style="flex: 1;">Kết nối & Đồng bộ Gia đình (Auto-sync)</span>
-                        <span class="material-symbols-rounded" style="font-size: 20px; color: var(--text-muted);">touch_app</span>
-                    </summary>
-                    <div style="margin-top: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05), inset -2px -2px 5px rgba(255,255,255,0.5);">
-                        <p class="modal-desc" style="margin-bottom: 20px;">Sử dụng Firebase Realtime Database để tự động đồng bộ dữ liệu y tế tức thì giữa các máy trong gia đình.</p>
-                        
-                        <div class="form-group">
-                            <label style="font-weight: bold; color: var(--primary-blue);">Cấu hình Firebase (firebaseConfig JSON)</label>
-                            <textarea id="sync-firebase-config" class="neumorphic-input" style="height: 100px; resize: vertical; font-family: monospace; font-size: 12px;" placeholder='{"apiKey": "...", "authDomain": "...", "databaseURL": "...", "projectId": "...", ...}' data-help-title="Firebase Config" data-help-desc="Copy toàn bộ cục firebaseConfig JSON từ Firebase Console dán vào đây."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label style="font-weight: bold; color: var(--primary-blue);">Mã Gia Đình (Family Secret Key)</label>
-                            <input type="text" id="sync-family-id" class="neumorphic-input" placeholder="Ví dụ: nhacuaToi123" data-help-title="Mã Gia Đình" data-help-desc="Chìa khóa bí mật để phân biệt dữ liệu của nhà bạn với người khác. Hãy nhập cùng 1 mã cho tất cả các máy trong nhà.">
-                        </div>
-                        
-                        <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-                            <button id="btn-sync-connect" type="button" class="primary-btn neumorphic-btn" style="flex: 1; min-width: 110px; padding: 10px; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 5px;" data-help-title="Kết nối" data-help-desc="Lưu cấu hình và bắt đầu lắng nghe đồng bộ tự động.">
-                                <span class="material-symbols-rounded" style="font-size: 18px;">cloud_done</span> Bật Đồng Bộ
-                            </button>
-                            <button id="btn-sync-push" type="button" class="secondary-btn neumorphic-btn" style="flex: 1; min-width: 110px; padding: 10px; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 5px;" data-help-title="Đẩy dữ liệu" data-help-desc="Ép đẩy dữ liệu máy này lên Firebase (Ghi đè Cloud). Dùng khi bị lỗi đồng bộ.">
-                                <span class="material-symbols-rounded" style="font-size: 18px;">cloud_upload</span> Ép đẩy lên
-                            </button>
-                            <button id="btn-sync-clear" type="button" class="secondary-btn neumorphic-btn" style="flex: 1; min-width: 110px; padding: 10px; font-size: 14px; color: #e74c3c; display: flex; justify-content: center; align-items: center; gap: 5px;" data-help-title="Ngắt kết nối" data-help-desc="Tắt đồng bộ và xóa cấu hình trên máy này.">
-                                <span class="material-symbols-rounded" style="font-size: 18px;">cloud_off</span> Tắt
-                            </button>
-                        </div>
-                        
-                        <div id="cloud-sync-status-box" style="display: none; margin-top: 15px; padding: 10px; border-radius: 8px; background: #e8f4fd; border: 1px solid #b6dbfa; font-size: 13px; color: #2980b9;">
-                            <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: text-bottom; margin-right: 5px;">info</span>
-                            <span id="cloud-sync-status-text">Đang kết nối...</span>
-                        </div>
-                    </div>
-                </details>
+                
 
                 <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
                 <h4 style="margin-bottom: 15px; color: #e74c3c;"><span class="material-symbols-rounded" style="vertical-align: middle;">delete_forever</span> Khôi phục Cài đặt gốc</h4>
@@ -629,7 +594,7 @@
 
 
                 <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    Phiên bản <strong class="version-tag">v2.6.2</strong> (Tối ưu giao diện Mobile và Cache AI Offline)
+                    Phiên bản <strong class="version-tag">v2.7.0</strong> (Tối ưu giao diện Mobile và Cache AI Offline)
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">

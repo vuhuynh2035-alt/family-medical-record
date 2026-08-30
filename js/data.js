@@ -1,4 +1,4 @@
-// Cấu trúc lưu trữ dữ liệu trong LocalStorage
+﻿// Cấu trúc lưu trữ dữ liệu trong LocalStorage
 // 'family_members': [{ id, name, dob, blood, conditions, avatar }]
 // 'family_records_m_{id}': [{ id, date, hospital, type, doctor, disease, cost, treatment, originalImages, comprehensiveReport }]
 // 'family_reminders': [{ id, memberId, title, date, time, note, datetime, notified }]
@@ -145,7 +145,6 @@ const DataManager = {
         }
         localStorage.setItem('family_members', JSON.stringify(members));
         this.isDataChanged = true;
-        if (window.CloudSync) window.CloudSync.syncUp();
         return memberData;
     },
     deleteMember(id) {
@@ -155,7 +154,6 @@ const DataManager = {
         // Xóa luôn hồ sơ của người này
         localStorage.removeItem(`family_records_m_${id}`);
         this.isDataChanged = true;
-        if (window.CloudSync) window.CloudSync.syncUp();
     },
 
     // ---- MEDICAL RECORDS ----
@@ -178,7 +176,6 @@ const DataManager = {
         
         localStorage.setItem(`family_records_m_${memberId}`, JSON.stringify(records));
         this.isDataChanged = true;
-        if (window.CloudSync) window.CloudSync.syncUp();
         return recordData;
     },
     deleteRecord(memberId, recordId) {
@@ -186,7 +183,6 @@ const DataManager = {
         records = records.filter(r => r.id !== recordId);
         localStorage.setItem(`family_records_m_${memberId}`, JSON.stringify(records));
         this.isDataChanged = true;
-        if (window.CloudSync) window.CloudSync.syncUp();
     },
 
     // ---- REMINDERS ----
@@ -209,14 +205,12 @@ const DataManager = {
         // Sắp xếp theo ngày giờ tăng dần (gần nhất lên trên)
         reminders.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
         localStorage.setItem('family_reminders', JSON.stringify(reminders));
-        if (window.CloudSync) window.CloudSync.syncUp();
         return reminderData;
     },
     deleteReminder(id) {
         let reminders = this.getReminders();
         reminders = reminders.filter(r => r.id !== id);
         localStorage.setItem('family_reminders', JSON.stringify(reminders));
-        if (window.CloudSync) window.CloudSync.syncUp();
     },
     markReminderAsNotified(id) {
         let reminders = this.getReminders();
@@ -224,7 +218,6 @@ const DataManager = {
         if (index > -1) {
             reminders[index].notified = true;
             localStorage.setItem('family_reminders', JSON.stringify(reminders));
-            if (window.CloudSync) window.CloudSync.syncUp();
         }
     },
 
