@@ -217,7 +217,7 @@ function check(name, condition) {
   check('Đổi tab trong trang chi tiết thành viên tự cuộn về đầu trang', scrollY === 0);
 
   await page.evaluate(() => window.scrollTo(0, 300));
-  await page.click('#btn-back-dashboard');
+  await page.click('#btn-floating-back');
   await page.waitForTimeout(150);
   scrollY = await page.evaluate(() => window.scrollY);
   check('Quay lại Trang chủ tự cuộn về đầu trang', scrollY === 0);

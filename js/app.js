@@ -494,19 +494,8 @@ function initDashboard() {
 
 // --- EVENT LISTENERS ---
 function setupEventListeners() {
-    // Navigation
-    document.getElementById('btn-back-dashboard').addEventListener('click', () => {
-        switchView('view-dashboard');
-        initDashboard();
-    });
-
-    // Nút điều hướng ở cuối trang chi tiết thành viên (trước đây dùng onclick="" nội tuyến —
-    // đã chuyển sang addEventListener để tương thích với Content-Security-Policy script-src
-    // không cho phép 'unsafe-inline').
-    document.getElementById('btn-back-dashboard-bottom').addEventListener('click', () => {
-        document.getElementById('btn-back-dashboard').click();
-    });
-    document.getElementById('btn-scroll-top-detail').addEventListener('click', () => {
+    // Nút cuộn lên đầu trang chi tiết thành viên
+    document.getElementById('btn-scroll-top-detail')?.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     document.querySelectorAll('.btn-scroll-modal-top').forEach(btn => {
