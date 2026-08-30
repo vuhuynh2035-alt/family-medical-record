@@ -219,7 +219,7 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.3.5';
+const CURRENT_APP_VERSION = 'v2.3.6';
 let newWorker = null;
 let latestDetectedVersion = '';
 
@@ -3330,8 +3330,8 @@ const TTSService = {
     isPlaying: false,
     isPaused: false,
     currentType: null,
-    activeBtnSelector: null,
-    activeContainerSelector: null,
+    activeBtnElement: null,
+    activeContainerElement: null,
     speed: 0.9, // Tốc độ đọc từ tốn, ấm áp, rõ ràng cho người lớn tuổi
     pitch: 1.05, // Cao độ giọng nữ êm dịu
     audioFallback: null,
@@ -3370,6 +3370,7 @@ const TTSService = {
             .replace(/\bmmhg\b/gi, ' milimét thủy ngân ')
             .replace(/\bmmol\/l\b/gi, ' milimol trên lít ')
             .replace(/\bui\/l\b/gi, ' đơn vị trên lít ')
+            .replace(/\bbpm\b/gi, ' nhịp một phút ')
             .replace(/\bHA\b/g, ' Huyết áp ')
             .replace(/\bSpO2\b/gi, ' Độ bão hòa oxy SpO2 ')
             .replace(/\blần\/ngày\b/gi, ' lần một ngày ')
@@ -3418,30 +3419,44 @@ const TTSService = {
             parts.push(`Chỉ định điều trị và đơn thuốc: ${record.treatment}.`);
         }
 
+        if (record.medicationAnalysis) {
+            parts.push(`Phân tích đơn thuốc chuyên sâu: ${record.medicationAnalysis}.`);
+        }
+
+        if (record.note) parts.push(`Lời khuyên dặn dò của bác sĩ: ${record.note}.`);
+        if (record.cost) parts.push(`Chi phí khám chữa bệnh: ${UI.formatCurrency ? UI.formatCurrency(record.cost) : record.cost + ' đồng'}.`);
+
         const vitals = [];
         if (record.bp) vitals.push(`Huyết áp: ${record.bp} milimét thủy ngân`);
         if (record.hr) vitals.push(`Nhịp tim: ${record.hr} nhịp một phút`);
         if (record.temp) vitals.push(`Thân nhiệt: ${record.temp} độ C`);
-        if (record.spo2) vitals.push(`Oxy máu: ${record.spo2} phần trăm`);
+        if (record.spo2) vitals.push(`Độ bão hòa oxy máu: ${record.spo2} phần trăm`);
         if (vitals.length > 0) {
-            parts.push(`Chỉ số sức khỏe: ${vitals.join(', ')}.`);
+            parts.push(`Chỉ số sinh hiệu cơ thể: ${vitals.join(', ')}.`);
         }
 
-        if (record.symptoms) parts.push(`Triệu chứng: ${record.symptoms}.`);
+        if (record.symptoms) parts.push(`Triệu chứng ghi nhận: ${record.symptoms}.`);
         if (record.labs) parts.push(`Kết quả cận lâm sàng: ${record.labs}.`);
-        if (record.note) parts.push(`Lời dặn dò của bác sĩ: ${record.note}.`);
 
         if (record.dynamicFields && record.dynamicFields.length > 0) {
             const abnormalFields = record.dynamicFields.filter(f => f.isAbnormal);
+            const normalFields = record.dynamicFields.filter(f => !f.isAbnormal);
             if (abnormalFields.length > 0) {
-                parts.push(`Lưu ý các chỉ số bất thường: ${abnormalFields.map(f => f.key + ' là ' + f.value).join(', ')}.`);
+                parts.push(`Cảnh báo các chỉ số xét nghiệm bất thường: ${abnormalFields.map(f => f.key + ' là ' + f.value).join(', ')}.`);
             }
+            if (normalFields.length > 0) {
+                parts.push(`Các chỉ số xét nghiệm bình thường: ${normalFields.map(f => f.key + ' là ' + f.value).join(', ')}.`);
+            }
+        }
+
+        if (record.comprehensiveReport) {
+            parts.push(`Báo cáo nhận xét chuyên sâu từ trí tuệ nhân tạo: ${record.comprehensiveReport}.`);
         }
 
         return parts.join(' ');
     },
 
-    speak(text, title = 'Đang đọc nội dung...', btnSelector = null, type = null, containerSelector = null) {
+    speak(text, title = 'Đang đọc nội dung...', btnTarget = null, type = null, containerTarget = null) {
         this.stop();
 
         // Mở khóa âm thanh cho trình duyệt di động
@@ -3464,8 +3479,20 @@ const TTSService = {
         this.isPlaying = true;
         this.isPaused = false;
         this.currentType = type;
-        this.activeBtnSelector = btnSelector;
-        this.activeContainerSelector = containerSelector;
+
+        // Resolve Button Element
+        if (typeof btnTarget === 'string') {
+            this.activeBtnElement = document.querySelector(btnTarget);
+        } else {
+            this.activeBtnElement = btnTarget;
+        }
+
+        // Resolve Container Element
+        if (typeof containerTarget === 'string') {
+            this.activeContainerElement = document.querySelector(containerTarget);
+        } else {
+            this.activeContainerElement = containerTarget;
+        }
 
         this.showPlayerUI(title);
         this.setButtonState(true);
@@ -3499,7 +3526,7 @@ const TTSService = {
             utterance.onend = () => {
                 if (this.isPlaying && !this.isPaused) {
                     this.currentChunkIndex++;
-                    setTimeout(() => this.playNextChunk(), 150);
+                    setTimeout(() => this.playNextChunk(), 120);
                 }
             };
 
@@ -3529,20 +3556,19 @@ const TTSService = {
         this.audioFallback.onended = () => {
             if (this.isPlaying && !this.isPaused) {
                 this.currentChunkIndex++;
-                setTimeout(() => this.playNextChunk(), 150);
+                setTimeout(() => this.playNextChunk(), 120);
             }
         };
 
         this.audioFallback.onerror = () => {
             this.currentChunkIndex++;
-            setTimeout(() => this.playNextChunk(), 150);
+            setTimeout(() => this.playNextChunk(), 120);
         };
 
         this.audioFallback.play().catch(err => {
             console.warn('Audio play fallback error:', err);
-            // Tiếp tục chunk kế tiếp
             this.currentChunkIndex++;
-            setTimeout(() => this.playNextChunk(), 200);
+            setTimeout(() => this.playNextChunk(), 150);
         });
     },
 
@@ -3588,6 +3614,8 @@ const TTSService = {
         this.hidePlayerUI();
         this.setButtonState(false);
         this.setContainerHighlight(false);
+        this.activeBtnElement = null;
+        this.activeContainerElement = null;
     },
 
     toggleSpeed() {
@@ -3629,36 +3657,33 @@ const TTSService = {
         document.querySelectorAll('.reading-active-container').forEach(el => {
             el.classList.remove('reading-active-container');
         });
-        if (isHighlight && this.activeContainerSelector) {
-            const container = document.querySelector(this.activeContainerSelector);
-            if (container) container.classList.add('reading-active-container');
+        if (isHighlight && this.activeContainerElement) {
+            this.activeContainerElement.classList.add('reading-active-container');
         }
     },
 
     setButtonState(isSpeaking) {
         document.querySelectorAll('.tts-speak-btn').forEach(btn => {
             btn.classList.remove('speaking');
+            const isAllBtn = btn.id === 'btn-speak-record';
             btn.innerHTML = `
-                <span class="material-symbols-rounded" style="font-size: 16px;">volume_up</span>
-                <span>Đọc</span>
+                <span class="material-symbols-rounded" style="font-size: ${isAllBtn ? 16 : 14}px;">volume_up</span>
+                <span>${isAllBtn ? 'Đọc tất cả' : 'Đọc'}</span>
             `;
         });
 
-        if (isSpeaking && this.activeBtnSelector) {
-            const btn = document.querySelector(this.activeBtnSelector);
-            if (btn) {
-                btn.classList.add('speaking');
-                btn.innerHTML = `
-                    <div class="sound-wave-bars">
-                        <span class="bar b1"></span>
-                        <span class="bar b2"></span>
-                        <span class="bar b3"></span>
-                        <span class="bar b4"></span>
-                        <span class="bar b5"></span>
-                    </div>
-                    <span>Dừng</span>
-                `;
-            }
+        if (isSpeaking && this.activeBtnElement) {
+            this.activeBtnElement.classList.add('speaking');
+            this.activeBtnElement.innerHTML = `
+                <div class="sound-wave-bars">
+                    <span class="bar b1"></span>
+                    <span class="bar b2"></span>
+                    <span class="bar b3"></span>
+                    <span class="bar b4"></span>
+                    <span class="bar b5"></span>
+                </div>
+                <span>Dừng</span>
+            `;
         }
     }
 };
@@ -3670,9 +3695,10 @@ if ('speechSynthesis' in window) {
     }
 }
 
-// 1. Đọc Chi tiết Hồ sơ
-document.getElementById('btn-speak-record')?.addEventListener('click', () => {
-    if (TTSService.isPlaying && TTSService.currentType === 'record') {
+// 1. Đọc Chi tiết Toàn bộ Hồ sơ
+document.getElementById('btn-speak-record')?.addEventListener('click', (e) => {
+    const btn = document.getElementById('btn-speak-record');
+    if (TTSService.isPlaying && TTSService.activeBtnElement === btn) {
         TTSService.stop();
         return;
     }
@@ -3682,39 +3708,65 @@ document.getElementById('btn-speak-record')?.addEventListener('click', () => {
     if (!record) return showToast('Không tìm thấy thông tin hồ sơ.', 'error');
 
     let spokenText = TTSService.buildRecordSpokenText(record);
-    const reportContent = document.getElementById('view-record-report-data')?.innerText;
-    if (reportContent && reportContent.trim()) {
-        spokenText += ` Nhận xét chuyên sâu từ AI: ${reportContent.trim()}`;
-    }
-
-    TTSService.speak(spokenText, `Hồ sơ: ${record.disease || record.hospital || 'Khám bệnh'}`, '#btn-speak-record', 'record', '#view-record-content');
+    TTSService.speak(spokenText, `Hồ sơ: ${record.disease || record.hospital || 'Khám bệnh'}`, btn, 'record-all', '#view-record-content');
 });
 
-// 2. Đọc AI Nhận xét
+// 2. Đọc Từng Khung Nội dung Riêng biệt (.btn-speak-section)
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-speak-section');
+    if (!btn) return;
+
+    if (TTSService.isPlaying && TTSService.activeBtnElement === btn) {
+        TTSService.stop();
+        return;
+    }
+
+    const targetSelector = btn.dataset.target;
+    const sectionName = btn.dataset.sectionName || 'Nội dung mục';
+    const container = targetSelector ? document.querySelector(targetSelector) : btn.closest('.detail-section-card');
+
+    if (!container) return;
+
+    // Clone container và xóa các nút điều khiển để chỉ đọc văn bản nội dung sạch
+    const clone = container.cloneNode(true);
+    clone.querySelectorAll('button, .attached-doc-actions, script, style, .material-symbols-rounded').forEach(el => el.remove());
+    const text = clone.innerText || '';
+
+    if (!text.trim()) {
+        showToast('Mục này chưa có nội dung văn bản để đọc.', 'info');
+        return;
+    }
+
+    TTSService.speak(text, sectionName, btn, 'section', container);
+});
+
+// 3. Đọc AI Nhận xét
 document.getElementById('btn-speak-assessment')?.addEventListener('click', () => {
-    if (TTSService.isPlaying && TTSService.currentType === 'assessment') {
+    const btn = document.getElementById('btn-speak-assessment');
+    if (TTSService.isPlaying && TTSService.activeBtnElement === btn) {
         TTSService.stop();
         return;
     }
     const content = document.getElementById('ai-assessment-content')?.innerText;
     if (!content || !content.trim()) return showToast('Chưa có nội dung nhận xét để đọc.', 'error');
 
-    TTSService.speak(content, 'AI Nhận xét sức khỏe', '#btn-speak-assessment', 'assessment', '#ai-assessment-content');
+    TTSService.speak(content, 'AI Nhận xét sức khỏe', btn, 'assessment', '#ai-assessment-content');
 });
 
-// 3. Đọc Cẩm nang Vắc xin
+// 4. Đọc Cẩm nang Vắc xin
 document.getElementById('btn-speak-vaccine-guide')?.addEventListener('click', () => {
-    if (TTSService.isPlaying && TTSService.currentType === 'vaccine') {
+    const btn = document.getElementById('btn-speak-vaccine-guide');
+    if (TTSService.isPlaying && TTSService.activeBtnElement === btn) {
         TTSService.stop();
         return;
     }
     const content = document.getElementById('vaccine-consultation-content')?.innerText;
     if (!content || !content.trim()) return showToast('Chưa có nội dung cẩm nang để đọc.', 'error');
 
-    TTSService.speak(content, 'Cẩm nang Tiêm chủng', '#btn-speak-vaccine-guide', 'vaccine', '#vaccine-consultation-content');
+    TTSService.speak(content, 'Cẩm nang Tiêm chủng', btn, 'vaccine', '#vaccine-consultation-content');
 });
 
-// 4. Các nút điều khiển trên Mini Player
+// 5. Các nút điều khiển trên Mini Player
 document.getElementById('btn-tts-pause-resume')?.addEventListener('click', () => TTSService.pauseResume());
 document.getElementById('btn-tts-stop')?.addEventListener('click', () => TTSService.stop());
 document.getElementById('btn-tts-speed')?.addEventListener('click', () => TTSService.toggleSpeed());

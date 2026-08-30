@@ -370,10 +370,16 @@ const UI = {
         // --- CỘT 1: Chẩn đoán & Điều trị + Lời khuyên + Chi phí ---
         html += `
             <div class="record-detail-col-main" style="display: flex; flex-direction: column; gap: 14px;">
-                <div class="detail-section-card" style="background: var(--bg-color); box-shadow: var(--shadow-inner); padding: 16px; border-radius: var(--radius-sm); border-left: 4px solid var(--primary-blue);">
-                    <h4 style="color: var(--primary-blue); margin: 0 0 10px 0; font-size: 15.5px; display: flex; align-items: center; gap: 6px;">
-                        <span class="material-symbols-rounded" style="font-size: 18px;">coronavirus</span> Chẩn đoán & Điều trị
-                    </h4>
+                <div class="detail-section-card section-card-diagnosis" style="background: var(--bg-color); box-shadow: var(--shadow-inner); padding: 16px; border-radius: var(--radius-sm); border-left: 4px solid var(--primary-blue);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="color: var(--primary-blue); margin: 0; font-size: 15.5px; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">coronavirus</span> Chẩn đoán & Điều trị
+                        </h4>
+                        <button type="button" class="tts-speak-btn btn-speak-section neumorphic-btn" data-section-name="Chẩn đoán và điều trị" data-target=".section-card-diagnosis" title="Đọc khung Chẩn đoán & Điều trị">
+                            <span class="material-symbols-rounded" style="font-size: 15px;">volume_up</span>
+                            <span>Đọc</span>
+                        </button>
+                    </div>
                     <div style="font-size: 14px; line-height: 1.6;">
                         <p style="margin: 0 0 8px 0;"><strong>Chẩn đoán:</strong> ${record.disease ? this.escapeHtml(record.disease) : '<em style="color:var(--text-muted);">(Chưa có kết luận chẩn đoán)</em>'}</p>
                         <div style="margin-bottom: 8px;">
@@ -406,10 +412,16 @@ const UI = {
 
         if (record.bp || record.hr || record.temp || record.spo2) {
             html += `
-                <div class="detail-section-card" style="background: rgba(52, 152, 219, 0.05); padding: 14px 16px; border-radius: var(--radius-sm); border-left: 4px solid var(--primary-blue);">
-                    <h4 style="color: var(--primary-blue); margin: 0 0 10px 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
-                        <span class="material-symbols-rounded" style="font-size: 18px;">favorite</span> Sinh hiệu (Vital Signs)
-                    </h4>
+                <div class="detail-section-card section-card-vitals" style="background: rgba(52, 152, 219, 0.05); padding: 14px 16px; border-radius: var(--radius-sm); border-left: 4px solid var(--primary-blue);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="color: var(--primary-blue); margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">favorite</span> Sinh hiệu (Vital Signs)
+                        </h4>
+                        <button type="button" class="tts-speak-btn btn-speak-section neumorphic-btn" data-section-name="Chỉ số sinh hiệu" data-target=".section-card-vitals" title="Đọc khung Sinh hiệu">
+                            <span class="material-symbols-rounded" style="font-size: 15px;">volume_up</span>
+                            <span>Đọc</span>
+                        </button>
+                    </div>
                     <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 13.5px;">
                         ${record.bp ? `<span><strong>HA:</strong> ${this.escapeHtml(record.bp)} mmHg</span>` : ''}
                         ${record.hr ? `<span><strong>Nhịp tim:</strong> ${this.escapeHtml(record.hr)} bpm</span>` : ''}
@@ -422,10 +434,16 @@ const UI = {
 
         if (record.symptoms || record.labs) {
             html += `
-                <div class="detail-section-card" style="background: rgba(142, 68, 173, 0.04); padding: 14px 16px; border-radius: var(--radius-sm); border-left: 4px solid #8e44ad;">
-                    <h4 style="color: #8e44ad; margin: 0 0 10px 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
-                        <span class="material-symbols-rounded" style="font-size: 18px;">biotech</span> Lâm sàng & Cận lâm sàng
-                    </h4>
+                <div class="detail-section-card section-card-labs" style="background: rgba(142, 68, 173, 0.04); padding: 14px 16px; border-radius: var(--radius-sm); border-left: 4px solid #8e44ad;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="color: #8e44ad; margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">biotech</span> Lâm sàng & Cận lâm sàng
+                        </h4>
+                        <button type="button" class="tts-speak-btn btn-speak-section neumorphic-btn" data-section-name="Lâm sàng và cận lâm sàng" data-target=".section-card-labs" title="Đọc khung Lâm sàng">
+                            <span class="material-symbols-rounded" style="font-size: 15px;">volume_up</span>
+                            <span>Đọc</span>
+                        </button>
+                    </div>
                     <div style="font-size: 13.5px; line-height: 1.55;">
                         ${record.symptoms ? `<p style="margin: 0 0 6px 0;"><strong>Triệu chứng:</strong><br>${this.nl2br(record.symptoms)}</p>` : ''}
                         ${record.labs ? `<p style="margin: 0;"><strong>Kết quả cận lâm sàng:</strong><br>${this.nl2br(record.labs)}</p>` : ''}
@@ -451,12 +469,18 @@ const UI = {
             const vInfo = AIService.calculateNextVaccineDose(record.disease || record.treatment || record.symptoms || '', record.date);
             if (vInfo) {
                 html += `
-                <div class="vaccine-detail-card detail-section-card" style="background: linear-gradient(135deg, rgba(39, 174, 96, 0.06), rgba(22, 160, 133, 0.06)); border: 1px solid rgba(39, 174, 96, 0.25); border-radius: var(--radius-sm); padding: 14px 16px;">
+                <div class="vaccine-detail-card detail-section-card section-card-vaccine" style="background: linear-gradient(135deg, rgba(39, 174, 96, 0.06), rgba(22, 160, 133, 0.06)); border: 1px solid rgba(39, 174, 96, 0.25); border-radius: var(--radius-sm); padding: 14px 16px;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid rgba(39, 174, 96, 0.15); padding-bottom: 8px;">
                         <h4 style="color: #27ae60; margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
                             <span class="material-symbols-rounded" style="font-size: 18px;">vaccines</span> Thông tin & Phác đồ Tiêm chủng
                         </h4>
-                        <span style="background: #27ae60; color: white; padding: 2px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 600;">Mũi ${vInfo.currentDose}</span>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="background: #27ae60; color: white; padding: 2px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 600;">Mũi ${vInfo.currentDose}</span>
+                            <button type="button" class="tts-speak-btn btn-speak-section neumorphic-btn" data-section-name="Phác đồ tiêm chủng" data-target=".section-card-vaccine" title="Đọc khung Tiêm chủng">
+                                <span class="material-symbols-rounded" style="font-size: 15px;">volume_up</span>
+                                <span>Đọc</span>
+                            </button>
+                        </div>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px;">
                         <p style="margin: 0;"><strong>Tên vắc xin:</strong> ${this.escapeHtml(vInfo.vaccineName)}</p>
@@ -485,10 +509,16 @@ const UI = {
         // 3. Bảng Chi tiết Xét nghiệm (Full width phía dưới)
         if (record.dynamicFields && record.dynamicFields.length > 0) {
             html += `
-                <div style="margin-top: 18px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 15px;">
-                    <h4 style="color: var(--primary-blue); margin-bottom: 10px; font-size: 15.5px; display: flex; align-items: center; gap: 6px;">
-                        <span class="material-symbols-rounded" style="font-size: 18px;">science</span> Chi tiết chỉ số xét nghiệm (${record.dynamicFields.length})
-                    </h4>
+                <div class="detail-section-card section-card-dynamic-labs" style="margin-top: 18px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="color: var(--primary-blue); margin: 0; font-size: 15.5px; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">science</span> Chi tiết chỉ số xét nghiệm (${record.dynamicFields.length})
+                        </h4>
+                        <button type="button" class="tts-speak-btn btn-speak-section neumorphic-btn" data-section-name="Bảng chỉ số xét nghiệm" data-target=".section-card-dynamic-labs" title="Đọc bảng Xét nghiệm">
+                            <span class="material-symbols-rounded" style="font-size: 15px;">volume_up</span>
+                            <span>Đọc</span>
+                        </button>
+                    </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; background: var(--bg-color); box-shadow: var(--shadow-outer); border-radius: var(--radius-sm); overflow: hidden;">
                         <tr style="background: var(--primary-blue); color: white;">
                             <th style="padding: 10px 12px; text-align: left; font-size: 13.5px;">Chỉ số</th>
@@ -520,7 +550,23 @@ const UI = {
         const reportData = document.getElementById('view-record-report-data');
         if (record.comprehensiveReport) {
             reportData.style.display = 'block';
-            reportData.innerHTML = this.renderMarkdown(record.comprehensiveReport);
+            reportData.className = 'section-card-ai-report';
+            reportData.innerHTML = `
+                <div class="detail-section-card" style="background: rgba(142, 68, 173, 0.04); border-left: 4px solid #8e44ad; padding: 16px; border-radius: var(--radius-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="color: #8e44ad; margin: 0; font-size: 15.5px; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">neurology</span> Báo cáo nhận xét chuyên sâu (AI)
+                        </h4>
+                        <button type="button" class="tts-speak-btn btn-speak-section neumorphic-btn" data-section-name="Báo cáo chuyên sâu AI" data-target=".section-card-ai-report" title="Đọc nhận xét AI">
+                            <span class="material-symbols-rounded" style="font-size: 15px;">volume_up</span>
+                            <span>Đọc</span>
+                        </button>
+                    </div>
+                    <div class="markdown-body" style="font-size: 13.5px; line-height: 1.6;">
+                        ${this.renderMarkdown(record.comprehensiveReport)}
+                    </div>
+                </div>
+            `;
         } else {
             reportData.style.display = 'none';
             reportData.innerHTML = '';
