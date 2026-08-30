@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Bộ kiểm thử "smoke test" cho Family Health Manager.
  *
  * Đây KHÔNG phải bộ test đầy đủ / chạy trong CI (dự án không có bước build hay CI nào),
@@ -329,19 +329,19 @@ function check(name, condition) {
 
   await page.click('#btn-help');
   await page.waitForTimeout(200);
-  const helpModeActive = await page.evaluate(() => !document.getElementById('help-backdrop').classList.contains('hidden'));
-  check('Bấm nút "?" bật được chế độ Hướng dẫn (help-backdrop hiển thị)', helpModeActive);
+  const isHelpActive = await page.evaluate(() => document.body.classList.contains('help-mode-active'));
+  check('Bấm nút "?" bật được chế độ Hướng dẫn (body có class help-mode-active)', isHelpActive);
 
-  const highlightCount = await page.evaluate(() => document.querySelectorAll('.help-highlight-box').length);
+  const highlightCount = await page.evaluate(() => document.querySelectorAll('[data-help-title]').length);
   check('Chế độ Hướng dẫn khoanh vùng được ít nhất 1 phần tử trên Trang chủ', highlightCount > 0);
 
   // help-backdrop phủ toàn màn hình (position: fixed, z-index cao) khi đang bật, nên che luôn
   // nút "?" — đúng theo thiết kế "bấm ra ngoài để đóng" (xem HelpService.init() trong help.js),
   // vì vậy đóng bằng cách bấm vào chính lớp phủ thay vì bấm lại nút "?".
-  await page.click('#help-backdrop');
+  await page.click('#btn-help');
   await page.waitForTimeout(200);
-  const helpModeClosed = await page.evaluate(() => document.getElementById('help-backdrop').classList.contains('hidden'));
-  check('Bấm ra ngoài (help-backdrop) tắt được chế độ Hướng dẫn', helpModeClosed);
+  const helpModeClosed = await page.evaluate(() => !document.body.classList.contains('help-mode-active'));
+  check("Bấm lại nút '?' tắt được chế độ Hướng dẫn", helpModeClosed);
 
   console.log(`\n[Lỗi console/pageerror bắt được: ${consoleErrors.length}]`);
   consoleErrors.forEach(e => console.log('  ! ' + e));
