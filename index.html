@@ -583,33 +583,33 @@
                     </div>
                 </details>
 
-                <details style="margin-bottom: 20px; border-radius: 12px;" data-help-title="Đồng bộ Đám mây (Gia đình)" data-help-desc="Kết nối các thiết bị trong gia đình qua JSONBin để chia sẻ chung 1 hồ sơ y tế.">
+                <details style="margin-bottom: 20px; border-radius: 12px;" data-help-title="Đồng bộ Đám mây (Firebase)" data-help-desc="Kết nối các thiết bị qua Firebase Realtime Database để đồng bộ tự động theo thời gian thực.">
                     <summary class="neumorphic-btn" style="font-weight: bold; cursor: pointer; color: var(--primary-blue); display: flex; align-items: center; font-size: 16px; padding: 15px; border-radius: 12px; transition: all 0.3s ease;">
                         <span class="material-symbols-rounded" style="margin-right: 8px; font-size: 24px;">cloud_sync</span>
-                        <span style="flex: 1;">Kết nối & Đồng bộ Gia đình</span>
+                        <span style="flex: 1;">Kết nối & Đồng bộ Gia đình (Auto-sync)</span>
                         <span class="material-symbols-rounded" style="font-size: 20px; color: var(--text-muted);">touch_app</span>
                     </summary>
                     <div style="margin-top: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05), inset -2px -2px 5px rgba(255,255,255,0.5);">
-                        <p class="modal-desc" style="margin-bottom: 20px;">Sử dụng JSONBin.io để chia sẻ dữ liệu y tế giữa các điện thoại của thành viên trong gia đình.</p>
+                        <p class="modal-desc" style="margin-bottom: 20px;">Sử dụng Firebase Realtime Database để tự động đồng bộ dữ liệu y tế tức thì giữa các máy trong gia đình.</p>
                         
                         <div class="form-group">
-                            <label style="font-weight: bold; color: var(--primary-blue);">Bin ID</label>
-                            <input type="text" id="sync-bin-id" class="neumorphic-input" placeholder="Nhập Bin ID..." data-help-title="JSONBin Bin ID" data-help-desc="Mã kho chứa dữ liệu trên JSONBin.io.">
+                            <label style="font-weight: bold; color: var(--primary-blue);">Cấu hình Firebase (firebaseConfig JSON)</label>
+                            <textarea id="sync-firebase-config" class="neumorphic-input" style="height: 100px; resize: vertical; font-family: monospace; font-size: 12px;" placeholder='{"apiKey": "...", "authDomain": "...", "databaseURL": "...", "projectId": "...", ...}' data-help-title="Firebase Config" data-help-desc="Copy toàn bộ cục firebaseConfig JSON từ Firebase Console dán vào đây."></textarea>
                         </div>
                         <div class="form-group">
-                            <label style="font-weight: bold; color: var(--primary-blue);">X-Master-Key (API Key)</label>
-                            <input type="password" id="sync-api-key" class="neumorphic-input" placeholder="Nhập API Key..." data-help-title="JSONBin API Key" data-help-desc="Chìa khóa bảo mật để truy cập vào kho dữ liệu.">
+                            <label style="font-weight: bold; color: var(--primary-blue);">Mã Gia Đình (Family Secret Key)</label>
+                            <input type="text" id="sync-family-id" class="neumorphic-input" placeholder="Ví dụ: nhacuaToi123" data-help-title="Mã Gia Đình" data-help-desc="Chìa khóa bí mật để phân biệt dữ liệu của nhà bạn với người khác. Hãy nhập cùng 1 mã cho tất cả các máy trong nhà.">
                         </div>
                         
                         <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-                            <button id="btn-sync-connect" type="button" class="primary-btn neumorphic-btn" style="flex: 1; min-width: 110px; padding: 10px; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 5px;" data-help-title="Lấy dữ liệu" data-help-desc="Tải dữ liệu từ đám mây về đè lên máy này.">
-                                <span class="material-symbols-rounded" style="font-size: 18px;">cloud_download</span> Kéo về
+                            <button id="btn-sync-connect" type="button" class="primary-btn neumorphic-btn" style="flex: 1; min-width: 110px; padding: 10px; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 5px;" data-help-title="Kết nối" data-help-desc="Lưu cấu hình và bắt đầu lắng nghe đồng bộ tự động.">
+                                <span class="material-symbols-rounded" style="font-size: 18px;">cloud_done</span> Bật Đồng Bộ
                             </button>
-                            <button id="btn-sync-push" type="button" class="secondary-btn neumorphic-btn" style="flex: 1; min-width: 110px; padding: 10px; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 5px;" data-help-title="Đẩy dữ liệu" data-help-desc="Đẩy dữ liệu từ máy này lên đám mây (ghi đè mây).">
-                                <span class="material-symbols-rounded" style="font-size: 18px;">cloud_upload</span> Đẩy lên
+                            <button id="btn-sync-push" type="button" class="secondary-btn neumorphic-btn" style="flex: 1; min-width: 110px; padding: 10px; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 5px;" data-help-title="Đẩy dữ liệu" data-help-desc="Ép đẩy dữ liệu máy này lên Firebase (Ghi đè Cloud). Dùng khi bị lỗi đồng bộ.">
+                                <span class="material-symbols-rounded" style="font-size: 18px;">cloud_upload</span> Ép đẩy lên
                             </button>
-                            <button id="btn-sync-clear" type="button" class="secondary-btn neumorphic-btn" style="flex: 1; min-width: 110px; padding: 10px; font-size: 14px; color: #e74c3c; display: flex; justify-content: center; align-items: center; gap: 5px;" data-help-title="Ngắt kết nối" data-help-desc="Ngừng đồng bộ với kho dữ liệu này.">
-                                <span class="material-symbols-rounded" style="font-size: 18px;">cloud_off</span> Ngắt
+                            <button id="btn-sync-clear" type="button" class="secondary-btn neumorphic-btn" style="flex: 1; min-width: 110px; padding: 10px; font-size: 14px; color: #e74c3c; display: flex; justify-content: center; align-items: center; gap: 5px;" data-help-title="Ngắt kết nối" data-help-desc="Tắt đồng bộ và xóa cấu hình trên máy này.">
+                                <span class="material-symbols-rounded" style="font-size: 18px;">cloud_off</span> Tắt
                             </button>
                         </div>
                         

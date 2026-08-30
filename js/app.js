@@ -3826,25 +3826,35 @@ document.querySelectorAll('input[name="tts_voice_provider"]').forEach(radio => {
 
 // ==================== CLOUD SYNC (GIA ĐÌNH) ====================
 const CloudSync = {
-    apiKey: localStorage.getItem('cloud_sync_api_key') || '',
-    binId: localStorage.getItem('cloud_sync_bin_id') || '',
+    firebaseConfigStr: localStorage.getItem('cloud_sync_firebase_config') || '',
+    familyId: localStorage.getItem('cloud_sync_family_id') || '',
+    app: null,
+    db: null,
+    unsubscribe: null,
+    isSyncing: false,
     
-    saveConfig(binId, apiKey) {
-        this.binId = binId.trim();
-        this.apiKey = apiKey.trim();
-        localStorage.setItem('cloud_sync_bin_id', this.binId);
-        localStorage.setItem('cloud_sync_api_key', this.apiKey);
+    saveConfig(configStr, familyId) {
+        this.firebaseConfigStr = configStr.trim();
+        this.familyId = familyId.trim();
+        localStorage.setItem('cloud_sync_firebase_config', this.firebaseConfigStr);
+        localStorage.setItem('cloud_sync_family_id', this.familyId);
     },
 
     clearConfig() {
-        this.binId = '';
-        this.apiKey = '';
-        localStorage.removeItem('cloud_sync_bin_id');
-        localStorage.removeItem('cloud_sync_api_key');
+        this.firebaseConfigStr = '';
+        this.familyId = '';
+        localStorage.removeItem('cloud_sync_firebase_config');
+        localStorage.removeItem('cloud_sync_family_id');
+        if (this.unsubscribe) {
+            this.unsubscribe();
+            this.unsubscribe = null;
+        }
+        this.app = null;
+        this.db = null;
     },
 
     isConfigured() {
-        return this.binId && this.apiKey;
+        return this.firebaseConfigStr && this.familyId;
     },
 
     updateStatus(msg, isError = false) {
@@ -3861,98 +3871,157 @@ const CloudSync = {
         }
     },
 
-    async syncDown() {
-        if (!this.isConfigured()) return;
-        this.updateStatus('Đang tải dữ liệu từ đám mây...');
-        try {
-            const res = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}/latest`, {
-                method: 'GET',
-                headers: {
-                    'X-Master-Key': this.apiKey
-                }
-            });
-            if (!res.ok) throw new Error('Không thể kết nối. Kiểm tra lại Bin ID và API Key.');
-            
-            const json = await res.json();
-            const remoteData = json.record;
+    async initFirebase() {
+        if (!this.isConfigured()) return false;
+        if (this.db) return true;
 
-            if (remoteData && remoteData.localStorage) {
-                const success = await DataManager.importData(JSON.stringify(remoteData));
-                if (success) {
-                    this.updateStatus('Đã đồng bộ thành công dữ liệu mới nhất!');
-                    if (typeof initDashboard === 'function') initDashboard();
-                    if (document.getElementById('view-member-detail')?.classList.contains('active') && window.currentMember) {
-                        if (typeof renderMemberDetail === 'function') renderMemberDetail(window.currentMember);
+        try {
+            const config = JSON.parse(this.firebaseConfigStr);
+            const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+            const { getDatabase } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+            
+            this.app = initializeApp(config, 'family-sync-app-' + Date.now());
+            this.db = getDatabase(this.app);
+            return true;
+        } catch (err) {
+            this.updateStatus('Cấu hình Firebase không hợp lệ hoặc lỗi kết nối!', true);
+            return false;
+        }
+    },
+
+    async startAutoSync() {
+        if (!await this.initFirebase()) return;
+        
+        this.updateStatus('Đang kết nối Firebase và lắng nghe đồng bộ...');
+        
+        try {
+            const { ref, onValue } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+            const dbRef = ref(this.db, 'families/' + this.familyId);
+            
+            if (this.unsubscribe) this.unsubscribe();
+            
+            this.unsubscribe = onValue(dbRef, async (snapshot) => {
+                if (this.isSyncing) return; // Prevent echoing back our own pushes
+                
+                const data = snapshot.val();
+                if (data && data.localStorage) {
+                    this.updateStatus('Đang nạp dữ liệu từ Firebase...');
+                    this.isSyncing = true;
+                    try {
+                        const success = await DataManager.importData(JSON.stringify(data));
+                        if (success) {
+                            this.updateStatus('Đã đồng bộ tự động thành công!');
+                            if (typeof initDashboard === 'function') initDashboard();
+                            if (document.getElementById('view-member-detail')?.classList.contains('active') && window.currentMember) {
+                                if (typeof renderMemberDetail === 'function') renderMemberDetail(window.currentMember);
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Lỗi khi nạp dữ liệu tự động:", e);
+                        this.updateStatus('Lỗi khi nạp dữ liệu từ đám mây.', true);
                     }
+                    setTimeout(() => { this.isSyncing = false; }, 1000);
                 } else {
-                    this.updateStatus('Lỗi khi nạp dữ liệu từ đám mây.', true);
+                    this.updateStatus('Kho dữ liệu trên Firebase hiện đang trống.', true);
                 }
-            } else {
-                this.updateStatus('Kho dữ liệu trống hoặc không đúng định dạng.', true);
-            }
+            }, (error) => {
+                this.updateStatus('Bị từ chối quyền truy cập (Kiểm tra Database Rules).', true);
+            });
+            
         } catch (err) {
             this.updateStatus(err.message, true);
         }
     },
 
     async syncUp() {
-        if (!this.isConfigured()) return;
-        this.updateStatus('Đang đẩy dữ liệu lên đám mây...');
+        if (!await this.initFirebase()) return;
+        
+        this.updateStatus('Đang đẩy dữ liệu lên Firebase...');
+        this.isSyncing = true; // Block incoming auto-sync temporarily to prevent echo loop
+        
         try {
             const backupStr = await DataManager.exportData();
             const payload = JSON.parse(backupStr);
 
-            const res = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': this.apiKey
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!res.ok) throw new Error('Không thể tải lên đám mây. Kiểm tra quyền của API Key.');
+            const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+            const dbRef = ref(this.db, 'families/' + this.familyId);
+            
+            await set(dbRef, payload);
             this.updateStatus('Đã đẩy dữ liệu thành công lên hệ thống chung!');
         } catch (err) {
-            this.updateStatus(err.message, true);
+            this.updateStatus('Lỗi khi đẩy dữ liệu: ' + err.message, true);
+        } finally {
+            setTimeout(() => { this.isSyncing = false; }, 1000);
         }
     }
 };
 window.CloudSync = CloudSync;
 
+// Tự động kích hoạt đẩy dữ liệu lên mây khi có thay đổi nội bộ
+setTimeout(() => {
+    if (typeof DataManager !== 'undefined') {
+        const methodsToPatch = ['saveMember', 'deleteMember', 'saveRecord', 'deleteRecord', 'saveReminder', 'deleteReminder', 'markReminderAsNotified'];
+        methodsToPatch.forEach(method => {
+            const original = DataManager[method];
+            if (typeof original === 'function') {
+                DataManager[method] = async function(...args) {
+                    const result = await original.apply(this, args);
+                    if (CloudSync.isConfigured() && !CloudSync.isSyncing) {
+                        CloudSync.syncUp(); // fire and forget
+                    }
+                    return result;
+                };
+            }
+        });
+    }
+}, 1000);
+
 // ==================== BINDING CLOUD SYNC EVENTS ====================
 document.addEventListener('DOMContentLoaded', () => {
-    const inputBinId = document.getElementById('sync-bin-id');
-    const inputApiKey = document.getElementById('sync-api-key');
+    const inputFirebaseConfig = document.getElementById('sync-firebase-config');
+    const inputFamilyId = document.getElementById('sync-family-id');
+
+    // Phục hồi UI
+    if (inputFirebaseConfig) inputFirebaseConfig.value = CloudSync.firebaseConfigStr;
+    if (inputFamilyId) inputFamilyId.value = CloudSync.familyId;
 
     document.getElementById('btn-sync-connect')?.addEventListener('click', () => {
-        const bin = inputBinId.value.trim();
-        const key = inputApiKey.value.trim();
-        if (!bin || !key) return CloudSync.updateStatus('Vui lòng nhập đủ Bin ID và API Key!', true);
-        CloudSync.saveConfig(bin, key);
-        CloudSync.syncDown();
+        const config = inputFirebaseConfig.value.trim();
+        const familyId = inputFamilyId.value.trim();
+        if (!config || !familyId) return CloudSync.updateStatus('Vui lòng nhập đủ Cấu hình Firebase và Mã Gia Đình!', true);
+        
+        try {
+            JSON.parse(config);
+        } catch(e) {
+            return CloudSync.updateStatus('Cấu hình Firebase không phải là chuỗi JSON hợp lệ!', true);
+        }
+        
+        CloudSync.saveConfig(config, familyId);
+        CloudSync.startAutoSync();
     });
 
     document.getElementById('btn-sync-push')?.addEventListener('click', () => {
-        const bin = inputBinId.value.trim();
-        const key = inputApiKey.value.trim();
-        if (!bin || !key) return CloudSync.updateStatus('Vui lòng nhập đủ Bin ID và API Key!', true);
-        if (!confirm('Hành động này sẽ ghi đè dữ liệu trên mây bằng dữ liệu máy bạn. Bạn có chắc không?')) return;
-        CloudSync.saveConfig(bin, key);
+        const config = inputFirebaseConfig.value.trim();
+        const familyId = inputFamilyId.value.trim();
+        if (!config || !familyId) return CloudSync.updateStatus('Vui lòng nhập đủ Cấu hình Firebase và Mã Gia Đình!', true);
+        
+        if (!confirm('Hành động này sẽ ép ghi đè dữ liệu trên mây bằng dữ liệu máy bạn. Bạn có chắc không?')) return;
+        
+        CloudSync.saveConfig(config, familyId);
         CloudSync.syncUp();
     });
 
     document.getElementById('btn-sync-clear')?.addEventListener('click', () => {
         if (!confirm('Bạn có muốn ngắt kết nối đồng bộ không? Dữ liệu trên máy không bị ảnh hưởng.')) return;
         CloudSync.clearConfig();
-        inputBinId.value = '';
-        inputApiKey.value = '';
+        if (inputFirebaseConfig) inputFirebaseConfig.value = '';
+        if (inputFamilyId) inputFamilyId.value = '';
         CloudSync.updateStatus('Đã ngắt kết nối Cloud Sync.');
     });
 
     if (CloudSync.isConfigured()) {
         setTimeout(() => {
-            CloudSync.syncDown();
+            CloudSync.startAutoSync();
         }, 1500);
     }
 });
