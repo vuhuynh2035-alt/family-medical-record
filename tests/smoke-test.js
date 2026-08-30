@@ -114,7 +114,12 @@ function check(name, condition) {
   await withStubbedNetwork(page);
   await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(200);
-
+  
+  // Bỏ qua màn hình thiết lập PIN bắt buộc
+  await page.fill('#input-forced-pin', '1234');
+  await page.fill('#input-forced-confirm-pin', '1234');
+  await page.click('#form-forced-pin-setup button[type=submit]');
+  await page.waitForTimeout(300);
   console.log('\n[Thành viên & tìm kiếm/thống kê]');
   await page.click('#btn-add-member');
   await page.fill('#member-name', 'Người Test <b>an toàn</b>');
@@ -237,7 +242,7 @@ function check(name, condition) {
   await page.click('.tab-btn[data-target="tab-reminders"]');
   await page.click('#btn-add-reminder');
   await page.fill('#reminder-title', 'Tái khám');
-  await page.fill('#reminder-date', '2026-08-15');
+  await page.fill('#reminder-date', '2030-08-15');
   await page.fill('#reminder-time', '09:30');
   await page.fill('#reminder-note', 'Nhịn ăn trước khi xét nghiệm');
   await page.click('button[form="form-reminder"][type=submit]');
@@ -255,15 +260,8 @@ function check(name, condition) {
   check('Sửa lịch hẹn: nội dung mới hiển thị', reminderListHTML.includes('Tái khám (đã đổi)'));
 
   console.log('\n[Khóa PIN]');
-  await page.click('#btn-settings');
-  await page.waitForTimeout(150);
-  await page.click('#btn-enable-pin');
-  await page.fill('#input-new-pin', '1234');
-  await page.fill('#input-confirm-pin', '1234');
-  await page.click('#btn-save-pin');
-  await page.waitForTimeout(150);
-  await page.click('#modal-settings .close-modal');
-  await page.waitForTimeout(150);
+  // Khóa PIN đã được bật mặc định ngay từ đầu qua màn hình forced-setup
+  // Chỉ cần tải lại trang để kiểm tra màn hình khóa hoạt động đúng không
 
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForTimeout(200);
@@ -303,6 +301,9 @@ function check(name, condition) {
   // sẵn các model phổ biến (nút "Tải danh sách" mới sẽ nạp thêm option động từ API key
   // thật của người dùng — không kiểm thử được offline). Ở đây chọn 1 option có sẵn khác
   // với option mặc định để xác nhận việc lưu lựa chọn hoạt động đúng.
+  // Mở rộng phần cấu hình AI (vì nó nằm trong thẻ <details>)
+  await page.click('details[data-help-title="Cấu hình AI"] summary');
+  await page.waitForTimeout(150);
   await page.selectOption('#input-openai-model', 'gpt-4o-mini');
   await page.selectOption('#input-anthropic-model', 'claude-3-haiku-20240307');
   await page.click('#btn-save-settings');
