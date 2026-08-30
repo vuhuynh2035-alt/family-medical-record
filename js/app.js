@@ -219,22 +219,27 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.3.4';
+const CURRENT_APP_VERSION = 'v2.3.5';
 let newWorker = null;
-let latestDetectedVersion = CURRENT_APP_VERSION;
+let latestDetectedVersion = '';
 
-function showUpdateToast(newVersion = '') {
-    if (newVersion) latestDetectedVersion = newVersion;
+function showUpdateToast(newVersion) {
+    if (!newVersion || newVersion === CURRENT_APP_VERSION) {
+        document.getElementById('update-toast')?.classList.add('hidden');
+        return;
+    }
     
-    // Nếu người dùng đã chọn "Để sau" hoặc đã bấm cập nhật phiên bản này trong phiên này -> Không hiện lại
-    if (sessionStorage.getItem('update_dismissed_' + latestDetectedVersion) === 'true') {
+    latestDetectedVersion = newVersion;
+    
+    // Nếu người dùng đã chọn "Để sau" cho phiên bản này -> Không hiện lại
+    if (localStorage.getItem('update_dismissed_' + latestDetectedVersion) === 'true') {
         return;
     }
     
     const updateToast = document.getElementById('update-toast');
     const title = document.getElementById('update-toast-title');
     if (title) {
-        title.innerText = latestDetectedVersion ? `Đã có bản cập nhật mới (${latestDetectedVersion})!` : 'Đã có bản cập nhật mới!';
+        title.innerText = `Đã có bản cập nhật mới (${latestDetectedVersion})!`;
     }
     if (updateToast) {
         updateToast.classList.remove('hidden');
@@ -249,16 +254,17 @@ function checkForRemoteUpdate() {
             return res.json();
         })
         .then(data => {
-            if (data && data.version && data.version !== CURRENT_APP_VERSION) {
-                // Kiểm tra xem đã ghi nhận cập nhật phiên bản này chưa
-                if (sessionStorage.getItem('update_dismissed_' + data.version) !== 'true') {
-                    console.log(`New version detected: ${data.version} (current: ${CURRENT_APP_VERSION})`);
+            if (data && data.version) {
+                if (data.version === CURRENT_APP_VERSION) {
+                    // Đang ở phiên bản mới nhất -> Đóng thông báo nếu đang mở
+                    document.getElementById('update-toast')?.classList.add('hidden');
+                } else {
                     showUpdateToast(data.version);
                 }
             }
         })
         .catch(err => {
-            // Không log lỗi nếu ngoại tuyến
+            // Ngoại tuyến
         });
 }
 
@@ -268,45 +274,28 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').then(reg => {
             console.log('Service Worker registered', reg);
 
-            // 1. Nếu đã có Service Worker mới đang chờ sẵn (waiting) -> Hiện thông báo
-            if (reg.waiting) {
-                newWorker = reg.waiting;
-                showUpdateToast();
-            }
-
-            // 2. Tự động kiểm tra bản cập nhật mới
+            // Tự động kiểm tra bản cập nhật mới
             try { reg.update(); } catch(e){}
 
-            // 3. Tự động kiểm tra cập nhật mỗi 5 phút
+            // Tự động kiểm tra cập nhật mỗi 5 phút
             setInterval(() => {
                 try { reg.update(); } catch(e){}
                 checkForRemoteUpdate();
             }, 5 * 60 * 1000);
 
-            // 4. Kiểm tra cập nhật mỗi khi người dùng chuyển lại tab ứng dụng
+            // Kiểm tra cập nhật mỗi khi người dùng chuyển lại tab ứng dụng
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
                     try { reg.update(); } catch(e){}
                     checkForRemoteUpdate();
                 }
             });
-
-            // 5. Khi tìm thấy bản Service Worker mới
-            reg.addEventListener('updatefound', () => {
-                newWorker = reg.installing;
-                if (!newWorker) return;
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        showUpdateToast();
-                    }
-                });
-            });
         }).catch(err => {
             console.log('Service Worker registration error: ', err);
         });
 
-        // Kiểm tra phiên bản từ xa sau 1.5 giây
-        setTimeout(checkForRemoteUpdate, 1500);
+        // Kiểm tra phiên bản từ xa sau 2 giây
+        setTimeout(checkForRemoteUpdate, 2000);
     });
 
     let isRefreshing = false;
@@ -372,7 +361,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             btnUpdateApp.innerText = 'Đang nạp...';
             
             // Ghi nhận đã cập nhật phiên bản này để không hiện lại
-            sessionStorage.setItem('update_dismissed_' + latestDetectedVersion, 'true');
+            if (latestDetectedVersion) {
+                localStorage.setItem('update_dismissed_' + latestDetectedVersion, 'true');
+                localStorage.setItem('app_installed_version', latestDetectedVersion);
+            }
             document.getElementById('update-toast')?.classList.add('hidden');
 
             // Xóa cache cũ
@@ -398,14 +390,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Tải lại trang sạch sẽ
             setTimeout(() => {
                 window.location.replace(window.location.origin + window.location.pathname + '?t=' + Date.now());
-            }, 300);
+            }, 250);
         });
     }
 
     const btnDismissUpdate = document.getElementById('btn-dismiss-update');
     if (btnDismissUpdate) {
         btnDismissUpdate.addEventListener('click', () => {
-            sessionStorage.setItem('update_dismissed_' + latestDetectedVersion, 'true');
+            if (latestDetectedVersion) {
+                localStorage.setItem('update_dismissed_' + latestDetectedVersion, 'true');
+            }
             document.getElementById('update-toast')?.classList.add('hidden');
         });
     }
