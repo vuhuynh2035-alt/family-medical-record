@@ -597,6 +597,55 @@ Không cần lời chào hỏi, đi thẳng vào giải thích ý nghĩa.`;
         }
     },
 
+    async extractSmartReminders(recordData) {
+        const prompt = `Hôm nay là: ${recordData.date}. Dựa vào hồ sơ dưới đây, hãy trích xuất lịch hẹn thông minh.
+- Chẩn đoán: ${recordData.disease || 'Không rõ'}
+- Đơn thuốc/Điều trị: ${recordData.treatment || 'Không rõ'}
+- Ghi chú: ${recordData.note || 'Không rõ'}
+- Loại hồ sơ: ${recordData.type || 'Không rõ'}
+
+Nhiệm vụ của bạn là phân tích và trả về ĐÚNG 1 ĐỐI TƯỢNG JSON ĐƠN THUẦN (không bọc trong \`\`\`json markdown), có định dạng sau:
+{
+  "medications": [
+    {
+      "name": "Tên thuốc",
+      "days": 5, // số ngày uống (số nguyên, mặc định 5 nếu không rõ)
+      "times": ["08:00", "20:00"] // mảng các giờ uống tự suy luận logic (vd: 2 lần thì 08:00 và 20:00, 3 lần thì 08:00, 12:00, 20:00)
+    }
+  ],
+  "followup": {
+    "date": "YYYY-MM-DD", // ngày hẹn tái khám, null nếu không có
+    "note": "Ghi chú hẹn (null nếu không có)"
+  }
+}
+
+Chú ý:
+- Nếu hồ sơ KHÔNG CÓ đơn thuốc, trả về "medications": [].
+- Hãy đoán giờ uống một cách hợp lý nhất dựa vào từ khoá (sáng, trưa, chiều, tối). Nếu chỉ nói "uống 2 lần", lấy ["08:00", "20:00"].`;
+
+        try {
+            let resText = '';
+            const provider = DataManager.getProviderAssessment();
+            if (provider === 'openai') {
+                resText = await this.callOpenAI(prompt, 0.1, true);
+            } else if (provider === 'anthropic') {
+                resText = await this.callAnthropic(prompt, 0.1);
+            } else {
+                resText = await this.callGeminiAPI(prompt, null, true, null, 0.1);
+            }
+
+            let cleanResult = resText.trim();
+            if (cleanResult.startsWith("```json")) cleanResult = cleanResult.replace(/^```json/, "");
+            else if (cleanResult.startsWith("```")) cleanResult = cleanResult.replace(/^```/, "");
+            if (cleanResult.endsWith("```")) cleanResult = cleanResult.replace(/```$/, "");
+            
+            return JSON.parse(cleanResult.trim());
+        } catch (err) {
+            console.error("Smart Reminder extraction error:", err);
+            return null;
+        }
+    },
+
     // ==================== 7. VACCINE INTELLIGENCE (HỖ TRỢ TIÊM CHỦNG THÔNG MINH) ====================
     VACCINE_DATABASE: [
         {

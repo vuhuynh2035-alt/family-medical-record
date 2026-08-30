@@ -1436,27 +1436,17 @@ function setupEventListeners() {
         closeModal('modal-record');
         reloadRecordsAndStats();
 
-        // Kiểm tra tiêm chủng để tự động gợi ý & hỏi tạo lịch nhắc hẹn thông minh
+        const hasTreatment = !!recordData.treatment;
+        const hasDisease = !!recordData.disease;
+        const hasNote = !!recordData.note;
         const isVaccine = recordData.type === 'Tiêm chủng' || 
                           (recordData.type && recordData.type.toLowerCase().includes('tiêm')) || 
                           (typeof AIService !== 'undefined' && AIService.findVaccineInfo(recordData.disease + ' ' + recordData.treatment + ' ' + recordData.symptoms));
         
-        if (isVaccine && typeof AIService !== 'undefined') {
-            const vInfo = AIService.calculateNextVaccineDose(recordData.disease || recordData.treatment || recordData.symptoms || '', recordData.date);
-            if (vInfo && vInfo.nextDoseDate) {
-                // Kiểm tra xem đã có lịch nhắc nào cùng ngày hoặc cùng tên mũi tiêm chưa
-                const existingReminders = DataManager.getReminders();
-                const isAlreadyReminded = existingReminders.some(r => 
-                    r.memberId === currentMemberId && 
-                    (r.date === vInfo.nextDoseDate || (r.title && r.title.includes(vInfo.nextDoseTitle)))
-                );
-                
-                if (!isAlreadyReminded) {
-                    setTimeout(() => {
-                        promptVaccineReminderModal(currentMemberId, vInfo, recordData);
-                    }, 350);
-                }
-            }
+        if ((isVaccine || hasTreatment || (hasDisease && (hasNote || hasTreatment))) && typeof AIService !== 'undefined') {
+            setTimeout(() => {
+                promptSmartRemindersModal(currentMemberId, recordData, isVaccine);
+            }, 350);
         }
     });
 
@@ -3043,103 +3033,156 @@ document.addEventListener('click', async (e) => {
 
 // ==================== VACCINE REMINDERS & CONSULTATION CONTROLLER ====================
 
-/**
- * Mở modal tương tác hỏi người dùng có muốn thêm lịch nhắc tiêm mũi tiếp theo
- */
-function promptVaccineReminderModal(memberId, vInfo, recordData) {
-    const titleEl = document.getElementById('vaccine-reminder-title');
-    const dateEl = document.getElementById('vaccine-reminder-date');
-    const timeEl = document.getElementById('vaccine-reminder-time');
-    const noteEl = document.getElementById('vaccine-reminder-note');
-    const promptInfoEl = document.getElementById('vaccine-prompt-info');
-    const promptModal = document.getElementById('modal-vaccine-reminder-prompt');
+let currentSmartRemindersToSave = [];
 
-    if (!promptModal || !titleEl || !dateEl) return;
-
-    titleEl.value = vInfo.nextDoseTitle || `Tiêm mũi tiếp theo (${vInfo.vaccineName || 'Vắc xin'})`;
-    dateEl.value = vInfo.nextDoseDate || '';
-    if (timeEl) timeEl.value = '08:00';
-    if (noteEl) noteEl.value = vInfo.defaultNote || `Lịch hẹn tiêm vắc xin ${vInfo.vaccineName || ''}. Mang theo sổ tiêm chủng.`;
-
-    if (promptInfoEl) {
-        promptInfoEl.innerHTML = `
-            <p style="margin: 0 0 6px 0;"><strong>Vắc xin vừa lưu:</strong> ${UI.escapeHtml(vInfo.vaccineName || 'Vắc xin')} (Mũi ${vInfo.currentDose || 1})</p>
-            <p style="margin: 0 0 6px 0;"><strong>Bệnh phòng ngừa:</strong> ${UI.escapeHtml(vInfo.diseaseTarget || 'Bệnh truyền nhiễm')}</p>
-            <p style="margin: 0 0 6px 0;"><strong>Phác đồ chuẩn:</strong> ${UI.escapeHtml(vInfo.schedule || 'Theo hướng dẫn y tế')}</p>
-            ${vInfo.nextDoseDate ? `<p style="margin: 0; color: #27ae60; font-weight: 600;">👉 Đề xuất mũi tiếp theo: <u>${UI.escapeHtml(vInfo.nextDoseTitle || '')}</u> vào ngày <u>${UI.formatDate(vInfo.nextDoseDate)}</u> (~${vInfo.intervalDays || 30} ngày sau mũi vừa tiêm).</p>` : ''}
-        `;
-    }
-
-    promptModal.dataset.memberId = memberId;
-    promptModal.dataset.vaccineText = vInfo.vaccineName || '';
-    openModal('modal-vaccine-reminder-prompt');
-}
-
-/**
- * Tra cứu và mở Modal Cẩm nang Vắc xin
- */
-async function openVaccineConsultation(vaccineText, date) {
-    const modal = document.getElementById('modal-vaccine-consultation');
-    const loading = document.getElementById('vaccine-consultation-loading');
-    const content = document.getElementById('vaccine-consultation-content');
-    const member = DataManager.getMemberById(currentMemberId);
-    const memberName = member ? (member.nickname || member.name) : '';
-
+async function promptSmartRemindersModal(memberId, recordData) {
+    const modal = document.getElementById('modal-smart-reminders-prompt');
     if (!modal) return;
-    modal.dataset.vaccineText = vaccineText;
-    modal.dataset.date = date;
-    openModal('modal-vaccine-consultation');
+    
+    modal.dataset.memberId = memberId;
+    document.getElementById('smart-reminders-loading').classList.remove('hidden');
+    document.getElementById('smart-reminders-content').classList.add('hidden');
+    document.getElementById('smart-reminders-empty').classList.add('hidden');
+    document.getElementById('btn-save-smart-reminders').classList.add('hidden');
+    document.getElementById('smart-reminders-list').innerHTML = '';
+    
+    openModal('modal-smart-reminders-prompt');
 
-    if (loading) loading.classList.remove('hidden');
-    if (content) content.innerHTML = '';
+    currentSmartRemindersToSave = [];
+    const parsedReminders = [];
 
     try {
-        const mdText = await AIService.getVaccineConsultation(vaccineText, date, memberName);
-        if (content) content.innerHTML = UI.renderMarkdown(mdText);
-    } catch (err) {
-        if (content) content.innerHTML = `<p style="color: var(--danger);">Lỗi khi tra cứu vắc xin: ${UI.escapeHtml(err.message)}</p>`;
-    } finally {
-        if (loading) loading.classList.add('hidden');
+        const aiResult = await AIService.extractSmartReminders(recordData);
+        
+        if (aiResult) {
+            if (aiResult.medications && Array.isArray(aiResult.medications)) {
+                aiResult.medications.forEach(med => {
+                    const days = med.days || 5;
+                    const times = med.times || ['08:00', '20:00'];
+                    parsedReminders.push({
+                        type: 'medication',
+                        title: `Uống thuốc: ${med.name}`,
+                        desc: `Uống ${times.length} lần/ngày trong ${days} ngày (Tổng cộng: ${times.length * days} lượt nhắc)`,
+                        medData: med
+                    });
+                });
+            }
+            
+            if (aiResult.followup && aiResult.followup.date) {
+                parsedReminders.push({
+                    type: 'followup',
+                    title: 'Tái khám',
+                    desc: `Ngày hẹn: ${UI.formatDate(aiResult.followup.date)} - Ghi chú: ${aiResult.followup.note || 'Không có'}`,
+                    date: aiResult.followup.date,
+                    note: aiResult.followup.note
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Lỗi khi trích xuất thông minh:", e);
+    }
+
+    const isVaccine = recordData.type === 'Tiêm chủng' || 
+                      (recordData.type && recordData.type.toLowerCase().includes('tiêm')) || 
+                      (typeof AIService !== 'undefined' && AIService.findVaccineInfo(recordData.disease + ' ' + recordData.treatment + ' ' + recordData.symptoms));
+    
+    if (isVaccine && typeof AIService !== 'undefined') {
+        const vInfo = AIService.calculateNextVaccineDose(recordData.disease || recordData.treatment || recordData.symptoms || '', recordData.date);
+        if (vInfo && vInfo.nextDoseDate) {
+            parsedReminders.push({
+                type: 'vaccine',
+                title: vInfo.nextDoseTitle || `Tiêm mũi tiếp theo (${vInfo.vaccineName || 'Vắc xin'})`,
+                desc: `Ngày hẹn: ${UI.formatDate(vInfo.nextDoseDate)} - Bệnh phòng ngừa: ${vInfo.diseaseTarget}`,
+                date: vInfo.nextDoseDate,
+                note: vInfo.defaultNote
+            });
+        }
+    }
+
+    document.getElementById('smart-reminders-loading').classList.add('hidden');
+    
+    if (parsedReminders.length === 0) {
+        document.getElementById('smart-reminders-empty').classList.remove('hidden');
+    } else {
+        currentSmartRemindersToSave = parsedReminders;
+        const listContainer = document.getElementById('smart-reminders-list');
+        parsedReminders.forEach((rm, index) => {
+            const id = 'chk_sr_' + index;
+            const div = document.createElement('div');
+            div.style.cssText = "background: rgba(41, 128, 185, 0.05); padding: 12px; border-radius: 8px; display: flex; align-items: flex-start; gap: 10px;";
+            div.innerHTML = `
+                <input type="checkbox" id="${id}" value="${index}" checked class="chk-smart-reminder-item" style="margin-top: 3px; width: 18px; height: 18px; cursor: pointer;">
+                <label for="${id}" style="cursor: pointer; flex: 1;">
+                    <div style="font-weight: 600; color: var(--primary-blue); font-size: 14px; margin-bottom: 3px;">${UI.escapeHtml(rm.title)}</div>
+                    <div style="font-size: 13px; color: var(--text-color);">${UI.escapeHtml(rm.desc)}</div>
+                </label>
+            `;
+            listContainer.appendChild(div);
+        });
+        
+        document.getElementById('smart-reminders-content').classList.remove('hidden');
+        document.getElementById('btn-save-smart-reminders').classList.remove('hidden');
     }
 }
 
-// Xử lý xác nhận tạo lịch nhắc tiêm từ Modal Gợi ý
-document.getElementById('btn-confirm-vaccine-reminder')?.addEventListener('click', () => {
-    const promptModal = document.getElementById('modal-vaccine-reminder-prompt');
-    const memberId = promptModal?.dataset.memberId || currentMemberId;
-    const title = document.getElementById('vaccine-reminder-title')?.value.trim();
-    const date = document.getElementById('vaccine-reminder-date')?.value;
-    const time = document.getElementById('vaccine-reminder-time')?.value || '08:00';
-    const note = document.getElementById('vaccine-reminder-note')?.value.trim();
+document.getElementById('btn-save-smart-reminders')?.addEventListener('click', () => {
+    const modal = document.getElementById('modal-smart-reminders-prompt');
+    const memberId = modal.dataset.memberId || currentMemberId;
 
-    if (!title || !date) {
-        alert('Vui lòng nhập đầy đủ tên mũi tiêm và ngày hẹn tiêm.');
+    const checkboxes = document.querySelectorAll('.chk-smart-reminder-item:checked');
+    if (checkboxes.length === 0) {
+        alert("Vui lòng chọn ít nhất một mục để tạo lịch nhắc!");
         return;
     }
 
-    DataManager.saveReminder({
-        memberId: memberId,
-        title: title,
-        date: date,
-        time: time,
-        note: note
+    const baseDateStr = document.getElementById('record-date')?.value || new Date().toISOString().split('T')[0];
+    const baseDate = new Date(baseDateStr);
+
+    checkboxes.forEach(chk => {
+        const index = parseInt(chk.value);
+        const rmData = currentSmartRemindersToSave[index];
+        if (!rmData) return;
+
+        if (rmData.type === 'medication') {
+            const med = rmData.medData;
+            const days = med.days || 5;
+            const times = med.times || ['08:00', '20:00'];
+            
+            for (let d = 0; d < days; d++) {
+                const targetDate = new Date(baseDate.getTime() + d * 24 * 60 * 60 * 1000);
+                const dateStr = targetDate.toISOString().split('T')[0];
+                
+                times.forEach(t => {
+                    DataManager.saveReminder({
+                        memberId: memberId,
+                        title: rmData.title,
+                        date: dateStr,
+                        time: t,
+                        datetime: `${dateStr}T${t}:00`,
+                        note: `Đơn thuốc ngày thứ ${d + 1}/${days}`,
+                        selected_offsets: ["0"], // Nhắc đúng giờ
+                        completed: false
+                    });
+                });
+            }
+        } else {
+            DataManager.saveReminder({
+                memberId: memberId,
+                title: rmData.title,
+                date: rmData.date,
+                time: '08:00',
+                datetime: `${rmData.date}T08:00:00`,
+                note: rmData.note,
+                selected_offsets: ["0", "86400000", "259200000"], // Nhắc trước 3 ngày, 1 ngày, và đúng lúc
+                completed: false
+            });
+        }
     });
 
-    closeModal('modal-vaccine-reminder-prompt');
-    showToast('Đã thêm lịch nhắc tiêm phòng thành công!', 'success');
+    closeModal('modal-smart-reminders-prompt');
+    showToast('Đã tạo hàng loạt lịch nhắc hẹn thành công!', 'success');
     checkReminders();
-    if (currentView === 'detail') {
-        const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
-        if (activeTab === 'tab-reminders') {
-            const member = DataManager.getMemberById(memberId);
-            if (member) UI.renderRemindersList(DataManager.getReminders().filter(r => r.memberId === memberId));
-        }
-    }
-});
-
-// Xử lý bỏ qua nhắc tiêm
-document.getElementById('btn-cancel-vaccine-reminder')?.addEventListener('click', () => {
-    closeModal('modal-vaccine-reminder-prompt');
+    reloadRecordsAndStats();
 });
 
 // Xử lý nút "Cẩm nang Vắc xin" trong Chi tiết Hồ sơ
@@ -3148,6 +3191,24 @@ document.getElementById('btn-view-vaccine-guide')?.addEventListener('click', (e)
     const date = e.currentTarget.dataset.date || '';
     openVaccineConsultation(vaccineText, date);
 });
+function openReminderModalForVaccine(memberId, vInfo) {
+    document.getElementById('reminder-id').value = '';
+    document.getElementById('reminder-title').value = vInfo.nextDoseTitle || `Tiêm mũi tiếp theo (${vInfo.vaccineName || 'Vắc xin'})`;
+    document.getElementById('reminder-date').value = vInfo.nextDoseDate || '';
+    document.getElementById('reminder-time').value = '08:00';
+    document.getElementById('reminder-note').value = vInfo.defaultNote || `Lịch hẹn tiêm vắc xin ${vInfo.vaccineName || ''}. Mang theo sổ tiêm chủng.`;
+    
+    // Check offsets mặc định (0, 1 ngày, 3 ngày)
+    document.querySelectorAll('.reminder-offset-cb').forEach(cb => cb.checked = false);
+    const cb0 = document.querySelector('.reminder-offset-cb[value="0"]');
+    const cb1 = document.querySelector('.reminder-offset-cb[value="86400000"]');
+    const cb3 = document.querySelector('.reminder-offset-cb[value="259200000"]');
+    if (cb0) cb0.checked = true;
+    if (cb1) cb1.checked = true;
+    if (cb3) cb3.checked = true;
+
+    openModal('modal-reminder');
+}
 
 // Xử lý nút "Tra cứu Vắc xin" trên thanh banner nhanh trong form nhập hồ sơ
 document.getElementById('btn-quick-vaccine-guide')?.addEventListener('click', () => {
@@ -3173,7 +3234,7 @@ document.getElementById('btn-create-reminder-from-guide')?.addEventListener('cli
         nextDoseDate: '',
         defaultNote: `Lịch nhắc tiêm vắc xin ${vaccineText}. Mang theo sổ tiêm chủng.`
     };
-    promptVaccineReminderModal(currentMemberId, vInfo, { date: date });
+    openReminderModalForVaccine(currentMemberId, vInfo);
 });
 
 // Xử lý nút đặt lịch nhắc nhanh từ khối thông tin vắc xin trong Chi tiết hồ sơ (event delegation)
@@ -3192,7 +3253,7 @@ document.addEventListener('click', (e) => {
             diseaseTarget: 'Phòng ngừa bệnh truyền nhiễm',
             schedule: 'Theo phác đồ chuẩn'
         };
-        promptVaccineReminderModal(currentMemberId, vInfo, { date: date });
+        openReminderModalForVaccine(currentMemberId, vInfo);
     }
 });
 
