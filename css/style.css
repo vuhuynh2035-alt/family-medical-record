@@ -1511,4 +1511,64 @@ input::placeholder {
     background: rgba(39, 174, 96, 0.12);
 }
 
+/* ==================== NÚT NỔI "QUAY VỀ" CẠNH TRÁI ==================== */
+.floating-left-back-btn {
+    position: fixed;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10006;
+    background: linear-gradient(180deg, #1d4ed8, #2563eb, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 0 16px 16px 0;
+    padding: 12px 6px 12px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    box-shadow: 2px 4px 16px rgba(29, 78, 216, 0.45);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.92;
+    user-select: none;
+    touch-action: manipulation;
+    width: 24px;
+    min-height: 80px;
+    overflow: hidden;
+}
+
+.floating-left-back-btn:hover,
+.floating-left-back-btn:active {
+    opacity: 1;
+    width: 28px;
+    padding-left: 6px;
+    transform: translateY(-50%) scale(1.04);
+    box-shadow: 3px 6px 20px rgba(29, 78, 216, 0.6);
+}
+
+.floating-left-back-btn.hidden {
+    display: none !important;
+}
+
+.floating-left-back-btn span.material-symbols-rounded {
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1;
+    margin-left: -2px;
+}
+
+.floating-left-back-btn .floating-back-text {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1;
+    color: #ffffff;
+}
+
+
 

@@ -1987,6 +1987,21 @@ function setupEventListeners() {
 }
 
 // --- LOGIC FUNCTIONS ---
+function updateFloatingBackButtonState() {
+    const floatingBackBtn = document.getElementById('btn-floating-back');
+    if (!floatingBackBtn) return;
+
+    // Kiểm tra xem có modal nào đang mở không hoặc đang ở màn hình Chi tiết Thành viên
+    const visibleModals = document.querySelectorAll('.modal-overlay:not(.hidden)');
+    const isDetailView = document.getElementById('view-member-detail')?.classList.contains('active');
+
+    if (visibleModals.length > 0 || isDetailView) {
+        floatingBackBtn.classList.remove('hidden');
+    } else {
+        floatingBackBtn.classList.add('hidden');
+    }
+}
+
 function switchView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
@@ -1994,6 +2009,7 @@ function switchView(viewId) {
     // xem về đầu trang — tránh trường hợp trang mới hiển thị ngay tại vị trí cuộn dở dang của
     // trang trước đó (vì đây là ứng dụng 1 trang - SPA - nên trình duyệt không tự cuộn lại).
     window.scrollTo(0, 0);
+    updateFloatingBackButtonState();
 }
 
 function addImageToPreview(src, id = null) {
@@ -2028,11 +2044,13 @@ function addImageToPreview(src, id = null) {
     checkbox.type = 'checkbox';
     checkbox.className = 'ai-select-checkbox';
     checkbox.checked = true;
+    checkbox.title = 'Chọn gửi ảnh này cho AI đọc';
     checkbox.style.position = 'absolute';
     checkbox.style.top = '5px';
     checkbox.style.left = '5px';
-    checkbox.style.width = '20px';
-    checkbox.style.height = '20px';
+    checkbox.style.zIndex = '2';
+    checkbox.style.width = '18px';
+    checkbox.style.height = '18px';
     checkbox.style.cursor = 'pointer';
     checkbox.style.zIndex = '10';
     checkbox.style.accentColor = 'var(--primary-blue)';
@@ -2083,15 +2101,19 @@ function addImageToPreview(src, id = null) {
 
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
+    if (!modal) return;
     modal.classList.remove('hidden');
     // Mỗi lần mở hộp thoại (kể cả mở lại hộp thoại vừa đóng lúc đang cuộn dở, ví dụ sửa hồ sơ
     // dài rồi mở hồ sơ khác), luôn hiển thị từ đầu nội dung thay vì giữ nguyên vị trí cuộn cũ.
     const modalContent = modal.querySelector('.modal-content');
     if (modalContent) modalContent.scrollTop = 0;
+    updateFloatingBackButtonState();
 }
 
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.add('hidden');
+    updateFloatingBackButtonState();
 }
 
 function loadMemberDetail(id) {
@@ -3171,5 +3193,29 @@ document.addEventListener('click', async (e) => {
         }
     }
 });
+
+// ==================== NÚT NỔI "QUAY VỀ" (FLOATING LEFT BACK BUTTON) ====================
+document.getElementById('btn-floating-back')?.addEventListener('click', () => {
+    // 1. Nếu có modal đang mở -> Đóng modal trên cùng
+    const visibleModals = Array.from(document.querySelectorAll('.modal-overlay:not(.hidden)'));
+    if (visibleModals.length > 0) {
+        const topModal = visibleModals[visibleModals.length - 1];
+        if (topModal && topModal.id) {
+            closeModal(topModal.id);
+            return;
+        }
+    }
+
+    // 2. Nếu đang ở màn hình Chi tiết Thành viên -> Quay về Dashboard (Danh sách thành viên)
+    const isDetailView = document.getElementById('view-member-detail')?.classList.contains('active');
+    if (isDetailView) {
+        switchView('view-dashboard');
+        initDashboard();
+    }
+});
+
+// Cập nhật trạng thái hiển thị nút nổi khi khởi tạo trang
+setTimeout(updateFloatingBackButtonState, 300);
+
 
 
