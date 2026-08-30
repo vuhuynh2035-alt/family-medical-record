@@ -2113,6 +2113,9 @@ function openModal(modalId) {
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.add('hidden');
+    if (typeof TTSService !== 'undefined' && TTSService.isPlaying) {
+        TTSService.stop();
+    }
     updateFloatingBackButtonState();
 }
 
@@ -3235,8 +3238,283 @@ document.getElementById('btn-floating-back')?.addEventListener('click', () => {
     }
 });
 
-// Cập nhật trạng thái hiển thị nút nổi khi khởi tạo trang
-setTimeout(updateFloatingBackButtonState, 300);
+// ==================== HỆ THỐNG ĐỌC GIỌNG NÓI CHO NGƯỜI LỚN TUỔI (TEXT-TO-SPEECH) ====================
+const TTSService = {
+    currentUtterance: null,
+    isPlaying: false,
+    isPaused: false,
+    currentType: null,
+    activeBtnSelector: null,
+    speed: 0.9, // Tốc độ đọc từ tốn, ấm áp, rõ ràng cho người lớn tuổi
+    pitch: 1.05, // Cao độ giọng nữ êm dịu
+
+    getVietnameseFemaleVoice() {
+        if (!('speechSynthesis' in window)) return null;
+        const voices = window.speechSynthesis.getVoices() || [];
+        const viVoices = voices.filter(v => v.lang === 'vi-VN' || v.lang === 'vi_VN' || (v.lang && v.lang.startsWith('vi')));
+        if (viVoices.length === 0) return null;
+
+        // Ưu tiên giọng nữ tiếng Việt êm dịu, tự nhiên:
+        // 1. Microsoft HoaiMy Online (Edge Natural)
+        // 2. Google Tiếng Việt (Chrome / Android)
+        // 3. Linh (iOS / macOS Enhanced)
+        // 4. Microsoft Mai
+        const femaleKeywords = ['hoaimy', 'linh', 'mai', 'female', 'tiếng việt'];
+        for (let kw of femaleKeywords) {
+            const found = viVoices.find(v => (v.name || '').toLowerCase().includes(kw));
+            if (found) return found;
+        }
+        return viVoices[0];
+    },
+
+    cleanTextForSpeech(rawText) {
+        if (!rawText) return '';
+        let t = rawText
+            .replace(/<[^>]*>/g, ' ') // Xóa thẻ HTML
+            .replace(/[*#_`>~]/g, ' ') // Xóa ký tự markdown
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Giữ lại text trong markdown link
+            .replace(/\bmg\b/gi, ' miligam ')
+            .replace(/\bml\b/gi, ' mililit ')
+            .replace(/\bkg\b/gi, ' kilogam ')
+            .replace(/\bcm\b/gi, ' xentimét ')
+            .replace(/\bmmhg\b/gi, ' milimét thủy ngân ')
+            .replace(/\bmmol\/l\b/gi, ' milimol trên lít ')
+            .replace(/\bui\/l\b/gi, ' đơn vị trên lít ')
+            .replace(/\bHA\b/g, ' Huyết áp ')
+            .replace(/\bSpO2\b/gi, ' Độ bão hòa oxy SpO2 ')
+            .replace(/\blần\/ngày\b/gi, ' lần một ngày ')
+            .replace(/\bviên\/ngày\b/gi, ' viên một ngày ')
+            .replace(/\bĐ\/C\b/gi, ' Địa chỉ ')
+            .replace(/\bBS\b/g, ' Bác sĩ ')
+            .replace(/\bBV\b/g, ' Bệnh viện ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        return t;
+    },
+
+    buildRecordSpokenText(record) {
+        if (!record) return '';
+        let parts = [];
+        parts.push(`Hồ sơ khám bệnh tại ${record.hospital || 'bệnh viện'}.`);
+        if (record.date) {
+            const [y, m, d] = record.date.split('-');
+            parts.push(`Ngày khám: ngày ${parseInt(d)} tháng ${parseInt(m)} năm ${y}.`);
+        }
+        if (record.doctor) parts.push(`Bác sĩ phụ trách: ${record.doctor}.`);
+        if (record.type) parts.push(`Phân loại: ${record.type}.`);
+        if (record.disease) parts.push(`Chẩn đoán kết luận: ${record.disease}.`);
+
+        if (record.treatment) {
+            parts.push(`Chỉ định điều trị và đơn thuốc: ${record.treatment}.`);
+        }
+
+        const vitals = [];
+        if (record.bp) vitals.push(`Huyết áp: ${record.bp} milimét thủy ngân`);
+        if (record.hr) vitals.push(`Nhịp tim: ${record.hr} nhịp một phút`);
+        if (record.temp) vitals.push(`Thân nhiệt: ${record.temp} độ C`);
+        if (record.spo2) vitals.push(`Oxy máu: ${record.spo2} phần trăm`);
+        if (vitals.length > 0) {
+            parts.push(`Chỉ số sức khỏe: ${vitals.join(', ')}.`);
+        }
+
+        if (record.symptoms) parts.push(`Triệu chứng ghi nhận: ${record.symptoms}.`);
+        if (record.labs) parts.push(`Kết quả cận lâm sàng và xét nghiệm: ${record.labs}.`);
+        if (record.note) parts.push(`Lời dặn dò của bác sĩ: ${record.note}.`);
+
+        // Bổ sung thêm các chỉ số xét nghiệm bất thường nếu có
+        if (record.dynamicFields && record.dynamicFields.length > 0) {
+            const abnormalFields = record.dynamicFields.filter(f => f.isAbnormal);
+            if (abnormalFields.length > 0) {
+                parts.push(`Lưu ý các chỉ số xét nghiệm bất thường: ${abnormalFields.map(f => f.key + ' là ' + f.value).join(', ')}.`);
+            }
+        }
+
+        return parts.join(' ');
+    },
+
+    speak(text, title = 'Đang đọc nội dung...', btnSelector = null, type = null) {
+        if (!('speechSynthesis' in window)) {
+            showToast('Trình duyệt của bạn không hỗ trợ đọc giọng nói.', 'error');
+            return;
+        }
+
+        this.stop();
+
+        const clean = this.cleanTextForSpeech(text);
+        if (!clean) {
+            showToast('Không có nội dung văn bản để đọc.', 'error');
+            return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(clean);
+        utterance.lang = 'vi-VN';
+        utterance.rate = this.speed;
+        utterance.pitch = this.pitch;
+
+        const voice = this.getVietnameseFemaleVoice();
+        if (voice) {
+            utterance.voice = voice;
+        }
+
+        this.currentType = type;
+        this.activeBtnSelector = btnSelector;
+
+        utterance.onstart = () => {
+            this.isPlaying = true;
+            this.isPaused = false;
+            this.showPlayerUI(title);
+            this.setButtonState(true);
+        };
+
+        utterance.onend = () => {
+            this.isPlaying = false;
+            this.isPaused = false;
+            this.currentType = null;
+            this.hidePlayerUI();
+            this.setButtonState(false);
+        };
+
+        utterance.onerror = (e) => {
+            console.warn('TTS error:', e);
+            this.isPlaying = false;
+            this.isPaused = false;
+            this.currentType = null;
+            this.hidePlayerUI();
+            this.setButtonState(false);
+        };
+
+        this.currentUtterance = utterance;
+        window.speechSynthesis.speak(utterance);
+    },
+
+    pauseResume() {
+        if (!('speechSynthesis' in window) || !this.isPlaying) return;
+        const icon = document.getElementById('tts-pause-icon');
+        if (this.isPaused) {
+            window.speechSynthesis.resume();
+            this.isPaused = false;
+            if (icon) icon.innerText = 'pause';
+            showToast('Tiếp tục đọc');
+        } else {
+            window.speechSynthesis.pause();
+            this.isPaused = true;
+            if (icon) icon.innerText = 'play_arrow';
+            showToast('Đã tạm dừng đọc');
+        }
+    },
+
+    stop() {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        this.isPlaying = false;
+        this.isPaused = false;
+        this.currentType = null;
+        this.hidePlayerUI();
+        this.setButtonState(false);
+    },
+
+    toggleSpeed() {
+        const speeds = [0.8, 0.9, 1.1];
+        const labels = ['0.8x', '0.9x', '1.1x'];
+        const desc = ['Rất chậm', 'Êm dịu chuẩn', 'Nhanh hơn'];
+        let idx = speeds.indexOf(this.speed);
+        if (idx === -1) idx = 1;
+        idx = (idx + 1) % speeds.length;
+        this.speed = speeds[idx];
+        const btn = document.getElementById('btn-tts-speed');
+        if (btn) btn.innerText = labels[idx];
+        showToast(`Tốc độ đọc: ${labels[idx]} (${desc[idx]})`);
+    },
+
+    showPlayerUI(title) {
+        const bar = document.getElementById('tts-player-bar');
+        const titleEl = document.getElementById('tts-player-title');
+        const pauseIcon = document.getElementById('tts-pause-icon');
+        if (titleEl) titleEl.innerText = title;
+        if (pauseIcon) pauseIcon.innerText = 'pause';
+        if (bar) bar.classList.remove('hidden');
+    },
+
+    hidePlayerUI() {
+        const bar = document.getElementById('tts-player-bar');
+        if (bar) bar.classList.add('hidden');
+    },
+
+    setButtonState(isSpeaking) {
+        document.querySelectorAll('.tts-speak-btn').forEach(btn => {
+            btn.classList.remove('speaking');
+            const span = btn.querySelector('span:last-child');
+            if (span && span.id) span.innerText = 'Đọc';
+        });
+
+        if (isSpeaking && this.activeBtnSelector) {
+            const btn = document.querySelector(this.activeBtnSelector);
+            if (btn) {
+                btn.classList.add('speaking');
+                const span = btn.querySelector('span:last-child');
+                if (span && span.id) span.innerText = 'Dừng';
+            }
+        }
+    }
+};
+
+// Đảm bảo tải trước danh sách giọng nói tiếng Việt khi trình duyệt sẵn sàng
+if ('speechSynthesis' in window) {
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = () => TTSService.getVietnameseFemaleVoice();
+    }
+}
+
+// 1. Đọc Chi tiết Hồ sơ
+document.getElementById('btn-speak-record')?.addEventListener('click', () => {
+    if (TTSService.isPlaying && TTSService.currentType === 'record') {
+        TTSService.stop();
+        return;
+    }
+    const modal = document.getElementById('modal-view-record');
+    const recordId = modal.dataset.id;
+    const record = currentRecords.find(r => r.id === recordId);
+    if (!record) return showToast('Không tìm thấy thông tin hồ sơ.', 'error');
+
+    let spokenText = TTSService.buildRecordSpokenText(record);
+    const reportContent = document.getElementById('view-record-report-data')?.innerText;
+    if (reportContent && reportContent.trim()) {
+        spokenText += ` Nhận xét chuyên sâu từ AI: ${reportContent.trim()}`;
+    }
+
+    TTSService.speak(spokenText, `Hồ sơ: ${record.disease || record.hospital || 'Khám bệnh'}`, '#btn-speak-record', 'record');
+});
+
+// 2. Đọc AI Nhận xét
+document.getElementById('btn-speak-assessment')?.addEventListener('click', () => {
+    if (TTSService.isPlaying && TTSService.currentType === 'assessment') {
+        TTSService.stop();
+        return;
+    }
+    const content = document.getElementById('ai-assessment-content')?.innerText;
+    if (!content || !content.trim()) return showToast('Chưa có nội dung nhận xét để đọc.', 'error');
+
+    TTSService.speak(content, 'AI Nhận xét sức khỏe', '#btn-speak-assessment', 'assessment');
+});
+
+// 3. Đọc Cẩm nang Vắc xin
+document.getElementById('btn-speak-vaccine-guide')?.addEventListener('click', () => {
+    if (TTSService.isPlaying && TTSService.currentType === 'vaccine') {
+        TTSService.stop();
+        return;
+    }
+    const content = document.getElementById('vaccine-consultation-content')?.innerText;
+    if (!content || !content.trim()) return showToast('Chưa có nội dung cẩm nang để đọc.', 'error');
+
+    TTSService.speak(content, 'Cẩm nang Tiêm chủng', '#btn-speak-vaccine-guide', 'vaccine');
+});
+
+// 4. Các nút điều khiển trên Mini Player
+document.getElementById('btn-tts-pause-resume')?.addEventListener('click', () => TTSService.pauseResume());
+document.getElementById('btn-tts-stop')?.addEventListener('click', () => TTSService.stop());
+document.getElementById('btn-tts-speed')?.addEventListener('click', () => TTSService.toggleSpeed());
+
 
 
 

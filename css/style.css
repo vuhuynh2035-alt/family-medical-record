@@ -1581,5 +1581,119 @@ input::placeholder {
     color: #ffffff;
 }
 
+/* ==================== ĐỌC GIỌNG NÓI CHO NGƯỜI LỚN TUỔI (TEXT-TO-SPEECH) ==================== */
+.tts-speak-btn {
+    transition: all 0.2s ease;
+}
+
+.tts-speak-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.tts-speak-btn.speaking {
+    background: #0284c7 !important;
+    color: white !important;
+    border-color: #0284c7 !important;
+    animation: pulseGlow 1.5s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(2, 132, 199, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+}
+
+.tts-player-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.92);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    z-index: 10015;
+    min-width: 290px;
+    max-width: 90vw;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    animation: slideUpFade 0.3s ease-out;
+}
+
+.tts-player-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.tts-player-title {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #f1f5f9;
+}
+
+.tts-pulse-icon {
+    animation: pulseIcon 1.2s infinite alternate;
+}
+
+@keyframes pulseIcon {
+    from { transform: scale(1); opacity: 0.8; }
+    to { transform: scale(1.2); opacity: 1; color: #38bdf8; }
+}
+
+.tts-player-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tts-ctrl-btn {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.tts-ctrl-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.tts-ctrl-btn.danger {
+    background: rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+}
+
+.tts-ctrl-btn.danger:hover {
+    background: #ef4444;
+    color: white;
+}
+
+@keyframes slideUpFade {
+    from { transform: translate(-50%, 20px); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+
 
 

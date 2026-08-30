@@ -884,7 +884,13 @@
     <div id="modal-view-record" class="modal-overlay hidden" role="dialog" aria-modal="true">
         <div class="modal-content neumorphic-modal modal-large">
             <div class="modal-header">
-                <h3 id="view-record-title">Chi tiết Hồ sơ</h3>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <h3 id="view-record-title" style="margin: 0;">Chi tiết Hồ sơ</h3>
+                    <button type="button" id="btn-speak-record" class="tts-speak-btn neumorphic-btn" title="Đọc nội dung hồ sơ này (Dành cho người lớn tuổi)" style="color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.35); background: rgba(2, 132, 199, 0.08); font-size: 12px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; border-radius: 20px; font-weight: 600; cursor: pointer;">
+                        <span class="material-symbols-rounded" style="font-size: 16px;">volume_up</span>
+                        <span id="speak-record-text">Đọc</span>
+                    </button>
+                </div>
                 <button class="icon-btn close-modal"><span class="material-symbols-rounded">reply</span></button>
             </div>
             <div class="modal-body" style="padding: 0; margin-bottom: 10px;">
@@ -915,7 +921,13 @@
     <div id="modal-ai-assessment" class="modal-overlay hidden" role="dialog" aria-modal="true">
         <div class="modal-content neumorphic-modal">
             <div class="modal-header">
-                <h3><span class="material-symbols-rounded ai-sparkle">psychiatry</span> AI Nhận xét tình trạng</h3>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-rounded ai-sparkle">psychiatry</span> AI Nhận xét</h3>
+                    <button type="button" id="btn-speak-assessment" class="tts-speak-btn neumorphic-btn" title="Đọc nhận xét của AI" style="color: #8e44ad; border: 1px solid rgba(142, 68, 173, 0.35); background: rgba(142, 68, 173, 0.08); font-size: 12px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; border-radius: 20px; font-weight: 600; cursor: pointer;">
+                        <span class="material-symbols-rounded" style="font-size: 16px;">volume_up</span>
+                        <span id="speak-assessment-text">Đọc</span>
+                    </button>
+                </div>
                 <button class="icon-btn close-modal"><span class="material-symbols-rounded">reply</span></button>
             </div>
             <div class="modal-body" style="padding: 0; margin-bottom: 10px;">
@@ -1184,10 +1196,16 @@
     <div id="modal-vaccine-consultation" class="modal-overlay hidden" role="dialog" aria-modal="true" style="z-index: 10002;">
         <div class="modal-content neumorphic-modal modal-large">
             <div class="modal-header" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px;">
-                <h3 style="display: flex; align-items: center; gap: 8px; color: #16a085;">
-                    <span class="material-symbols-rounded" style="color: #16a085;">vaccines</span>
-                    Cẩm nang & Phác đồ Tiêm chủng
-                </h3>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <h3 style="display: flex; align-items: center; gap: 6px; color: #16a085; margin: 0;">
+                        <span class="material-symbols-rounded" style="color: #16a085;">vaccines</span>
+                        Cẩm nang Tiêm chủng
+                    </h3>
+                    <button type="button" id="btn-speak-vaccine-guide" class="tts-speak-btn neumorphic-btn" title="Đọc cẩm nang vắc xin" style="color: #16a085; border: 1px solid rgba(22, 160, 133, 0.35); background: rgba(22, 160, 133, 0.08); font-size: 12px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; border-radius: 20px; font-weight: 600; cursor: pointer;">
+                        <span class="material-symbols-rounded" style="font-size: 16px;">volume_up</span>
+                        <span id="speak-vaccine-text">Đọc</span>
+                    </button>
+                </div>
                 <button type="button" class="icon-btn close-modal"><span class="material-symbols-rounded">reply</span></button>
             </div>
             <div class="modal-body" style="padding: 20px 0;">
@@ -1202,6 +1220,23 @@
                     <span class="material-symbols-rounded" style="vertical-align: middle; font-size: 18px; margin-right: 4px;">add_alarm</span> Tạo Lịch nhắc tiêm
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Floating Audio Player Bar for Text-to-Speech (Thanh phát âm thanh nổi dành cho người lớn tuổi) -->
+    <div id="tts-player-bar" class="tts-player-bar hidden">
+        <div class="tts-player-left">
+            <span class="material-symbols-rounded tts-pulse-icon" style="font-size: 20px; color: var(--primary-blue);">record_voice_over</span>
+            <span id="tts-player-title" class="tts-player-title">Đang đọc nội dung...</span>
+        </div>
+        <div class="tts-player-controls">
+            <button type="button" id="btn-tts-speed" class="tts-ctrl-btn" title="Chỉnh tốc độ giọng đọc">0.9x</button>
+            <button type="button" id="btn-tts-pause-resume" class="tts-ctrl-btn" title="Tạm dừng / Tiếp tục">
+                <span class="material-symbols-rounded" id="tts-pause-icon" style="font-size: 18px;">pause</span>
+            </button>
+            <button type="button" id="btn-tts-stop" class="tts-ctrl-btn danger" title="Dừng đọc">
+                <span class="material-symbols-rounded" style="font-size: 18px;">close</span>
+            </button>
         </div>
     </div>
 </body>
