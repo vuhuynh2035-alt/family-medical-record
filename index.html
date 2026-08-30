@@ -893,13 +893,19 @@
                     <div id="view-record-report-data" style="margin-top: 18px;"></div>
                 </div>
 
-                <div class="modal-footer-actions" style="margin-top: 16px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 14px; width: 100%; box-sizing: border-box;">
-                    <button type="button" class="secondary-btn neumorphic-btn close-modal" style="font-size: 12.5px; padding: 7px 14px; font-weight: 500;">Đóng</button>
-                    <button type="button" id="btn-view-vaccine-guide" class="secondary-btn neumorphic-btn hidden" style="font-size: 12.5px; padding: 7px 14px; color: #16a085; border-color: #16a085; font-weight: 500;">Cẩm nang Vắc xin</button>
-                    <button type="button" id="btn-toggle-chat" class="secondary-btn neumorphic-btn" style="font-size: 12.5px; padding: 7px 14px; color: #8e44ad; border-color: #8e44ad; font-weight: 500;">Hỏi AI</button>
-                    <button type="button" id="btn-download-record-pdf" class="secondary-btn neumorphic-btn" style="font-size: 12.5px; padding: 7px 14px; color: #27ae60; border-color: #27ae60; font-weight: 500;">Lưu PDF</button>
-                    <button type="button" id="btn-share-record" class="secondary-btn neumorphic-btn" style="font-size: 12.5px; padding: 7px 14px; color: #2563eb; border-color: #2563eb; font-weight: 500;">Chia sẻ</button>
-                    <button type="button" class="secondary-btn neumorphic-btn btn-scroll-modal-top" title="Về đầu trang" style="font-size: 12.5px; padding: 7px 12px; font-weight: 500;">Đầu trang</button>
+                <div class="modal-footer-container" style="margin-top: 16px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
+                    <!-- Hàng 1: Hỏi AI, Lưu PDF, Chia sẻ (và Cẩm nang vắc xin nếu có) -->
+                    <div class="footer-row-actions" style="display: flex; gap: 8px; justify-content: center; width: 100%;">
+                        <button type="button" id="btn-view-vaccine-guide" class="secondary-btn neumorphic-btn hidden" style="flex: 1; font-size: 12.5px; padding: 8px 4px; color: #16a085; border-color: #16a085; font-weight: 600; text-align: center;">Cẩm nang</button>
+                        <button type="button" id="btn-toggle-chat" class="secondary-btn neumorphic-btn" style="flex: 1; font-size: 12.5px; padding: 8px 4px; color: #8e44ad; border-color: #8e44ad; font-weight: 600; text-align: center;">Hỏi AI</button>
+                        <button type="button" id="btn-download-record-pdf" class="secondary-btn neumorphic-btn" style="flex: 1; font-size: 12.5px; padding: 8px 4px; color: #27ae60; border-color: #27ae60; font-weight: 600; text-align: center;">Lưu PDF</button>
+                        <button type="button" id="btn-share-record" class="secondary-btn neumorphic-btn" style="flex: 1; font-size: 12.5px; padding: 8px 4px; color: #2563eb; border-color: #2563eb; font-weight: 600; text-align: center;">Chia sẻ</button>
+                    </div>
+                    <!-- Hàng 2: Đóng (cạnh trái) và Đầu trang (cạnh phải) -->
+                    <div class="footer-row-nav" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <button type="button" class="secondary-btn neumorphic-btn close-modal" style="font-size: 12.5px; padding: 7px 18px; font-weight: 500;">Đóng</button>
+                        <button type="button" class="secondary-btn neumorphic-btn btn-scroll-modal-top" title="Về đầu trang" style="font-size: 12.5px; padding: 7px 18px; font-weight: 500;">Đầu trang</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -918,11 +924,17 @@
                 </div>
                 <div id="ai-assessment-content" class="ai-result-content"></div>
                 
-                <div class="modal-footer-actions" style="margin-top: 16px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 14px; width: 100%; box-sizing: border-box;">
-                    <button type="button" class="secondary-btn neumorphic-btn close-modal" style="font-size: 12.5px; padding: 7px 14px; font-weight: 500;">Đóng</button>
-                    <button type="button" id="btn-download-assessment-pdf" class="secondary-btn neumorphic-btn" style="font-size: 12.5px; padding: 7px 14px; color: #27ae60; border-color: #27ae60; font-weight: 500;">Lưu PDF</button>
-                    <button type="button" id="btn-share-assessment" class="secondary-btn neumorphic-btn" style="font-size: 12.5px; padding: 7px 14px; color: #2563eb; border-color: #2563eb; font-weight: 500;">Chia sẻ</button>
-                    <button type="button" class="secondary-btn neumorphic-btn btn-scroll-modal-top" title="Về đầu trang" style="font-size: 12.5px; padding: 7px 12px; font-weight: 500;">Đầu trang</button>
+                <div class="modal-footer-container" style="margin-top: 16px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
+                    <!-- Hàng 1: Lưu PDF, Chia sẻ -->
+                    <div class="footer-row-actions" style="display: flex; gap: 8px; justify-content: center; width: 100%;">
+                        <button type="button" id="btn-download-assessment-pdf" class="secondary-btn neumorphic-btn" style="flex: 1; font-size: 12.5px; padding: 8px 4px; color: #27ae60; border-color: #27ae60; font-weight: 600; text-align: center;">Lưu PDF</button>
+                        <button type="button" id="btn-share-assessment" class="secondary-btn neumorphic-btn" style="flex: 1; font-size: 12.5px; padding: 8px 4px; color: #2563eb; border-color: #2563eb; font-weight: 600; text-align: center;">Chia sẻ</button>
+                    </div>
+                    <!-- Hàng 2: Đóng (cạnh trái) và Đầu trang (cạnh phải) -->
+                    <div class="footer-row-nav" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <button type="button" class="secondary-btn neumorphic-btn close-modal" style="font-size: 12.5px; padding: 7px 18px; font-weight: 500;">Đóng</button>
+                        <button type="button" class="secondary-btn neumorphic-btn btn-scroll-modal-top" title="Về đầu trang" style="font-size: 12.5px; padding: 7px 18px; font-weight: 500;">Đầu trang</button>
+                    </div>
                 </div>
             </div>
         </div>

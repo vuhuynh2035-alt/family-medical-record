@@ -3138,8 +3138,29 @@ function printMedicalImages(imageSrcs, title = 'Tài liệu hồ sơ y tế') {
     }, 600);
 }
 
-// Xử lý sự kiện bấm In một ảnh riêng lẻ từ Gallery
+// Xử lý sự kiện bấm In một ảnh riêng lẻ từ Gallery / Thu gọn tài liệu
 document.addEventListener('click', async (e) => {
+    // 0. Đóng/mở mục Tài liệu đính kèm ở cuối trang
+    const toggleDocsBtn = e.target.closest('#btn-toggle-attached-docs');
+    if (toggleDocsBtn) {
+        const body = document.getElementById('attached-docs-body');
+        const icon = document.getElementById('attached-docs-toggle-icon');
+        const text = document.getElementById('attached-docs-toggle-text');
+        if (body) {
+            const isHidden = body.classList.contains('hidden');
+            if (isHidden) {
+                body.classList.remove('hidden');
+                if (icon) icon.style.transform = 'rotate(180deg)';
+                if (text) text.innerText = 'Thu gọn';
+            } else {
+                body.classList.add('hidden');
+                if (icon) icon.style.transform = 'rotate(0deg)';
+                if (text) text.innerText = 'Xem tài liệu';
+            }
+        }
+        return;
+    }
+
     // 1. Mở xem ảnh phóng to từ bất kỳ phần tử nào có class .btn-view-img
     const btnView = e.target.closest('.btn-view-img');
     if (btnView && !btnView.closest('#records-list')) {

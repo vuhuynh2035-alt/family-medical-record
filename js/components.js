@@ -513,22 +513,29 @@ const UI = {
                 </div>`;
         }
 
-        // 4. Tài liệu & Hình ảnh gốc đính kèm (Interactive Gallery + In ấn / Tải về)
+        // 4. Tài liệu & Hình ảnh gốc đính kèm (Collapsible Accordion ở cuối trang)
         const images = record.originalImages || (record.originalImage ? [record.originalImage] : []);
         if (images.length > 0) {
             html += `
-                <div class="attached-docs-section" style="margin-top: 18px; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 16px;">
-                    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px;">
-                        <h4 style="color: var(--primary-blue); margin: 0; font-size: 15.5px; display: flex; align-items: center; gap: 6px;">
-                            <span class="material-symbols-rounded" style="font-size: 18px;">image</span> Tài liệu / Hình ảnh gốc đính kèm (${images.length})
-                        </h4>
-                        <div style="display: flex; gap: 8px;">
+                <div class="attached-docs-collapsible" style="margin-top: 18px; border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; background: var(--bg-color); box-shadow: var(--shadow-outer);">
+                    <button type="button" id="btn-toggle-attached-docs" class="btn-toggle-attached-docs" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(52, 152, 219, 0.08); border: none; cursor: pointer; text-align: left; transition: background 0.2s;">
+                        <span style="font-size: 14px; font-weight: 600; color: var(--primary-blue); display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 20px;">folder_open</span>
+                            Tài liệu & Hình ảnh gốc đính kèm (${images.length})
+                        </span>
+                        <span style="display: flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--primary-blue); font-weight: 600;">
+                            <span id="attached-docs-toggle-text">Xem tài liệu</span>
+                            <span class="material-symbols-rounded" id="attached-docs-toggle-icon" style="font-size: 20px; transition: transform 0.3s ease;">expand_more</span>
+                        </span>
+                    </button>
+                    
+                    <div id="attached-docs-body" class="hidden" style="padding: 14px; background: white; border-top: 1px solid rgba(0,0,0,0.06); animation: slideDown 0.25s ease-out;">
+                        <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
                             <button type="button" class="btn-print-all-docs neumorphic-btn" data-record-id="${this.escapeHtml(record.id)}" style="font-size: 12px; padding: 5px 12px; color: #27ae60; border: 1px solid #27ae60; background: white; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
                                 <span class="material-symbols-rounded" style="font-size: 16px;">print</span> In toàn bộ tài liệu
                             </button>
                         </div>
-                    </div>
-                    <div class="attached-docs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px;">
+                        <div class="attached-docs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">
             `;
 
             for (let i = 0; i < images.length; i++) {
@@ -558,6 +565,7 @@ const UI = {
             }
 
             html += `
+                        </div>
                     </div>
                 </div>
             `;
