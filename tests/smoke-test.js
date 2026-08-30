@@ -145,7 +145,7 @@ function check(name, condition) {
   await page.fill('#record-date', '2026-06-01');
   await page.fill('#record-type', 'Khám sức khỏe tổng quát');
   await page.fill('#record-hospital', 'Bệnh viện Test');
-  await page.fill('#record-disease', 'Cảm cúm');
+  await page.fill('#record-disease', 'Đau họng');
   await page.fill('#record-symptoms', 'Ho khan kéo dài về đêm');
   await page.click('button:has-text("Lưu Hồ Sơ")');
   await page.waitForTimeout(200);

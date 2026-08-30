@@ -330,40 +330,23 @@
                     
                     <div class="form-group" style="background: rgba(41, 128, 185, 0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
                         <label style="color: var(--primary-blue); display: flex; align-items: center; gap: 5px; margin-bottom: 10px;">
-                            <span class="material-symbols-rounded" style="font-size: 18px;">notifications_active</span> Nhắc nhở trước hẹn (tùy chọn)
+                            <span class="material-symbols-rounded" style="font-size: 18px;">notifications_active</span> Chọn thời điểm nhắc nhở
                         </label>
-                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Hệ thống mặc định sẽ nhắc nhở đúng giờ hẹn. Bạn có thể cài đặt thêm 2 lần nhắc nhở trước thời gian đó.</p>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Bạn có thể chọn nhiều thời điểm để hệ thống đánh chuông nhắc nhở.</p>
                         
-                        <div class="form-group-row" style="margin-bottom: 10px;">
-                            <div class="form-group" style="flex: 0 0 45%;">
-                                <label style="font-size: 13px;">Nhắc lần 1 (Số)</label>
-                                <input type="number" id="reminder-offset1-val" class="neumorphic-input" min="1" placeholder="Ví dụ: 15">
-                            </div>
-                            <div class="form-group" style="flex: 1;">
-                                <label style="font-size: 13px;">Đơn vị</label>
-                                <select id="reminder-offset1-unit" class="neumorphic-input">
-                                    <option value="minutes">Phút</option>
-                                    <option value="hours">Giờ</option>
-                                    <option value="days">Ngày</option>
-                                    <option value="weeks">Tuần</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group-row" style="margin-bottom: 0;">
-                            <div class="form-group" style="flex: 0 0 45%;">
-                                <label style="font-size: 13px;">Nhắc lần 2 (Số)</label>
-                                <input type="number" id="reminder-offset2-val" class="neumorphic-input" min="1" placeholder="Ví dụ: 1">
-                            </div>
-                            <div class="form-group" style="flex: 1;">
-                                <label style="font-size: 13px;">Đơn vị</label>
-                                <select id="reminder-offset2-unit" class="neumorphic-input">
-                                    <option value="minutes">Phút</option>
-                                    <option value="hours">Giờ</option>
-                                    <option value="days">Ngày</option>
-                                    <option value="weeks">Tuần</option>
-                                </select>
-                            </div>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="reminder_offsets" value="0" style="width:18px; height:18px;" checked>
+                                Ngay tại thời điểm hẹn
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="reminder_offsets" value="86400000" style="width:18px; height:18px;">
+                                Trước 1 ngày
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="reminder_offsets" value="259200000" style="width:18px; height:18px;">
+                                Trước 3 ngày
+                            </label>
                         </div>
                     </div>
                     <div class="form-group">
@@ -476,7 +459,24 @@
 
                 <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
 
+                <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">notifications_active</span> Cài đặt Chuông báo Nhắc hẹn</h4>
+                <div class="form-group">
+                    <label>Kiểu chuông báo</label>
+                    <select id="input-alarm-sound" class="neumorphic-input">
+                        <option value="https://actions.google.com/sounds/v1/alarms/mechanical_clock_ring.ogg">Đồng hồ cơ (Mặc định)</option>
+                        <option value="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">Đồng hồ điện tử</option>
+                        <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Chuông cảnh báo (Digital)</option>
+                        <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Kèn báo thức</option>
+                        <option value="https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg">Phi thuyền không gian</option>
+                    </select>
+                </div>
+                <div style="display: flex; justify-content: flex-end;">
+                    <button type="button" id="btn-test-alarm" class="secondary-btn neumorphic-btn btn-small" style="display: flex; align-items: center; gap: 5px;">
+                        <span class="material-symbols-rounded" style="font-size: 16px;">play_arrow</span> Nghe thử
+                    </button>
+                </div>
 
+                <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
 
                 <details style="margin-bottom: 20px; border-radius: 12px;" data-help-title="Cấu hình AI" data-help-desc="Bấm vào để mở rộng cài đặt API Key và phân công tác vụ cho các hệ thống Trí tuệ Nhân tạo khác nhau.">
                     <summary class="neumorphic-btn" style="font-weight: bold; cursor: pointer; color: var(--primary-blue); display: flex; align-items: center; font-size: 16px; padding: 15px; border-radius: 12px; transition: all 0.3s ease;">
