@@ -131,6 +131,8 @@ function check(name, condition) {
 
   await page.click('.member-card');
   await page.waitForTimeout(200);
+  await page.click('.tab-btn[data-target="tab-profile"]');
+  await page.waitForTimeout(100);
   const ageText = await page.$eval('#tab-profile', el => el.innerText);
   check('Hiển thị tuổi tính từ ngày sinh', /tuổi/.test(ageText));
 
