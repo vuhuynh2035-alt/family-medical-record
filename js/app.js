@@ -3985,25 +3985,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputFirebaseConfig) inputFirebaseConfig.value = CloudSync.firebaseConfigStr;
     if (inputFamilyId) inputFamilyId.value = CloudSync.familyId;
 
+    function parseFirebaseConfig(raw) {
+        try {
+            return JSON.stringify(JSON.parse(raw));
+        } catch(e) {
+            try {
+                const first = raw.indexOf('{');
+                const last = raw.lastIndexOf('}');
+                if (first !== -1 && last !== -1) {
+                    const extracted = raw.substring(first, last + 1);
+                    const obj = new Function("return " + extracted)();
+                    if (obj && typeof obj === 'object') {
+                        return JSON.stringify(obj);
+                    }
+                }
+            } catch(err) {}
+            return null;
+        }
+    }
+
     document.getElementById('btn-sync-connect')?.addEventListener('click', () => {
-        const config = inputFirebaseConfig.value.trim();
+        let config = inputFirebaseConfig.value.trim();
         const familyId = inputFamilyId.value.trim();
         if (!config || !familyId) return CloudSync.updateStatus('Vui lòng nhập đủ Cấu hình Firebase và Mã Gia Đình!', true);
         
-        try {
-            JSON.parse(config);
-        } catch(e) {
-            return CloudSync.updateStatus('Cấu hình Firebase không phải là chuỗi JSON hợp lệ!', true);
-        }
+        config = parseFirebaseConfig(config);
+        if (!config) return CloudSync.updateStatus('Cấu hình Firebase không hợp lệ!', true);
+        if (inputFirebaseConfig) inputFirebaseConfig.value = config; // Update UI to show valid JSON
         
         CloudSync.saveConfig(config, familyId);
         CloudSync.startAutoSync();
     });
 
     document.getElementById('btn-sync-push')?.addEventListener('click', () => {
-        const config = inputFirebaseConfig.value.trim();
+        let config = inputFirebaseConfig.value.trim();
         const familyId = inputFamilyId.value.trim();
         if (!config || !familyId) return CloudSync.updateStatus('Vui lòng nhập đủ Cấu hình Firebase và Mã Gia Đình!', true);
+        
+        config = parseFirebaseConfig(config);
+        if (!config) return CloudSync.updateStatus('Cấu hình Firebase không hợp lệ!', true);
+        if (inputFirebaseConfig) inputFirebaseConfig.value = config;
         
         if (!confirm('Hành động này sẽ ép ghi đè dữ liệu trên mây bằng dữ liệu máy bạn. Bạn có chắc không?')) return;
         
