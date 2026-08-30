@@ -219,7 +219,7 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.3.9';
+const CURRENT_APP_VERSION = 'v2.4.0';
 let newWorker = null;
 let latestDetectedVersion = '';
 
@@ -3344,6 +3344,7 @@ const TTSService = {
     pitch: 1.05, // Cao độ giọng nữ êm dịu
     audioFallback: null,
     currentUtterance: null,
+    voiceProvider: localStorage.getItem('tts_voice_provider') || 'system',
 
     getVietnameseFemaleVoice() {
         if (!('speechSynthesis' in window)) return null;
@@ -3540,6 +3541,11 @@ const TTSService = {
 
         const chunkText = this.chunks[this.currentChunkIndex];
         this.updatePlayerSubtitle(chunkText);
+
+        if (this.voiceProvider === 'google_translate') {
+            this.playChunkWithAudioFallback(chunkText);
+            return;
+        }
 
         const voice = this.getVietnameseFemaleVoice();
         const hasNativeVi = 'speechSynthesis' in window && (voice || !/Android/i.test(navigator.userAgent));
@@ -3799,7 +3805,20 @@ document.getElementById('btn-tts-pause-resume')?.addEventListener('click', () =>
 document.getElementById('btn-tts-stop')?.addEventListener('click', () => TTSService.stop());
 document.getElementById('btn-tts-speed')?.addEventListener('click', () => TTSService.toggleSpeed());
 
+// 6. Cài đặt Giọng đọc
+document.getElementById('btn-tts-settings')?.addEventListener('click', () => {
+    const provider = TTSService.voiceProvider;
+    const radio = document.querySelector(`input[name="tts_voice_provider"][value="${provider}"]`);
+    if (radio) radio.checked = true;
+    document.getElementById('modal-tts-settings').classList.remove('hidden');
+});
 
-
-
-
+document.querySelectorAll('input[name="tts_voice_provider"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        const val = e.target.value;
+        TTSService.voiceProvider = val;
+        localStorage.setItem('tts_voice_provider', val);
+        showToast('Đã lưu cài đặt giọng đọc.');
+        setTimeout(() => document.getElementById('modal-tts-settings').classList.add('hidden'), 500);
+    });
+});
