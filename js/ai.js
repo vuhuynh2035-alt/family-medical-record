@@ -117,6 +117,23 @@ const AIService = {
                     if (isModelNotFound) {
                         throw new Error(`Model AI "${model}" hiện không khả dụng (có thể đã bị Google ngừng hỗ trợ). Vào Cài đặt > mục Gemini > bấm "Tải danh sách" để chọn lại 1 model đang hoạt động từ chính tài khoản của bạn. (Chi tiết lỗi gốc: ${apiMsg})`);
                     }
+
+                    // Bắt lỗi Hết hạn mức / Quá giới hạn request (429 RESOURCE_EXHAUSTED)
+                    const isQuotaExceeded = response.status === 429 || data.error?.status === 'RESOURCE_EXHAUSTED' || /quota|rate limit|resource_exhausted/i.test(apiMsg);
+                    if (isQuotaExceeded) {
+                        const isPerMinute = /minute|rpm|per minute/i.test(apiMsg);
+                        if (isPerMinute) {
+                            throw new Error(`Đã đạt giới hạn gửi yêu cầu/phút của Google Gemini (Rate Limit). Vui lòng đợi khoảng 1 phút rồi thử lại.`);
+                        }
+                        throw new Error(`Hết hạn mức sử dụng (Quota Exceeded) từ tài khoản Google Gemini. Vui lòng tạo API Key mới từ tài khoản Google khác và dán vào Cài đặt > "Lưu cài đặt", hoặc chuyển sang ChatGPT/Claude để dự phòng.`);
+                    }
+
+                    // Bắt lỗi Quá tải máy chủ (503 / High Demand)
+                    const isOverloadStatus = response.status === 503 || /high demand|overloaded|unavailable/i.test(apiMsg);
+                    if (isOverloadStatus) {
+                        throw new Error(`Hệ thống AI của Google hiện đang bị quá tải tạm thời (503 High Demand). Vui lòng đợi 1-2 phút rồi thử lại, hoặc vào Cài đặt để đổi sang ChatGPT/Claude.`);
+                    }
+
                     throw new Error(apiMsg);
                 }
 
@@ -126,16 +143,13 @@ const AIService = {
                     throw new Error("Không nhận được phản hồi hợp lệ từ AI.");
                 }
             } catch (error) {
-                const isOverloaded = error.message.includes("high demand") || error.message.includes("503");
+                const isOverloaded = error.message.includes("quá tải") || error.message.includes("high demand") || error.message.includes("503") || error.message.includes("overloaded");
                 attempts++;
                 if (isOverloaded && attempts < maxAttempts) {
                     console.warn(`Gemini API overloaded. Retrying in 2 seconds... (Attempt ${attempts}/${maxAttempts})`);
                     await new Promise(r => setTimeout(r, 2000));
                 } else {
                     console.error("Gemini API Error:", error);
-                    if (isOverloaded) {
-                        throw new Error("Hệ thống AI của Google hiện đang bị quá tải (High Demand). Vui lòng đợi vài phút rồi thử lại. Bạn cũng có thể vào Cài đặt để thêm API Key của ChatGPT/Claude để dự phòng nhé!");
-                    }
                     throw error;
                 }
             }
