@@ -1418,7 +1418,12 @@ function setupEventListeners() {
             if (src && src.startsWith('img_')) {
                 src = await ImageStore.getImage(src);
             }
-            document.getElementById('viewer-image').src = src;
+            const imgEl = document.getElementById('viewer-image');
+            if (imgEl && src) {
+                imgEl.src = src;
+                viewerZoomScale = 1;
+                imgEl.style.transform = 'scale(1)';
+            }
             openModal('modal-image-viewer');
             return;
         }
@@ -2979,4 +2984,192 @@ document.getElementById('record-type')?.addEventListener('input', updateVaccineB
 document.getElementById('record-type')?.addEventListener('change', updateVaccineBannerState);
 document.getElementById('record-disease')?.addEventListener('input', updateVaccineBannerState);
 document.getElementById('record-treatment')?.addEventListener('input', updateVaccineBannerState);
+
+// ==================== IMAGE VIEWER ZOOM & PRINT CONTROLS ====================
+let viewerZoomScale = 1;
+
+function updateViewerZoom() {
+    const imgEl = document.getElementById('viewer-image');
+    if (imgEl) {
+        imgEl.style.transform = `scale(${viewerZoomScale})`;
+    }
+}
+
+document.getElementById('btn-viewer-zoom-in')?.addEventListener('click', () => {
+    viewerZoomScale = Math.min(viewerZoomScale + 0.25, 3.5);
+    updateViewerZoom();
+});
+
+document.getElementById('btn-viewer-zoom-out')?.addEventListener('click', () => {
+    viewerZoomScale = Math.max(viewerZoomScale - 0.25, 0.5);
+    updateViewerZoom();
+});
+
+document.getElementById('btn-viewer-zoom-reset')?.addEventListener('click', () => {
+    viewerZoomScale = 1;
+    updateViewerZoom();
+});
+
+// In ảnh đang hiển thị trong modal viewer
+document.getElementById('btn-print-viewer-image')?.addEventListener('click', () => {
+    const imgEl = document.getElementById('viewer-image');
+    if (imgEl && imgEl.src) {
+        printMedicalImages([imgEl.src], 'Tài liệu y tế gốc');
+    }
+});
+
+// Tải ảnh về máy từ modal viewer
+document.getElementById('btn-download-viewer-image')?.addEventListener('click', () => {
+    const imgEl = document.getElementById('viewer-image');
+    if (imgEl && imgEl.src) {
+        const a = document.createElement('a');
+        a.href = imgEl.src;
+        a.download = `Tai_lieu_y_te_${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast('Đang tải hình ảnh về thiết bị...', 'success');
+    }
+});
+
+// Chia sẻ ảnh từ modal viewer
+document.getElementById('btn-share-viewer-image')?.addEventListener('click', async () => {
+    const imgEl = document.getElementById('viewer-image');
+    if (!imgEl || !imgEl.src) return;
+
+    if (navigator.share) {
+        try {
+            // Chuyển base64 sang Blob nếu cần chia sẻ file
+            const res = await fetch(imgEl.src);
+            const blob = await res.blob();
+            const file = new File([blob], `Ho_so_y_te_${Date.now()}.png`, { type: blob.type });
+            await navigator.share({
+                title: 'Hồ sơ y tế',
+                text: 'Hình ảnh tài liệu hồ sơ y tế gia đình',
+                files: [file]
+            });
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                showToast('Không thể chia sẻ: ' + err.message, 'error');
+            }
+        }
+    } else {
+        showToast('Trình duyệt không hỗ trợ Web Share API.', 'error');
+    }
+});
+
+/**
+ * Hàm in ấn một hoặc nhiều hình ảnh tài liệu y tế chuẩn
+ */
+function printMedicalImages(imageSrcs, title = 'Tài liệu hồ sơ y tế') {
+    if (!imageSrcs || imageSrcs.length === 0) {
+        showToast('Không tìm thấy hình ảnh nào để in.', 'error');
+        return;
+    }
+
+    const printFrame = document.createElement('iframe');
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    document.body.appendChild(printFrame);
+
+    const doc = printFrame.contentWindow.document;
+    doc.open();
+    doc.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>${title}</title>
+            <style>
+                @page { margin: 10mm; size: auto; }
+                body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; }
+                .print-page { page-break-after: always; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 96vh; }
+                .print-page:last-child { page-break-after: avoid; }
+                img { max-width: 100%; max-height: 90vh; object-fit: contain; box-shadow: none; }
+                .print-caption { margin-top: 10px; font-size: 13px; color: #555; }
+            </style>
+        </head>
+        <body>
+            ${imageSrcs.map((src, idx) => `
+                <div class="print-page">
+                    <img src="${src}" alt="${title}">
+                    <div class="print-caption">${title} (Trang ${idx + 1}/${imageSrcs.length})</div>
+                </div>
+            `).join('')}
+        </body>
+        </html>
+    `);
+    doc.close();
+
+    printFrame.contentWindow.focus();
+    setTimeout(() => {
+        printFrame.contentWindow.print();
+        setTimeout(() => {
+            if (document.body.contains(printFrame)) {
+                document.body.removeChild(printFrame);
+            }
+        }, 1500);
+    }, 600);
+}
+
+// Xử lý sự kiện bấm In một ảnh riêng lẻ từ Gallery
+document.addEventListener('click', async (e) => {
+    // 1. Mở xem ảnh phóng to từ bất kỳ phần tử nào có class .btn-view-img
+    const btnView = e.target.closest('.btn-view-img');
+    if (btnView && !btnView.closest('#records-list')) {
+        let src = btnView.dataset.img;
+        if (src && src.startsWith('img_')) {
+            src = await ImageStore.getImage(src);
+        }
+        const imgEl = document.getElementById('viewer-image');
+        if (imgEl && src) {
+            imgEl.src = src;
+            viewerZoomScale = 1;
+            imgEl.style.transform = 'scale(1)';
+            openModal('modal-image-viewer');
+        }
+        return;
+    }
+
+    // 2. In 1 tài liệu đơn lẻ
+    const btnPrintSingle = e.target.closest('.btn-print-single-doc');
+    if (btnPrintSingle) {
+        let src = btnPrintSingle.dataset.img;
+        if (src && src.startsWith('img_')) {
+            src = await ImageStore.getImage(src);
+        }
+        if (src) {
+            printMedicalImages([src], 'Tài liệu y tế gốc');
+        }
+        return;
+    }
+
+    // 3. In toàn bộ tài liệu đính kèm của hồ sơ
+    const btnPrintAll = e.target.closest('.btn-print-all-docs');
+    if (btnPrintAll) {
+        const recordId = btnPrintAll.dataset.recordId;
+        const record = currentRecords.find(r => r.id === recordId);
+        if (record) {
+            const images = record.originalImages || (record.originalImage ? [record.originalImage] : []);
+            if (images.length === 0) {
+                showToast('Hồ sơ này không có tài liệu hình ảnh nào đính kèm.', 'error');
+                return;
+            }
+            const resolvedSrcs = [];
+            for (let img of images) {
+                let s = img;
+                if (img.startsWith('img_')) {
+                    s = await ImageStore.getImage(img);
+                }
+                if (s) resolvedSrcs.push(s);
+            }
+            printMedicalImages(resolvedSrcs, `Hồ sơ ${record.hospital || 'Khám bệnh'} (${record.date || ''})`);
+        }
+    }
+});
+
 

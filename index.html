@@ -948,17 +948,9 @@
         </div>
     </div>
 
-    <!-- Full Image Viewer Modal -->
-    <div id="modal-image-viewer" class="modal-overlay hidden" role="dialog" aria-modal="true">
-        <div class="modal-content image-viewer-content">
-            <button class="icon-btn close-modal absolute-close"><span class="material-symbols-rounded">reply</span></button>
-            <img id="viewer-image" src="" alt="Full view">
-        </div>
-    </div>
-
     <!-- Image Lightbox Modal -->
     <div id="modal-lightbox" class="modal-overlay hidden" role="dialog" aria-modal="true">
-        <div class="modal-content glass-panel" style="max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);">
+        <div class="modal-content glass-panel" style="max-width: 95vw; max-height: 95vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);">
             <div style="width: 100%; display: flex; justify-content: flex-end; margin-bottom: 10px;">
                 <button class="icon-btn close-modal" data-modal="modal-lightbox"><span class="material-symbols-rounded">reply</span></button>
             </div>
@@ -1000,21 +992,38 @@
         </div>
     </div>
 
-    <!-- Image Viewer Modal -->
-    <div id="modal-image-viewer" class="modal-overlay hidden" style="z-index: 9999;" role="dialog" aria-modal="true">
-        <div class="modal-content neumorphic-modal" style="display: flex; flex-direction: column; height: 95vh; max-height: 95vh; padding: 0; background: #000; width: 100%; max-width: 100%;">
-            <div class="modal-header" style="background: rgba(0,0,0,0.8); color: white; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px 20px;">
-                <h3 style="color: white; margin: 0; font-size: 16px;">Xem Hình Ảnh</h3>
-                <button class="icon-btn close-modal" style="color: white;"><span class="material-symbols-rounded">close</span></button>
+    <!-- Image Viewer Modal (Full Screen & Print) -->
+    <div id="modal-image-viewer" class="modal-overlay hidden" style="z-index: 10005;" role="dialog" aria-modal="true">
+        <div class="modal-content neumorphic-modal" style="display: flex; flex-direction: column; height: 96vh; max-height: 96vh; padding: 0; background: #0b1120; width: 98%; max-width: 1200px; border-radius: 12px; overflow: hidden;">
+            <div class="modal-header" style="background: rgba(15, 23, 42, 0.95); color: white; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; margin: 0;">
+                <h3 style="color: white; margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded" style="color: #38bdf8;">description</span>
+                    <span id="viewer-image-title">Xem Tài liệu & Hình ảnh gốc</span>
+                </h3>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button type="button" id="btn-viewer-zoom-out" class="icon-btn" style="color: white; background: rgba(255,255,255,0.1); width: 34px; height: 34px; border-radius: 6px;" title="Thu nhỏ">
+                        <span class="material-symbols-rounded" style="font-size: 18px;">zoom_out</span>
+                    </button>
+                    <button type="button" id="btn-viewer-zoom-in" class="icon-btn" style="color: white; background: rgba(255,255,255,0.1); width: 34px; height: 34px; border-radius: 6px;" title="Phóng to">
+                        <span class="material-symbols-rounded" style="font-size: 18px;">zoom_in</span>
+                    </button>
+                    <button type="button" id="btn-viewer-zoom-reset" class="icon-btn" style="color: white; background: rgba(255,255,255,0.1); width: 34px; height: 34px; border-radius: 6px;" title="Về kích thước chuẩn">
+                        <span class="material-symbols-rounded" style="font-size: 18px;">restart_alt</span>
+                    </button>
+                    <button class="icon-btn close-modal" style="color: white; background: rgba(255,255,255,0.15); width: 34px; height: 34px; border-radius: 6px;"><span class="material-symbols-rounded">close</span></button>
+                </div>
             </div>
-            <div class="modal-body" style="flex: 1; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 0;">
-                <img id="viewer-image" src="" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+            <div class="modal-body" style="flex: 1; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 15px; margin: 0; background: #030712;">
+                <img id="viewer-image" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.2s ease-out; transform-origin: center center;" alt="Tài liệu gốc">
             </div>
-            <div class="modal-footer" style="background: rgba(0,0,0,0.8); padding: 15px; display: flex; justify-content: center; gap: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <button type="button" id="btn-download-viewer-image" class="secondary-btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);">
-                    <span class="material-symbols-rounded" style="font-size:18px;">download</span> Lưu ảnh
+            <div class="modal-footer" style="background: rgba(15, 23, 42, 0.95); padding: 12px 20px; display: flex; justify-content: center; gap: 12px; border-top: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap;">
+                <button type="button" id="btn-print-viewer-image" class="primary-btn" style="background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 8px 18px; font-weight: 600; border: none; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-rounded" style="font-size:18px;">print</span> In tài liệu này
                 </button>
-                <button type="button" id="btn-share-viewer-image" class="primary-btn" style="background: #3498db; color: white;">
+                <button type="button" id="btn-download-viewer-image" class="secondary-btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-rounded" style="font-size:18px;">download</span> Tải về máy
+                </button>
+                <button type="button" id="btn-share-viewer-image" class="secondary-btn" style="background: rgba(52, 152, 219, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
                     <span class="material-symbols-rounded" style="font-size:18px;">share</span> Chia sẻ
                 </button>
             </div>

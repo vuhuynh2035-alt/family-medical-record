@@ -347,98 +347,91 @@ const UI = {
 
     async renderRecordDetailModal(record) {
         const typeInfo = this.getTypeInfo(record.type);
+        
+        // 1. Header chi tiết hồ sơ (Tối ưu co giãn, không bị chật hẹp)
         let html = `
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px; margin-bottom: 15px;">
-                <div>
-                    <h4 style="color: var(--primary-blue); font-size: 20px; margin-bottom: 5px;">${this.escapeHtml(record.hospital)}</h4>
-                    <p style="font-size: 14px;"><strong>Ngày khám:</strong> ${this.escapeHtml(this.formatDate(record.date))}</p>
-                    <p style="font-size: 14px;"><strong>Bác sĩ:</strong> ${this.escapeHtml(record.doctor) || 'N/A'}</p>
+            <div class="record-detail-header" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 15px; margin-bottom: 18px;">
+                <div style="flex: 1; min-width: 220px;">
+                    <h4 style="color: var(--primary-blue); font-size: 21px; margin: 0 0 6px 0; word-break: break-word; line-height: 1.35; font-weight: 700;">${this.escapeHtml(record.hospital)}</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 13.5px; color: var(--text-color);">
+                        <span><strong>Ngày khám:</strong> ${this.escapeHtml(this.formatDate(record.date))}</span>
+                        <span><strong>Bác sĩ:</strong> ${this.escapeHtml(record.doctor) || 'Chưa cập nhật'}</span>
+                    </div>
                 </div>
-                <div>
-                    <span class="type-badge" style="${typeInfo.style}">${this.escapeHtml(typeInfo.text)}</span>
+                <div style="flex-shrink: 0;">
+                    <span class="type-badge" style="${typeInfo.style}; white-space: nowrap; font-size: 13px; padding: 6px 14px; display: inline-block; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-weight: 600;">${this.escapeHtml(typeInfo.text)}</span>
                 </div>
             </div>
+        `;
 
-            <h4 style="color: var(--primary-blue); margin-bottom: 10px; font-size: 16px;"><span class="material-symbols-rounded" style="vertical-align: middle;">coronavirus</span> Chẩn đoán & Điều trị</h4>
-            <div style="background: var(--bg-color); box-shadow: var(--shadow-inner); padding: 15px; border-radius: var(--radius-sm); margin-bottom: 20px;">
-                <p style="margin-bottom: 10px;"><strong>Chẩn đoán:</strong> ${this.escapeHtml(record.disease)}</p>
-                <div style="margin-bottom: 10px;">
-                    <strong>Điều trị/Thuốc:</strong><br>${record.treatment ? this.nl2br(record.treatment) : 'Không'}
-                    ${record.treatment && !record.medicationAnalysis ? `
-                    <div style="margin-top: 10px;">
-                        <button type="button" class="neumorphic-btn btn-analyze-meds" data-id="${this.escapeHtml(record.id)}" style="font-size: 13px; color: #d35400; display: flex; align-items: center; gap: 5px; padding: 5px 10px;">
-                            <span class="material-symbols-rounded ai-sparkle" style="font-size: 16px;">medication</span> Phân tích đơn thuốc chuyên sâu (AI)
-                        </button>
-                    </div>` : ''}
-                    
-                    ${record.medicationAnalysis ? `
-                    <div style="margin-top: 15px; padding: 15px; background: rgba(211, 84, 0, 0.05); border-left: 3px solid #d35400; border-radius: 8px;">
-                        <h5 style="color: #d35400; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded" style="font-size: 18px;">medication</span> Phân tích thuốc chuyên sâu</h5>
-                        <div class="markdown-body" style="font-size: 14px;">${this.renderMarkdown(record.medicationAnalysis)}</div>
-                    </div>` : ''}
+        // 2. Lưới 2 cột mở rộng chiều ngang (giảm chiều dài cuộn trang)
+        html += `<div class="record-detail-grid">`;
+
+        // --- CỘT 1: Chẩn đoán & Điều trị + Lời khuyên + Chi phí ---
+        html += `
+            <div class="record-detail-col-main" style="display: flex; flex-direction: column; gap: 14px;">
+                <div class="detail-section-card" style="background: var(--bg-color); box-shadow: var(--shadow-inner); padding: 16px; border-radius: var(--radius-sm); border-left: 4px solid var(--primary-blue);">
+                    <h4 style="color: var(--primary-blue); margin: 0 0 10px 0; font-size: 15.5px; display: flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-rounded" style="font-size: 18px;">coronavirus</span> Chẩn đoán & Điều trị
+                    </h4>
+                    <div style="font-size: 14px; line-height: 1.6;">
+                        <p style="margin: 0 0 8px 0;"><strong>Chẩn đoán:</strong> ${record.disease ? this.escapeHtml(record.disease) : '<em style="color:var(--text-muted);">(Chưa có kết luận chẩn đoán)</em>'}</p>
+                        <div style="margin-bottom: 8px;">
+                            <strong>Điều trị / Đơn thuốc:</strong><br>${record.treatment ? this.nl2br(record.treatment) : '<span style="color:var(--text-muted);">Không có đơn thuốc</span>'}
+                            
+                            ${record.treatment && !record.medicationAnalysis ? `
+                            <div style="margin-top: 8px;">
+                                <button type="button" class="neumorphic-btn btn-analyze-meds" data-id="${this.escapeHtml(record.id)}" style="font-size: 12px; color: #d35400; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border: 1px solid rgba(211,84,0,0.3); background: white;">
+                                    <span class="material-symbols-rounded ai-sparkle" style="font-size: 15px;">medication</span> Phân tích đơn thuốc chuyên sâu (AI)
+                                </button>
+                            </div>` : ''}
+                            
+                            ${record.medicationAnalysis ? `
+                            <div style="margin-top: 10px; padding: 12px; background: rgba(211, 84, 0, 0.05); border-left: 3px solid #d35400; border-radius: 8px;">
+                                <h5 style="color: #d35400; margin: 0 0 8px 0; font-size: 13.5px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded" style="font-size: 16px;">medication</span> Phân tích thuốc chuyên sâu</h5>
+                                <div class="markdown-body" style="font-size: 13px;">${this.renderMarkdown(record.medicationAnalysis)}</div>
+                            </div>` : ''}
+                        </div>
+                        ${record.note ? `<p style="margin: 0 0 8px 0; color: var(--danger);"><strong>Lời khuyên:</strong> ${this.escapeHtml(record.note)}</p>` : ''}
+                        <p style="margin: 0;"><strong>Chi phí:</strong> <span style="color: var(--primary-blue); font-weight: 700; font-size: 15px;">${this.formatCurrency(record.cost)}</span></p>
+                    </div>
                 </div>
-                ${record.note ? `<p style="margin-bottom: 10px; color: var(--danger);"><strong>Lời khuyên:</strong> ${this.escapeHtml(record.note)}</p>` : ''}
-                <p><strong>Chi phí:</strong> <span style="color: var(--primary-blue); font-weight: bold;">${this.formatCurrency(record.cost)}</span></p>
             </div>
+        `;
+
+        // --- CỘT 2: Sinh hiệu & Lâm sàng / Cận lâm sàng / Tiêm chủng ---
+        html += `
+            <div class="record-detail-col-side" style="display: flex; flex-direction: column; gap: 14px;">
         `;
 
         if (record.bp || record.hr || record.temp || record.spo2) {
             html += `
-            <h4 style="color: var(--primary-blue); margin-bottom: 10px; font-size: 16px;"><span class="material-symbols-rounded" style="vertical-align: middle;">favorite</span> Sinh hiệu (Vital Signs)</h4>
-            <div style="background: rgba(52, 152, 219, 0.05); padding: 15px; border-radius: var(--radius-sm); margin-bottom: 20px; border-left: 4px solid var(--primary-blue);">
-                ${record.bp ? `<strong>HA:</strong> ${this.escapeHtml(record.bp)} mmHg &nbsp;|&nbsp; ` : ''}
-                ${record.hr ? `<strong>Nhịp tim:</strong> ${this.escapeHtml(record.hr)} bpm &nbsp;|&nbsp; ` : ''}
-                ${record.temp ? `<strong>Nhiệt độ:</strong> ${this.escapeHtml(record.temp)}°C &nbsp;|&nbsp; ` : ''}
-                ${record.spo2 ? `<strong>SpO2:</strong> ${this.escapeHtml(record.spo2)}%` : ''}
-            </div>`;
+                <div class="detail-section-card" style="background: rgba(52, 152, 219, 0.05); padding: 14px 16px; border-radius: var(--radius-sm); border-left: 4px solid var(--primary-blue);">
+                    <h4 style="color: var(--primary-blue); margin: 0 0 10px 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-rounded" style="font-size: 18px;">favorite</span> Sinh hiệu (Vital Signs)
+                    </h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 13.5px;">
+                        ${record.bp ? `<span><strong>HA:</strong> ${this.escapeHtml(record.bp)} mmHg</span>` : ''}
+                        ${record.hr ? `<span><strong>Nhịp tim:</strong> ${this.escapeHtml(record.hr)} bpm</span>` : ''}
+                        ${record.temp ? `<span><strong>Nhiệt độ:</strong> ${this.escapeHtml(record.temp)}°C</span>` : ''}
+                        ${record.spo2 ? `<span><strong>SpO2:</strong> ${this.escapeHtml(record.spo2)}%</span>` : ''}
+                    </div>
+                </div>
+            `;
         }
 
         if (record.symptoms || record.labs) {
-            html += `<h4 style="color: var(--primary-blue); margin-bottom: 10px; font-size: 16px;"><span class="material-symbols-rounded" style="vertical-align: middle;">biotech</span> Lâm sàng & Cận lâm sàng</h4>
-                     <div style="margin-bottom: 20px;">`;
-            if (record.symptoms) html += `<p style="margin-bottom: 10px;"><strong>Triệu chứng:</strong><br>${this.nl2br(record.symptoms)}</p>`;
-            if (record.labs) html += `<p style="margin-bottom: 10px;"><strong>Kết quả cận lâm sàng:</strong><br>${this.nl2br(record.labs)}</p>`;
-            html += `</div>`;
-        }
-
-        if (record.dynamicFields && record.dynamicFields.length > 0) {
-            html += `<h4 style="color: var(--primary-blue); margin-bottom: 10px; font-size: 16px;"><span class="material-symbols-rounded" style="vertical-align: middle;">science</span> Chi tiết xét nghiệm</h4>`;
-            html += `<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; background: var(--bg-color); box-shadow: var(--shadow-outer); border-radius: var(--radius-sm); overflow: hidden;">
-                        <tr style="background: var(--primary-blue); color: white;">
-                            <th style="padding: 12px; text-align: left;">Chỉ số</th>
-                            <th style="padding: 12px; text-align: left;">Kết quả</th>
-                        </tr>`;
-            record.dynamicFields.forEach((f, idx) => {
-                const bg = idx % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent';
-                const color = f.isAbnormal ? '#e74c3c' : 'var(--primary-blue)';
-                html += `<tr class="clickable-row" data-keyword="${this.escapeHtml(f.key)}" title="Bấm để xem giải thích ngắn" style="background: ${bg}; border-bottom: 1px solid rgba(0,0,0,0.05);">
-                            <td style="padding: 12px;">${this.escapeHtml(f.key)}</td>
-                            <td style="padding: 12px; font-weight: 600; color: ${color};">${this.escapeHtml(f.value)}</td>
-                         </tr>
-                         <tr class="inline-info-row hidden" id="inline-info-${idx}">
-                            <td colspan="2" style="padding: 0;">
-                                <div class="inline-info-content" id="inline-info-content-${idx}">
-                                    <!-- Loaded by JS -->
-                                </div>
-                            </td>
-                         </tr>`;
-            });
-            html += `</table>`;
-        }
-
-        const images = record.originalImages || (record.originalImage ? [record.originalImage] : []);
-        if (images.length > 0) {
-            html += `<h4 style="color: var(--primary-blue); margin-bottom: 10px; font-size: 16px;"><span class="material-symbols-rounded" style="vertical-align: middle;">image</span> Hình ảnh gốc đính kèm (${images.length})</h4>
-                     <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px;">`;
-
-            for (let img of images) {
-                let src = img;
-                if (img.startsWith('img_')) {
-                    src = await ImageStore.getImage(img);
-                }
-                html += `<img src="${this.escapeHtml(src || '')}" class="btn-view-img" data-img="${this.escapeHtml(img)}" style="max-height: 200px; border-radius: var(--radius-sm); box-shadow: var(--shadow-outer); cursor: pointer;" title="Nhấn để phóng to" alt="Ảnh đính kèm hồ sơ y tế">`;
-            }
-            html += `</div>`;
+            html += `
+                <div class="detail-section-card" style="background: rgba(142, 68, 173, 0.04); padding: 14px 16px; border-radius: var(--radius-sm); border-left: 4px solid #8e44ad;">
+                    <h4 style="color: #8e44ad; margin: 0 0 10px 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-rounded" style="font-size: 18px;">biotech</span> Lâm sàng & Cận lâm sàng
+                    </h4>
+                    <div style="font-size: 13.5px; line-height: 1.55;">
+                        ${record.symptoms ? `<p style="margin: 0 0 6px 0;"><strong>Triệu chứng:</strong><br>${this.nl2br(record.symptoms)}</p>` : ''}
+                        ${record.labs ? `<p style="margin: 0;"><strong>Kết quả cận lâm sàng:</strong><br>${this.nl2br(record.labs)}</p>` : ''}
+                    </div>
+                </div>
+            `;
         }
 
         // Kiểm tra thông tin tiêm chủng & phác đồ
@@ -458,38 +451,116 @@ const UI = {
             const vInfo = AIService.calculateNextVaccineDose(record.disease || record.treatment || record.symptoms || '', record.date);
             if (vInfo) {
                 html += `
-                <div class="vaccine-detail-card" style="background: linear-gradient(135deg, rgba(39, 174, 96, 0.06), rgba(22, 160, 133, 0.06)); border: 1px solid rgba(39, 174, 96, 0.25); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 20px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(39, 174, 96, 0.15); padding-bottom: 10px;">
-                        <h4 style="color: #27ae60; margin: 0; font-size: 16px; display: flex; align-items: center; gap: 6px;">
-                            <span class="material-symbols-rounded">vaccines</span> Thông tin & Phác đồ Tiêm chủng
+                <div class="vaccine-detail-card detail-section-card" style="background: linear-gradient(135deg, rgba(39, 174, 96, 0.06), rgba(22, 160, 133, 0.06)); border: 1px solid rgba(39, 174, 96, 0.25); border-radius: var(--radius-sm); padding: 14px 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid rgba(39, 174, 96, 0.15); padding-bottom: 8px;">
+                        <h4 style="color: #27ae60; margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">vaccines</span> Thông tin & Phác đồ Tiêm chủng
                         </h4>
-                        <span style="background: #27ae60; color: white; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">Mũi ${vInfo.currentDose}</span>
+                        <span style="background: #27ae60; color: white; padding: 2px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 600;">Mũi ${vInfo.currentDose}</span>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
+                    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px;">
                         <p style="margin: 0;"><strong>Tên vắc xin:</strong> ${this.escapeHtml(vInfo.vaccineName)}</p>
                         <p style="margin: 0;"><strong>Phòng bệnh:</strong> ${this.escapeHtml(vInfo.diseaseTarget)}</p>
                         <p style="margin: 0;"><strong>Phác đồ chuẩn:</strong> ${this.escapeHtml(vInfo.schedule)}</p>
                         ${vInfo.nextDoseDate ? `
-                        <div style="background: white; border: 1px solid #27ae60; border-radius: 8px; padding: 10px 14px; margin-top: 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                        <div style="background: white; border: 1px solid #27ae60; border-radius: 8px; padding: 8px 12px; margin-top: 4px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
                             <div>
-                                <strong style="color: #27ae60;"><span class="material-symbols-rounded" style="vertical-align: middle; font-size: 18px;">event</span> Gợi ý mũi tiếp theo (${this.escapeHtml(vInfo.nextDoseTitle)}):</strong>
-                                <span style="font-weight: 700; color: var(--text-color); margin-left: 5px;">${this.formatDate(vInfo.nextDoseDate)}</span>
-                                <span style="font-size: 12px; color: var(--text-muted); display: block;">(Cách mũi vừa tiêm ~${vInfo.intervalDays} ngày)</span>
+                                <strong style="color: #27ae60;"><span class="material-symbols-rounded" style="vertical-align: middle; font-size: 16px;">event</span> Mũi tiếp theo:</strong>
+                                <span style="font-weight: 700; color: var(--text-color); margin-left: 4px;">${this.formatDate(vInfo.nextDoseDate)}</span>
                             </div>
-                            <button type="button" class="btn-create-vaccine-reminder-inline neumorphic-btn" data-title="${this.escapeHtml(vInfo.nextDoseTitle)}" data-date="${this.escapeHtml(vInfo.nextDoseDate)}" data-note="${this.escapeHtml(vInfo.defaultNote)}" style="font-size: 12px; padding: 5px 12px; color: #27ae60; background: rgba(39,174,96,0.1); border: 1px solid #27ae60; font-weight: 600;">
+                            <button type="button" class="btn-create-vaccine-reminder-inline neumorphic-btn" data-title="${this.escapeHtml(vInfo.nextDoseTitle)}" data-date="${this.escapeHtml(vInfo.nextDoseDate)}" data-note="${this.escapeHtml(vInfo.defaultNote)}" style="font-size: 11.5px; padding: 4px 10px; color: #27ae60; background: rgba(39,174,96,0.1); border: 1px solid #27ae60; font-weight: 600;">
                                 + Đặt lịch nhắc
                             </button>
                         </div>
                         ` : ''}
-                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(0,0,0,0.08); font-size: 13px; color: var(--text-color);">
-                            <p style="margin: 0 0 4px 0;"><strong>⚠️ Phản ứng sau tiêm:</strong> ${this.escapeHtml(vInfo.sideEffects)}</p>
-                            <p style="margin: 0 0 4px 0;"><strong>💡 Hướng dẫn chăm sóc:</strong> ${this.escapeHtml(vInfo.careInstructions)}</p>
-                            <p style="margin: 0; color: #e74c3c;"><strong>🚨 Cần đi khám ngay nếu:</strong> ${this.escapeHtml(vInfo.warningSigns)}</p>
-                        </div>
                     </div>
                 </div>
                 `;
             }
+        }
+
+        html += `</div>`; // Đóng cột 2
+        html += `</div>`; // Đóng lưới 2 cột
+
+        // 3. Bảng Chi tiết Xét nghiệm (Full width phía dưới)
+        if (record.dynamicFields && record.dynamicFields.length > 0) {
+            html += `
+                <div style="margin-top: 18px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 15px;">
+                    <h4 style="color: var(--primary-blue); margin-bottom: 10px; font-size: 15.5px; display: flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-rounded" style="font-size: 18px;">science</span> Chi tiết chỉ số xét nghiệm (${record.dynamicFields.length})
+                    </h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; background: var(--bg-color); box-shadow: var(--shadow-outer); border-radius: var(--radius-sm); overflow: hidden;">
+                        <tr style="background: var(--primary-blue); color: white;">
+                            <th style="padding: 10px 12px; text-align: left; font-size: 13.5px;">Chỉ số</th>
+                            <th style="padding: 10px 12px; text-align: left; font-size: 13.5px;">Kết quả</th>
+                        </tr>`;
+            record.dynamicFields.forEach((f, idx) => {
+                const bg = idx % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent';
+                const color = f.isAbnormal ? '#e74c3c' : 'var(--primary-blue)';
+                html += `<tr class="clickable-row" data-keyword="${this.escapeHtml(f.key)}" title="Bấm để xem giải thích ngắn" style="background: ${bg}; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                            <td style="padding: 10px 12px; font-size: 13.5px;">${this.escapeHtml(f.key)}</td>
+                            <td style="padding: 10px 12px; font-weight: 600; color: ${color}; font-size: 13.5px;">${this.escapeHtml(f.value)}</td>
+                         </tr>
+                         <tr class="inline-info-row hidden" id="inline-info-${idx}">
+                            <td colspan="2" style="padding: 0;">
+                                <div class="inline-info-content" id="inline-info-content-${idx}">
+                                    <!-- Loaded by JS -->
+                                </div>
+                            </td>
+                         </tr>`;
+            });
+            html += `</table>
+                </div>`;
+        }
+
+        // 4. Tài liệu & Hình ảnh gốc đính kèm (Interactive Gallery + In ấn / Tải về)
+        const images = record.originalImages || (record.originalImage ? [record.originalImage] : []);
+        if (images.length > 0) {
+            html += `
+                <div class="attached-docs-section" style="margin-top: 18px; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 16px;">
+                    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px;">
+                        <h4 style="color: var(--primary-blue); margin: 0; font-size: 15.5px; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">image</span> Tài liệu / Hình ảnh gốc đính kèm (${images.length})
+                        </h4>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn-print-all-docs neumorphic-btn" data-record-id="${this.escapeHtml(record.id)}" style="font-size: 12px; padding: 5px 12px; color: #27ae60; border: 1px solid #27ae60; background: white; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                <span class="material-symbols-rounded" style="font-size: 16px;">print</span> In toàn bộ tài liệu
+                            </button>
+                        </div>
+                    </div>
+                    <div class="attached-docs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px;">
+            `;
+
+            for (let i = 0; i < images.length; i++) {
+                const img = images[i];
+                let src = img;
+                if (img.startsWith('img_')) {
+                    src = await ImageStore.getImage(img);
+                }
+                const safeSrc = src || '';
+                
+                html += `
+                    <div class="attached-doc-card" data-img="${this.escapeHtml(img)}" data-index="${i + 1}">
+                        <div class="attached-doc-thumb-wrap btn-view-img" data-img="${this.escapeHtml(img)}" title="Bấm để xem phóng to chi tiết">
+                            <span class="attached-doc-badge">Trang ${i + 1}</span>
+                            <img src="${this.escapeHtml(safeSrc)}" class="attached-doc-thumb" alt="Tài liệu gốc ${i + 1}">
+                        </div>
+                        <div class="attached-doc-actions">
+                            <button type="button" class="attached-doc-btn btn-view-img" data-img="${this.escapeHtml(img)}" title="Phóng to xem nét">
+                                <span class="material-symbols-rounded" style="font-size: 15px;">zoom_in</span> Xem
+                            </button>
+                            <button type="button" class="attached-doc-btn print-btn btn-print-single-doc" data-img="${this.escapeHtml(img)}" title="In tài liệu này">
+                                <span class="material-symbols-rounded" style="font-size: 15px;">print</span> In
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                    </div>
+                </div>
+            `;
         }
 
         document.getElementById('view-record-form-data').innerHTML = html;
