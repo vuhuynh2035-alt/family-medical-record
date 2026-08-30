@@ -221,12 +221,20 @@ function setupPinLockListeners() {
 
 const CURRENT_APP_VERSION = 'v2.3.3';
 let newWorker = null;
+let latestDetectedVersion = CURRENT_APP_VERSION;
 
 function showUpdateToast(newVersion = '') {
+    if (newVersion) latestDetectedVersion = newVersion;
+    
+    // Nếu người dùng đã chọn "Để sau" hoặc đã bấm cập nhật phiên bản này trong phiên này -> Không hiện lại
+    if (sessionStorage.getItem('update_dismissed_' + latestDetectedVersion) === 'true') {
+        return;
+    }
+    
     const updateToast = document.getElementById('update-toast');
     const title = document.getElementById('update-toast-title');
     if (title) {
-        title.innerText = newVersion ? `Đã có bản cập nhật mới (${newVersion})!` : 'Đã có bản cập nhật mới!';
+        title.innerText = latestDetectedVersion ? `Đã có bản cập nhật mới (${latestDetectedVersion})!` : 'Đã có bản cập nhật mới!';
     }
     if (updateToast) {
         updateToast.classList.remove('hidden');
@@ -242,8 +250,11 @@ function checkForRemoteUpdate() {
         })
         .then(data => {
             if (data && data.version && data.version !== CURRENT_APP_VERSION) {
-                console.log(`New version detected: ${data.version} (current: ${CURRENT_APP_VERSION})`);
-                showUpdateToast(data.version);
+                // Kiểm tra xem đã ghi nhận cập nhật phiên bản này chưa
+                if (sessionStorage.getItem('update_dismissed_' + data.version) !== 'true') {
+                    console.log(`New version detected: ${data.version} (current: ${CURRENT_APP_VERSION})`);
+                    showUpdateToast(data.version);
+                }
             }
         })
         .catch(err => {
@@ -257,20 +268,20 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').then(reg => {
             console.log('Service Worker registered', reg);
 
-            // 1. Nếu đã có Service Worker mới đang chờ sẵn (waiting) -> Hiện thông báo ngay
+            // 1. Nếu đã có Service Worker mới đang chờ sẵn (waiting) -> Hiện thông báo
             if (reg.waiting) {
                 newWorker = reg.waiting;
                 showUpdateToast();
             }
 
-            // 2. Tự động kiểm tra bản cập nhật mới ngay lập tức
+            // 2. Tự động kiểm tra bản cập nhật mới
             try { reg.update(); } catch(e){}
 
-            // 3. Tự động kiểm tra cập nhật mỗi 3 phút
+            // 3. Tự động kiểm tra cập nhật mỗi 5 phút
             setInterval(() => {
                 try { reg.update(); } catch(e){}
                 checkForRemoteUpdate();
-            }, 3 * 60 * 1000);
+            }, 5 * 60 * 1000);
 
             // 4. Kiểm tra cập nhật mỗi khi người dùng chuyển lại tab ứng dụng
             document.addEventListener('visibilitychange', () => {
@@ -356,28 +367,45 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const btnUpdateApp = document.getElementById('btn-update-app');
     if (btnUpdateApp) {
-        btnUpdateApp.addEventListener('click', () => {
+        btnUpdateApp.addEventListener('click', async () => {
             btnUpdateApp.disabled = true;
             btnUpdateApp.innerText = 'Đang nạp...';
+            
+            // Ghi nhận đã cập nhật phiên bản này để không hiện lại
+            sessionStorage.setItem('update_dismissed_' + latestDetectedVersion, 'true');
+            document.getElementById('update-toast')?.classList.add('hidden');
+
+            // Xóa cache cũ
+            if ('caches' in window) {
+                try {
+                    const cacheKeys = await caches.keys();
+                    await Promise.all(cacheKeys.map(k => caches.delete(k)));
+                } catch(e){}
+            }
+
             if (newWorker) {
                 newWorker.postMessage('SKIP_WAITING');
             } else if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistration().then(reg => {
+                try {
+                    const reg = await navigator.serviceWorker.getRegistration();
                     if (reg && reg.waiting) {
                         reg.waiting.postMessage('SKIP_WAITING');
-                    } else {
-                        window.location.reload();
+                        return;
                     }
-                }).catch(() => window.location.reload());
-            } else {
-                window.location.reload();
+                } catch(e){}
             }
+
+            // Tải lại trang sạch sẽ
+            setTimeout(() => {
+                window.location.replace(window.location.origin + window.location.pathname + '?t=' + Date.now());
+            }, 300);
         });
     }
 
     const btnDismissUpdate = document.getElementById('btn-dismiss-update');
     if (btnDismissUpdate) {
         btnDismissUpdate.addEventListener('click', () => {
+            sessionStorage.setItem('update_dismissed_' + latestDetectedVersion, 'true');
             document.getElementById('update-toast')?.classList.add('hidden');
         });
     }
