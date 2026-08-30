@@ -17,9 +17,13 @@ const HelpService = {
         if (this.backdrop) {
             this.backdrop.addEventListener('click', () => this.toggleHelpMode()); // Click outside to close
         }
-        if (this.btnWorkflow) {
-            this.btnWorkflow.addEventListener('click', () => this.showWorkflowGuide());
-        }
+        
+        document.body.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-workflow-guide') || e.target.closest('#btn-workflow-guide')) {
+                this.showWorkflowGuide();
+            }
+        });
+
         if (this.btnAiHelp) {
             this.btnAiHelp.addEventListener('click', () => this.showAiHelpChat());
         }
@@ -205,45 +209,63 @@ const HelpService = {
     showWorkflowGuide() {
         const activeView = document.querySelector('.view.active');
         const viewId = activeView ? activeView.id : 'unknown';
-        
         let html = '';
+        const modalRecord = document.getElementById('modal-record');
+        const modalVaccineReminder = document.getElementById('modal-vaccine-reminder-prompt');
+        const modalVaccineConsultation = document.getElementById('modal-vaccine-consultation');
         
-        if (viewId === 'view-dashboard') {
+        if (modalRecord && !modalRecord.classList.contains('hidden')) {
+            html = `
+                <h3>Hướng dẫn Tạo Hồ sơ Khám bệnh</h3>
+                <ol>
+                    <li><strong>Điền thông tin cơ bản:</strong> Nhập ngày khám, nơi khám và chẩn đoán bệnh.</li>
+                    <li><strong>Tải ảnh bệnh án:</strong> Nhấn chọn file hoặc chụp ảnh toa thuốc, kết quả xét nghiệm (hỗ trợ JPG, PNG, PDF).</li>
+                    <li><strong>Trợ lý AI (Điền form & Kết luận):</strong> Sau khi chọn ảnh, nhấn nút này để AI tự động đọc hiểu hình ảnh, điền các chỉ số vào máy và tự động sinh ra một "Báo cáo phân tích chuyên sâu" về tình hình sức khỏe của bạn.</li>
+                    <li><strong>Lưu lại:</strong> Nhấn nút Tạo hồ sơ để lưu. Hồ sơ sẽ xuất hiện trong Lịch sử khám.</li>
+                </ol>
+            `;
+        } else if (modalVaccineReminder && !modalVaccineReminder.classList.contains('hidden')) {
+            html = `
+                <h3>Hướng dẫn Tạo Lịch Tiêm phòng</h3>
+                <ol>
+                    <li><strong>Gợi ý AI:</strong> Ứng dụng sẽ phân tích độ tuổi và lịch sử tiêm chủng để tự động gợi ý mũi tiêm tiếp theo.</li>
+                    <li><strong>Chỉnh sửa thông tin:</strong> Bạn có thể sửa Tên mũi tiêm, Ngày giờ nhắc nhở theo ý muốn.</li>
+                    <li><strong>Ghi chú:</strong> Điền thêm các dặn dò (VD: mang theo sổ tiêm chủng, kiểm tra trẻ không sốt).</li>
+                    <li><strong>Lưu lịch:</strong> Nhấn "Thêm vào Lịch nhắc". Đến đúng ngày giờ, chuông báo sẽ reo và thông báo sẽ hiện trên biểu tượng ứng dụng.</li>
+                </ol>
+            `;
+        } else if (modalVaccineConsultation && !modalVaccineConsultation.classList.contains('hidden')) {
+            html = `
+                <h3>Cẩm nang & Phác đồ Tiêm chủng</h3>
+                <p>Nơi AI cung cấp toàn bộ kiến thức chuyên sâu về vắc-xin phù hợp với độ tuổi của thành viên này. Bạn có thể nhấn <strong>Tạo Lịch nhắc tiêm</strong> trực tiếp từ các gợi ý trong cẩm nang này.</p>
+            `;
+        } else if (viewId === 'view-dashboard') {
             html = `
                 <h3>Quy trình Trang Chủ (Dashboard)</h3>
                 <ol>
-                    <li><strong>Bắt đầu:</strong> Nhấn nút <strong>Thêm thành viên</strong> để tạo hồ sơ mới cho người thân trong gia đình.</li>
-                    <li><strong>Điền thông tin:</strong> Nhập Tên, Giới tính, Ngày sinh, Mối quan hệ và Lưu lại. Hệ thống tự động tính tuổi.</li>
-                    <li><strong>Xem hồ sơ:</strong> Sau khi tạo xong, một thẻ đại diện cho thành viên sẽ hiện ra. Nhấn trực tiếp vào thẻ đó để mở chi tiết <strong>Hồ sơ Bệnh án</strong> của người này.</li>
+                    <li><strong>Bắt đầu:</strong> Nhấn nút <strong>Thêm thành viên</strong> để tạo hồ sơ mới.</li>
+                    <li><strong>Xem hồ sơ:</strong> Nhấn trực tiếp vào thẻ thành viên để mở chi tiết bệnh án.</li>
+                    <li><strong>Bảo mật PIN (Mới):</strong> Dữ liệu của bạn được khóa an toàn bằng mã PIN. Hãy thiết lập trong phần Cài đặt nếu bạn muốn đổi mã.</li>
+                    <li><strong>Chia sẻ Backup (Mới):</strong> Trong Cài đặt, bạn có thể dễ dàng Chia sẻ file sao lưu qua Zalo, Messenger, AirDrop... để gửi cho người thân hoặc thiết bị khác.</li>
                 </ol>
                 <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 15px 0;">
                 <h3 style="color: #27ae60;">Hướng dẫn lấy API Key Miễn phí (Google Gemini)</h3>
-                <p style="font-size: 14px; line-height: 1.5; color: var(--text-color);">Để sử dụng các tính năng AI trích xuất bệnh án và phân tích chuyên sâu, bạn cần tự lấy một mã API Key hoàn toàn miễn phí từ Google (chỉ mất 2 phút).</p>
+                <p style="font-size: 14px; line-height: 1.5; color: var(--text-color);">Để sử dụng tính năng Đọc ảnh và Phân tích AI, hãy tự lấy một API Key từ Google:</p>
                 <ol style="font-size: 14px; line-height: 1.5; color: var(--text-color);">
-                    <li>Truy cập trang web: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2980b9; font-weight: bold;">Google AI Studio</a> và đăng nhập bằng tài khoản Gmail của bạn.</li>
-                    <li>Nhấn nút <strong>"Create API Key"</strong> màu xanh.</li>
-                    <li>Nhấn tiếp <strong>"Create API key in new project"</strong>. Đợi vài giây, Google sẽ cấp cho bạn một đoạn mã dài khoảng 40 ký tự.</li>
-                    <li>Copy đoạn mã đó. Quay lại ứng dụng này, bấm vào nút <strong>Cài đặt</strong> (Hình bánh răng ở góc trên bên phải màn hình).</li>
-                    <li>Dán mã vừa copy vào ô <strong>"API Key (Gemini)"</strong> và bấm <strong>Lưu cấu hình</strong>. Xong! Bạn đã có thể dùng AI thoải mái.</li>
+                    <li>Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2980b9; font-weight: bold;">Google AI Studio</a>.</li>
+                    <li>Nhấn nút <strong>"Create API key in new project"</strong>.</li>
+                    <li>Copy đoạn mã đó, dán vào phần Cài đặt của ứng dụng này.</li>
                 </ol>
             `;
         } else if (viewId === 'view-member-detail') {
             html = `
-                <h3>Quy trình Chi tiết Hồ sơ Bệnh án</h3>
+                <h3>Quy trình Chi tiết Bệnh án</h3>
                 <ol>
-                    <li><strong>Hồ Sơ:</strong> Xem thông tin tổng quan. Có thể ấn nút Cây bút góc trên để sửa hoặc xoá thành viên.</li>
-                    <li><strong>Lịch sử khám:</strong> Nơi lưu trữ các lần đi khám. 
-                        <ul>
-                            <li>Nhấn <strong>Thêm Lượt Khám</strong> và tải ảnh/PDF lên.</li>
-                            <li>Nhấn <strong>Xử lý thông tin</strong> để AI tự động trích xuất bệnh án.</li>
-                            <li>Khi xem một bệnh án, bạn có thể <strong>nhấn vào các dòng chỉ số xét nghiệm</strong> để xem AI giải thích ngắn gọn ý nghĩa của chúng.</li>
-                            <li><strong>Trao đổi chuyên sâu:</strong> Nhấn nút "Trao đổi chuyên sâu" dưới dòng giải thích hoặc bôi đen bất kỳ đoạn văn bản nào trên màn hình để mở Màn hình Chat với AI.</li>
-                            <li><strong>Phân tích đơn thuốc:</strong> Nhấn nút "Phân tích đơn thuốc chuyên sâu" trong bệnh án để AI kiểm tra tương tác thuốc và tác dụng phụ.</li>
-                        </ul>
-                    </li>
-                    <li><strong>Lịch hẹn:</strong> Đặt các lịch nhắc tái khám. Tới ngày, hệ thống sẽ báo chuông.</li>
-                    <li><strong>Thống kê:</strong> Xem biểu đồ trực quan số lần đi khám của người này trong năm.</li>
-                    <li><strong>Tùy chỉnh AI:</strong> Bạn có thể vào <strong>Cài đặt</strong> (bánh răng ở màn hình chính) để tự do lựa chọn AI (Gemini, ChatGPT, Claude) xử lý các tính năng trò chuyện, tra cứu.</li>
+                    <li><strong>Hồ Sơ:</strong> Nhấn nút Cây bút để sửa thông tin thành viên.</li>
+                    <li><strong>Thêm lượt khám:</strong> Tải ảnh/PDF lên và sử dụng nút "Điền form & Kết luận" để AI tự động làm phần việc còn lại.</li>
+                    <li><strong>Trao đổi & Đọc giọng nói (Mới):</strong> Bôi đen văn bản để hỏi AI, hoặc nhấn vào các nút Cây Loa màu xanh để ứng dụng đọc to nội dung (rất hữu ích cho người lớn tuổi).</li>
+                    <li><strong>Tiêm chủng (Mới):</strong> Sử dụng nút "Cẩm nang Vắc xin" để AI tư vấn lịch tiêm chủng phù hợp cho lứa tuổi của thành viên này.</li>
+                    <li><strong>Lịch hẹn:</strong> Tạo lịch tái khám. Ứng dụng sẽ hiện số đếm thông báo màu đỏ ngay trên icon ở màn hình điện thoại khi có lịch đến hạn.</li>
                 </ol>
             `;
         } else {

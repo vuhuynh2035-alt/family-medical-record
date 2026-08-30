@@ -693,8 +693,9 @@
     <!-- Record Modal -->
     <div id="modal-record" class="modal-overlay hidden" role="dialog" aria-modal="true">
         <div class="modal-content neumorphic-modal modal-large">
-            <div class="modal-header">
+            <div class="modal-header" style="justify-content: space-between; align-items: center; display: flex;">
                 <h3 id="modal-record-title">Hồ sơ Y khoa (EMR)</h3>
+                <button type="button" class="icon-btn btn-workflow-guide" title="Hướng dẫn"><span class="material-symbols-rounded" style="color: var(--primary-blue);">help</span></button>
             </div>
             <div class="modal-body">
                 <div class="ai-ocr-section neumorphic-panel">
@@ -1170,7 +1171,10 @@
                     <span class="material-symbols-rounded" style="color: #27ae60;">vaccines</span>
                     Nhắc lịch tiêm phòng tiếp theo
                 </h3>
-                <button type="button" class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="icon-btn btn-workflow-guide" title="Hướng dẫn"><span class="material-symbols-rounded" style="color: var(--primary-blue);">help</span></button>
+                    <button type="button" class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
+                </div>
             </div>
             <div class="modal-body" style="padding: 20px 0;">
                 <div id="vaccine-prompt-card" style="background: linear-gradient(135deg, rgba(39, 174, 96, 0.08), rgba(41, 128, 185, 0.08)); border: 1px solid rgba(39, 174, 96, 0.25); border-radius: 12px; padding: 15px; margin-bottom: 18px;">
@@ -1226,7 +1230,10 @@
                         <span id="speak-vaccine-text">Đọc</span>
                     </button>
                 </div>
-                <button type="button" class="icon-btn close-modal"><span class="material-symbols-rounded">reply</span></button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="icon-btn btn-workflow-guide" title="Hướng dẫn"><span class="material-symbols-rounded" style="color: var(--primary-blue);">help</span></button>
+                    <button type="button" class="icon-btn close-modal"><span class="material-symbols-rounded">reply</span></button>
+                </div>
             </div>
             <div class="modal-body" style="padding: 20px 0;">
                 <div id="vaccine-consultation-loading" class="ai-loading hidden">

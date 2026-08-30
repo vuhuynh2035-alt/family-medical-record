@@ -770,5 +770,51 @@ const UI = {
         } else {
             badge.style.display = 'none';
         }
+
+        // Cập nhật số thông báo lên App Icon (PWA)
+        if (navigator.setAppBadge) {
+            if (count > 0) {
+                navigator.setAppBadge(count).catch(e => console.warn('AppBadge error:', e));
+            } else if (navigator.clearAppBadge) {
+                navigator.clearAppBadge().catch(e => console.warn('AppBadge error:', e));
+            }
+        }
+
+        // Cập nhật số thông báo lên Favicon (Tab trình duyệt)
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = 'favicon.jpg?v=1.7.15'; // Đảm bảo lấy ảnh gốc
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0, 64, 64);
+                if (count > 0) {
+                    // Vẽ hình tròn đỏ
+                    ctx.beginPath();
+                    ctx.arc(48, 16, 16, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.fill();
+                    // Vẽ số
+                    ctx.font = 'bold 20px Arial';
+                    ctx.fillStyle = 'white';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(count > 9 ? '9+' : count.toString(), 48, 18);
+                }
+                
+                let link = document.querySelector("link[rel~='icon']");
+                if (!link) {
+                    link = document.createElement('link');
+                    link.rel = 'icon';
+                    document.head.appendChild(link);
+                }
+                link.href = canvas.toDataURL('image/png');
+            };
+        } catch (e) {
+            console.warn('Favicon update error:', e);
+        }
     }
 };
