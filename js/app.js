@@ -2751,7 +2751,7 @@ function checkReminders() {
         localStorage.setItem('family_reminders', JSON.stringify(allReminders));
     }
 
-    let pendingCount = allReminders.filter(rm => !rm.completed && !mutedMembers.includes(rm.memberId)).length;
+    let pendingCount = 0;
     const runningVer = getRunningAppVersion();
     if (localStorage.getItem('last_seen_changelog') !== runningVer && APP_CHANGELOG[runningVer]) {
         pendingCount += 1; // Thêm 1 thông báo cho bản cập nhật mới
@@ -2865,29 +2865,15 @@ function showAlarmModal(rm) {
 }
 
 function openNotifications() {
-    const allReminders = DataManager.getReminders();
-    
-    const now = new Date();
-    
-    const pendingReminders = allReminders
-        .filter(rm => !rm.completed)
-        .map(rm => {
-            const member = DataManager.getMemberById(rm.memberId);
-            return { ...rm, memberName: member ? member.name : 'Đã xóa' };
-        });
-    
-    pendingReminders.sort((a, b) => {
-        const diffA = Math.abs(new Date(a.datetime) - now);
-        const diffB = Math.abs(new Date(b.datetime) - now);
-        return diffA - diffB;
-    });
-
-    UI.renderRemindersList(pendingReminders, 'notifications-list', true);
+    const notifList = document.getElementById('notifications-list');
+    notifList.innerHTML = '';
     
     // Inject system update notification
     const runningVer = getRunningAppVersion();
+    let hasSystemNotif = false;
+    
     if (localStorage.getItem('last_seen_changelog') !== runningVer && APP_CHANGELOG[runningVer]) {
-        const notifList = document.getElementById('notifications-list');
+        hasSystemNotif = true;
         const updateDiv = document.createElement('div');
         updateDiv.className = 'neumorphic-panel';
         updateDiv.style.padding = '12px';
@@ -2900,8 +2886,7 @@ function openNotifications() {
             <button id="btn-view-changelog" class="primary-btn neumorphic-btn" style="font-size: 12px; padding: 6px 12px; width: 100%;">Xem thay đổi</button>
         `;
         
-        // Insert at the top
-        notifList.insertBefore(updateDiv, notifList.firstChild);
+        notifList.appendChild(updateDiv);
         
         updateDiv.querySelector('#btn-view-changelog').addEventListener('click', () => {
             // Hiển thị nội dung
@@ -2916,6 +2901,10 @@ function openNotifications() {
             localStorage.setItem('last_seen_changelog', runningVer);
             checkReminders(); // Cập nhật lại số lượng chuông
         });
+    }
+
+    if (!hasSystemNotif) {
+        notifList.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0;"><span class="material-symbols-rounded" style="font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.5;">notifications_paused</span>Không có thông báo chung nào từ hệ thống.</div>';
     }
 
     openModal('modal-notifications');
