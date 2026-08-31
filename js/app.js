@@ -1491,8 +1491,8 @@ function setupEventListeners() {
             };
             
             // TỰ ĐỘNG LƯU ĐỂ TRÁNH MẤT KHI VUỐT ĐÓNG
+            window.currentTrendMetadata.id = 'tr_' + Date.now();
             DataManager.saveTrendReport(currentMemberId, window.currentTrendMetadata);
-            window.currentTrendMetadata.id = 'saved';
             renderTrendReportsList();
         } catch (err) {
             loading.classList.add('hidden');

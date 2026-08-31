@@ -185,15 +185,16 @@ const DataManager = {
         this.isDataChanged = true;
     },
     saveTrendReport(memberId, reportData) {
-        const data = this.getData();
-        const m = data.members.find(x => x.id === memberId);
-        if (m) {
-            if (!m.trendReports) m.trendReports = [];
-            m.trendReports.push({
-                id: 'tr_' + Date.now(),
-                ...reportData
+        let members = this.getMembers();
+        const mIndex = members.findIndex(x => x.id === memberId);
+        if (mIndex !== -1) {
+            if (!members[mIndex].trendReports) members[mIndex].trendReports = [];
+            members[mIndex].trendReports.push({
+                ...reportData,
+                id: reportData.id || ('tr_' + Date.now())
             });
-            this.saveData(data);
+            localStorage.setItem('family_members', JSON.stringify(members));
+            this.isDataChanged = true;
         }
     },
     getTrendReports(memberId) {
@@ -201,11 +202,12 @@ const DataManager = {
         return (m && m.trendReports) ? m.trendReports.sort((a,b) => new Date(b.date) - new Date(a.date)) : [];
     },
     deleteTrendReport(memberId, reportId) {
-        const data = this.getData();
-        const m = data.members.find(x => x.id === memberId);
-        if (m && m.trendReports) {
-            m.trendReports = m.trendReports.filter(r => r.id !== reportId);
-            this.saveData(data);
+        let members = this.getMembers();
+        const mIndex = members.findIndex(x => x.id === memberId);
+        if (mIndex !== -1 && members[mIndex].trendReports) {
+            members[mIndex].trendReports = members[mIndex].trendReports.filter(r => r.id !== reportId);
+            localStorage.setItem('family_members', JSON.stringify(members));
+            this.isDataChanged = true;
         }
     },
 
