@@ -1489,6 +1489,11 @@ function setupEventListeners() {
                 comparedRecordsSummary: summary,
                 content: mdText
             };
+            
+            // TỰ ĐỘNG LƯU ĐỂ TRÁNH MẤT KHI VUỐT ĐÓNG
+            DataManager.saveTrendReport(currentMemberId, window.currentTrendMetadata);
+            window.currentTrendMetadata.id = 'saved';
+            renderTrendReportsList();
         } catch (err) {
             loading.classList.add('hidden');
             content.innerHTML = `<p style="color:var(--danger);">Lỗi khi liên hệ AI: ${err.message}</p>`;
