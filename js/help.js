@@ -197,13 +197,33 @@ const HelpService = {
                     <li>Tạo thành viên ở Trang chủ.</li>
                     <li>Vào chi tiết thành viên để thêm hồ sơ khám bệnh.</li>
                     <li>Sử dụng AI để tự động đọc Đơn thuốc / Phiếu xét nghiệm.</li>
-                    <li>Tạo Lịch hẹn tái khám để nhận thông báo.</li>
+                    <li>Lưu lại lời nhắc nhở hệ thống gợi ý.</li>
                 </ol>
             `;
         }
         
+        html += `
+            <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); text-align: center;">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; font-weight: 500;">Bạn vẫn chưa rõ chức năng của các nút bấm trên màn hình?</p>
+                <button type="button" class="primary-btn neumorphic-btn" id="btn-activate-tooltip-mode" style="width: 100%; border-radius: 8px;">
+                    <span class="material-symbols-rounded">ads_click</span> Bật chế độ Giải thích giao diện
+                </button>
+            </div>
+        `;
+
         if (this.workflowContent) this.workflowContent.innerHTML = html;
         if (this.modalWorkflow) this.modalWorkflow.classList.remove('hidden');
+        
+        // Cài đặt sự kiện cho nút vừa thêm
+        setTimeout(() => {
+            const btn = document.getElementById('btn-activate-tooltip-mode');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    if (this.modalWorkflow) this.modalWorkflow.classList.add('hidden');
+                    this.toggleHelpMode();
+                });
+            }
+        }, 10);
     },
 
     showAiHelpChat() {

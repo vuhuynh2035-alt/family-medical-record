@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.10",
-  "updatedAt": "2026-08-31T23:44:00Z",
-  "releaseNotes": "Thêm nút xóa từng lịch hẹn trong giao diện chỉnh sửa lịch hẹn."
+  "version": "v2.9.11",
+  "updatedAt": "2026-08-31T23:45:00Z",
+  "releaseNotes": "Tối giản giao diện: Tích hợp chế độ giải thích giao diện vào bảng hướng dẫn quy trình chung."
 }
