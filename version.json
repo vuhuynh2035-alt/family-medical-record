@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.11",
-  "updatedAt": "2026-08-31T23:45:00Z",
-  "releaseNotes": "Tối giản giao diện: Tích hợp chế độ giải thích giao diện vào bảng hướng dẫn quy trình chung."
+  "version": "v2.9.12",
+  "updatedAt": "2026-08-31T23:53:00Z",
+  "releaseNotes": "Tối giản giao diện: Gộp chế độ hướng dẫn tương tác và cẩm nang quy trình vào chung 1 nút (?)."
 }

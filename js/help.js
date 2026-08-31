@@ -54,7 +54,7 @@ const HelpService = {
 
         document.body.addEventListener('click', (e) => {
             if (e.target.closest('.btn-workflow-guide') || e.target.closest('#btn-workflow-guide')) {
-                this.showWorkflowGuide();
+                this.toggleHelpMode();
             }
         });
 
@@ -133,7 +133,10 @@ const HelpService = {
                     <span class="material-symbols-rounded">touch_app</span> Chế độ Hướng dẫn
                 </div>
                 <div style="font-size: 14px; color: #555; line-height: 1.5; margin-top: 8px;">
-                    Chạm vào các ô viền vàng trên màn hình để xem giải thích chi tiết.
+                    Chạm vào các ô viền vàng trên màn hình để xem giải thích chi tiết.<br>
+                    <button id="btn-open-workflow-guide-from-panel" style="margin-top: 15px; background: #e67e22; color: white; border: none; border-radius: 8px; padding: 10px 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; font-size: 14px; box-shadow: 0 4px 6px rgba(230, 126, 34, 0.2);">
+                        <span class="material-symbols-rounded" style="font-size: 18px;">menu_book</span> Xem Cẩm nang Quy trình
+                    </button>
                 </div>
             </div>
         `;
@@ -142,6 +145,14 @@ const HelpService = {
         document.getElementById('btn-close-help-panel').addEventListener('click', () => {
             this.toggleHelpMode();
         });
+
+        const btnWorkflow = document.getElementById('btn-open-workflow-guide-from-panel');
+        if (btnWorkflow) {
+            btnWorkflow.addEventListener('click', () => {
+                this.toggleHelpMode(); // Tắt chế độ overlay
+                this.showWorkflowGuide(); // Mở modal cẩm nang
+            });
+        }
     },
     
     updateInfoPanel(title, desc) {
@@ -201,29 +212,9 @@ const HelpService = {
                 </ol>
             `;
         }
-        
-        html += `
-            <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); text-align: center;">
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; font-weight: 500;">Bạn vẫn chưa rõ chức năng của các nút bấm trên màn hình?</p>
-                <button type="button" class="primary-btn neumorphic-btn" id="btn-activate-tooltip-mode" style="width: 100%; border-radius: 8px;">
-                    <span class="material-symbols-rounded">ads_click</span> Bật chế độ Giải thích giao diện
-                </button>
-            </div>
-        `;
 
         if (this.workflowContent) this.workflowContent.innerHTML = html;
         if (this.modalWorkflow) this.modalWorkflow.classList.remove('hidden');
-        
-        // Cài đặt sự kiện cho nút vừa thêm
-        setTimeout(() => {
-            const btn = document.getElementById('btn-activate-tooltip-mode');
-            if (btn) {
-                btn.addEventListener('click', () => {
-                    if (this.modalWorkflow) this.modalWorkflow.classList.add('hidden');
-                    this.toggleHelpMode();
-                });
-            }
-        }, 10);
     },
 
     showAiHelpChat() {
