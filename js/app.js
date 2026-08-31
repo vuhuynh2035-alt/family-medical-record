@@ -333,6 +333,50 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 // ==================== KHỞI TẠO ỨNG DỤNG ====================
 document.addEventListener('DOMContentLoaded', async () => {
+    // ==================== BẪY THAO TÁC VUỐT BACK (PWA / MOBILE) ====================
+    // Tạo lịch sử giả để bẫy sự kiện quay lại (swipe left to go back / hardware back button)
+    // Tránh tình trạng vuốt nhầm làm thoát app hoàn toàn.
+    let backPressCount = 0;
+    let backPressTimer = null;
+    
+    history.replaceState({ appState: 'running' }, '');
+    history.pushState({ appState: 'running' }, '');
+    
+    window.addEventListener('popstate', (e) => {
+        // Luôn luôn pushState lại để chặn các lần back tiếp theo
+        history.pushState({ appState: 'running' }, '');
+
+        // 1. Đóng modal trên cùng (nếu có, và bỏ qua modal khóa PIN)
+        const visibleModals = Array.from(document.querySelectorAll('.modal-overlay:not(.hidden)'));
+        let hasOpenModal = false;
+        if (visibleModals.length > 0) {
+            const topModal = visibleModals[visibleModals.length - 1];
+            if (topModal && topModal.id && topModal.id !== 'modal-pin-lock') {
+                closeModal(topModal.id);
+                hasOpenModal = true;
+            }
+        }
+        
+        // 2. Nếu không có modal, xử lý chuyển View
+        if (!hasOpenModal) {
+            const isDetailView = document.getElementById('view-member-detail')?.classList.contains('active');
+            if (isDetailView) {
+                switchView('view-dashboard');
+                initDashboard();
+            } else {
+                // Đang ở trang chủ, yêu cầu back 2 lần liên tiếp để thoát ứng dụng
+                backPressCount++;
+                if (backPressCount >= 2) {
+                    history.go(-2); // Thoát thật
+                } else {
+                    showToast('Vuốt/Nhấn Quay lại lần nữa để thoát', 'error');
+                    clearTimeout(backPressTimer);
+                    backPressTimer = setTimeout(() => { backPressCount = 0; }, 2000);
+                }
+            }
+        }
+    });
+
     // Tự động đồng bộ số phiên bản từ sw.js để tránh quên cập nhật giao diện
     try {
         const swText = await fetch('sw.js?t=' + Date.now()).then(r => r.text());
