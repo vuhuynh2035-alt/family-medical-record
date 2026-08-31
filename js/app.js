@@ -776,11 +776,38 @@ function setupEventListeners() {
         }
     });
     
-    document.getElementById('btn-test-alarm')?.addEventListener('click', () => {
-        const soundUrl = document.getElementById('input-alarm-sound').value;
-        const tempAudio = new Audio(soundUrl);
-        tempAudio.volume = 1.0;
-        tempAudio.play().catch(e => console.warn('Cannot play test alarm', e));
+    document.getElementById('btn-test-alarm')?.addEventListener('click', (e) => {
+        const btn = e.currentTarget;
+        if (currentAlarmAudio && !currentAlarmAudio.paused) {
+            stopLoudBell();
+            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 16px;">play_arrow</span> Nghe thử';
+        } else {
+            const soundUrl = document.getElementById('input-alarm-sound').value;
+            playLoudBell(soundUrl);
+            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 16px;">stop</span> Dừng nghe';
+        }
+    });
+
+    document.getElementById('btn-request-all-permissions')?.addEventListener('click', async () => {
+        let results = [];
+        
+        // 1. Quyền Thông báo
+        if ('Notification' in window) {
+            const permission = await Notification.requestPermission();
+            results.push(`- Thông báo nhắc hẹn: ${permission === 'granted' ? 'Đã cấp ✅' : 'Từ chối ❌'}`);
+        } else {
+            results.push(`- Thông báo nhắc hẹn: Không hỗ trợ ⚠️`);
+        }
+        
+        // 2. Quyền Lưu trữ bền vững (Persistent Storage)
+        if (navigator.storage && navigator.storage.persist) {
+            const isPersisted = await navigator.storage.persist();
+            results.push(`- Lưu trữ dữ liệu an toàn: ${isPersisted ? 'Đã cấp ✅' : 'Từ chối ❌'}`);
+        } else {
+            results.push(`- Lưu trữ dữ liệu an toàn: Không hỗ trợ ⚠️`);
+        }
+        
+        alert("Trạng thái cấp quyền:\n" + results.join("\n"));
     });
 
     document.getElementById('btn-save-settings').addEventListener('click', () => {
@@ -2762,7 +2789,7 @@ function checkReminders() {
 let currentAlarmAudio = null;
 let vibrationInterval = null;
 
-function playLoudBell() {
+function playLoudBell(customUrl = null) {
     try {
         if (currentAlarmAudio) {
             currentAlarmAudio.pause();
@@ -2773,8 +2800,25 @@ function playLoudBell() {
         }
         
         const settings = DataManager.getSettings();
-        const alarmUrl = settings.alarmSound || DEFAULT_ALARM_SOUND_URL;
-        currentAlarmAudio = new Audio(alarmUrl);
+        const alarmUrl = customUrl || settings.alarmSound || DEFAULT_ALARM_SOUND_URL;
+        
+        // Tạo AudioContext để tăng âm lượng (GainNode) lên gấp 3 lần bình thường (boost volume)
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioContext();
+            const audioEl = new Audio(alarmUrl);
+            audioEl.crossOrigin = "anonymous";
+            const source = ctx.createMediaElementSource(audioEl);
+            const gainNode = ctx.createGain();
+            gainNode.gain.value = 3.0; // Tăng âm lượng lên 300%
+            source.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            currentAlarmAudio = source.mediaElement;
+        } catch (audioCtxError) {
+            // Fallback nếu trình duyệt không hỗ trợ AudioContext hoặc lỗi CORS
+            currentAlarmAudio = new Audio(alarmUrl);
+        }
+
         currentAlarmAudio.volume = 1.0;
         currentAlarmAudio.loop = true; // Lặp liên tục
         const playPromise = currentAlarmAudio.play();
