@@ -731,16 +731,24 @@ const UI = {
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
         const tomorrowStart = todayStart + 24 * 60 * 60 * 1000;
 
-        const todayReminders = [];
-        const futureReminders = [];
+        const mainReminders = [];
+        const futureMedicineReminders = [];
+
+        const isMedicineReminder = (rm) => {
+            const str = (rm.title + ' ' + (rm.note || '')).toLowerCase();
+            return str.includes('thuốc') || str.includes('uống') || str.includes('medication') || str.includes('pill');
+        };
 
         reminders.forEach(rm => {
             const rmDate = new Date(rm.datetime).getTime();
-            if (rmDate < tomorrowStart || rm.completed) {
-                // Quá khứ, Hôm nay, hoặc đã hoàn thành
-                todayReminders.push(rm);
+            const isMedicine = isMedicineReminder(rm);
+            
+            if (rmDate < tomorrowStart || rm.completed || !isMedicine) {
+                // Quá khứ, Hôm nay, đã hoàn thành, HOẶC KHÔNG PHẢI LỊCH UỐNG THUỐC (như Tái khám)
+                mainReminders.push(rm);
             } else {
-                futureReminders.push(rm);
+                // Tương lai VÀ LÀ lịch uống thuốc -> Ẩn đi để tránh rối mắt
+                futureMedicineReminders.push(rm);
             }
         });
 
@@ -807,15 +815,15 @@ const UI = {
             });
         };
 
-        if (todayReminders.length > 0) {
-            renderGroup(todayReminders, container);
-        } else if (futureReminders.length > 0) {
+        if (mainReminders.length > 0) {
+            renderGroup(mainReminders, container);
+        } else if (futureMedicineReminders.length > 0) {
             const emptyMsg = document.createElement('div');
             emptyMsg.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">Hôm nay không có lịch hẹn nào.</div>`;
             container.appendChild(emptyMsg);
         }
 
-        if (futureReminders.length > 0) {
+        if (futureMedicineReminders.length > 0) {
             const details = document.createElement('details');
             details.style.marginTop = '15px';
             details.style.background = 'rgba(0,0,0,0.02)';
@@ -830,7 +838,7 @@ const UI = {
             summary.style.display = 'flex';
             summary.style.alignItems = 'center';
             summary.style.gap = '5px';
-            summary.innerHTML = `<span class="material-symbols-rounded" style="font-size:18px;">calendar_month</span> Hiện thêm ${futureReminders.length} lịch của các ngày tiếp theo...`;
+            summary.innerHTML = `<span class="material-symbols-rounded" style="font-size:18px;">medication</span> Hiện thêm ${futureMedicineReminders.length} lịch uống thuốc của các ngày tiếp theo...`;
             details.appendChild(summary);
 
             const futureContainer = document.createElement('div');
@@ -839,7 +847,7 @@ const UI = {
             futureContainer.style.flexDirection = 'column';
             futureContainer.style.gap = '15px';
             
-            renderGroup(futureReminders, futureContainer);
+            renderGroup(futureMedicineReminders, futureContainer);
             details.appendChild(futureContainer);
             container.appendChild(details);
         }
