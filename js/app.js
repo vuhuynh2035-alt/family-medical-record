@@ -219,9 +219,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.9';
+const CURRENT_APP_VERSION = 'v2.9.10';
 const APP_CHANGELOG = {
-    'v2.9.9': '• Cập nhật thuật toán chống lỗi ngày tháng để đảm bảo sắp xếp lịch hẹn theo đúng trình tự thời gian.\n• Tự động dọn dẹp các lịch hẹn bị lưu trùng lặp từ trước.\n• Bổ sung tính năng "Xóa toàn bộ lịch hẹn" trong trang Hồ sơ cá nhân của từng thành viên.',
+    'v2.9.10': '• Thêm nút "Xóa bỏ" ngay bên trong giao diện Sửa nhắc hẹn để dễ dàng xóa từng lịch hẹn.\n• Cập nhật thuật toán chống lỗi ngày tháng để đảm bảo sắp xếp lịch hẹn theo đúng trình tự thời gian.\n• Tự động dọn dẹp các lịch hẹn bị lưu trùng lặp từ trước.\n• Bổ sung tính năng "Xóa toàn bộ lịch hẹn" trong trang Hồ sơ cá nhân của từng thành viên.',
     'v2.9.8': '• Tối ưu hiển thị nhắc hẹn: Đưa các lịch hẹn đã hoàn thành vào một nhóm riêng ở cuối trang, chỉ hiển thị khi bạn nhấn vào (chuyển sang trang xem riêng). Các lịch quá hạn vẫn hiển thị nổi bật ở danh sách chính để nhắc nhở xử lý.',
     'v2.9.7': '• Thêm cơ chế chống trùng lặp tự động: Khi phân tích AI nhiều lần, hệ thống sẽ chỉ thêm các lịch hẹn mới và tự động bỏ qua các lịch đã tồn tại.',
     'v2.9.6': '• Tinh chỉnh thuật toán sắp xếp lịch hẹn theo đúng trình tự thời gian thực (Lịch quá hạn xếp trước, rồi đến lịch tương lai).\n• Thay đổi thiết kế Nút Hướng dẫn: thu gọn thành biểu tượng chấm hỏi ở góc phải trên cùng màn hình.',
@@ -2342,7 +2342,23 @@ function setupEventListeners() {
         const cb0 = document.querySelector('input[name="reminder_offsets"][value="0"]');
         if (cb0) cb0.checked = true;
         document.getElementById('modal-reminder-title').innerText = 'Tạo lịch hẹn mới';
+        
+        const deleteBtn = document.getElementById('btn-delete-reminder');
+        if (deleteBtn) deleteBtn.classList.add('hidden');
+        
         openModal('modal-reminder');
+    });
+
+    document.getElementById('btn-delete-reminder')?.addEventListener('click', () => {
+        const id = document.getElementById('reminder-id').value;
+        if (!id) return;
+        if (confirm('Bạn có chắc chắn muốn xóa lịch hẹn này không?')) {
+            DataManager.deleteReminder(id);
+            closeModal('modal-reminder');
+            reloadRecordsAndStats();
+            checkReminders();
+            showToast('Đã xóa lịch hẹn thành công!', 'success');
+        }
     });
 
     document.getElementById('btn-delete-all-reminders')?.addEventListener('click', () => {
@@ -3011,32 +3027,37 @@ document.addEventListener('click', (e) => {
 // Sửa lịch hẹn: điền lại form với dữ liệu của lịch hẹn đã chọn rồi mở modal ở chế độ chỉnh sửa.
 document.addEventListener('click', (e) => {
     const btnEditReminder = e.target.closest('.btn-edit-reminder');
-    if (!btnEditReminder) return;
+    if (btnEditReminder) {
+        const id = btnEditReminder.dataset.id;
+        const reminder = DataManager.getReminders().find(r => r.id === id);
+        if (!reminder) return;
 
-    const id = btnEditReminder.dataset.id;
-    const reminder = DataManager.getReminders().find(r => r.id === id);
-    if (!reminder) return;
-
-    document.getElementById('reminder-id').value = reminder.id;
-    document.getElementById('reminder-title').value = reminder.title || '';
-    document.getElementById('reminder-date').value = reminder.date || '';
-    document.getElementById('reminder-time').value = reminder.time || '';
-    document.getElementById('reminder-note').value = reminder.note || '';
-    // Clear all checkboxes first
-    document.querySelectorAll('input[name="reminder_offsets"]').forEach(cb => cb.checked = false);
-    
-    if (reminder.selected_offsets && Array.isArray(reminder.selected_offsets)) {
-        reminder.selected_offsets.forEach(val => {
-            const cb = document.querySelector(`input[name="reminder_offsets"][value="${val}"]`);
-            if (cb) cb.checked = true;
-        });
-    } else {
-        // Fallback for old reminders or default
-        const cb0 = document.querySelector('input[name="reminder_offsets"][value="0"]');
-        if (cb0) cb0.checked = true;
+        document.getElementById('reminder-id').value = reminder.id;
+        document.getElementById('reminder-title').value = reminder.title || '';
+        document.getElementById('reminder-date').value = reminder.date || '';
+        document.getElementById('reminder-time').value = reminder.time || '';
+        document.getElementById('reminder-note').value = reminder.note || '';
+        // Clear all checkboxes first
+        document.querySelectorAll('input[name="reminder_offsets"]').forEach(cb => cb.checked = false);
+        
+        if (reminder.selected_offsets && Array.isArray(reminder.selected_offsets)) {
+            reminder.selected_offsets.forEach(val => {
+                const cb = document.querySelector(`input[name="reminder_offsets"][value="${val}"]`);
+                if (cb) cb.checked = true;
+            });
+        } else {
+            // Fallback for old reminders or default
+            const cb0 = document.querySelector('input[name="reminder_offsets"][value="0"]');
+            if (cb0) cb0.checked = true;
+        }
+        document.getElementById('modal-reminder-title').innerText = 'Sửa lịch hẹn';
+        
+        const deleteBtn = document.getElementById('btn-delete-reminder');
+        if (deleteBtn) deleteBtn.classList.remove('hidden');
+        
+        openModal('modal-reminder');
+        return;
     }
-    document.getElementById('modal-reminder-title').innerText = 'Sửa lịch hẹn';
-    openModal('modal-reminder');
 });
 
 // --- AI Medication Analysis & Chatbot Events ---

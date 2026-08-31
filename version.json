@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.9",
-  "updatedAt": "2026-08-31T23:38:00Z",
-  "releaseNotes": "Tự động dọn dẹp các lịch hẹn bị trùng lặp cũ và thêm chức năng Xóa toàn bộ lịch hẹn."
+  "version": "v2.9.10",
+  "updatedAt": "2026-08-31T23:44:00Z",
+  "releaseNotes": "Thêm nút xóa từng lịch hẹn trong giao diện chỉnh sửa lịch hẹn."
 }

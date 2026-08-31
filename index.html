@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.9"></script>
-    <script defer src="js/ai.js?v=2.9.9"></script>
-    <script defer src="js/components.js?v=2.9.9"></script>
-    <script defer src="js/help.js?v=2.9.9"></script>
-    <script defer src="js/speech.js?v=2.9.9"></script>
-    <script defer src="js/app.js?v=2.9.9"></script>
+    <script defer src="js/data.js?v=2.9.10"></script>
+    <script defer src="js/ai.js?v=2.9.10"></script>
+    <script defer src="js/components.js?v=2.9.10"></script>
+    <script defer src="js/help.js?v=2.9.10"></script>
+    <script defer src="js/speech.js?v=2.9.10"></script>
+    <script defer src="js/app.js?v=2.9.10"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -374,9 +374,12 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
                 <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
-                <button type="submit" form="form-reminder" class="primary-btn neumorphic-btn">Lưu hẹn</button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" id="btn-delete-reminder" class="icon-btn neumorphic-btn hidden" style="color: #e11d48; border: 1px solid #e11d48; background: rgba(225, 29, 72, 0.05); border-radius: 8px; width: auto; padding: 0 15px; font-size: 14px; font-weight: bold;" title="Xóa lịch hẹn này">Xóa bỏ</button>
+                    <button type="submit" form="form-reminder" class="primary-btn neumorphic-btn">Lưu hẹn</button>
+                </div>
             </div>
         </div>
     </div>
