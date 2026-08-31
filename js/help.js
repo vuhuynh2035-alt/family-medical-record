@@ -110,7 +110,7 @@ const HelpService = {
         infoPanel.className = 'neumorphic-panel';
         infoPanel.style.cssText = `
             position: fixed;
-            top: 20px;
+            top: 75px;
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
@@ -127,21 +127,31 @@ const HelpService = {
             transition: transform 0.15s ease;
         `;
         infoPanel.innerHTML = `
-            <div style="font-weight: 700; color: #e67e22; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <span class="material-symbols-rounded">touch_app</span> Chế độ Hướng dẫn
-            </div>
-            <div style="font-size: 14px; color: #555; line-height: 1.5; margin-top: 8px;">
-                Chạm vào các ô viền vàng trên màn hình để xem giải thích chi tiết. Nhấn lại nút "?" để thoát.
+            <button id="btn-close-help-panel" style="position: absolute; right: 10px; top: 10px; background: rgba(0,0,0,0.05); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #555; cursor: pointer; z-index: 10;">
+                <span class="material-symbols-rounded" style="font-size: 18px;">close</span>
+            </button>
+            <div id="help-info-content">
+                <div style="font-weight: 700; color: #e67e22; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 20px;">
+                    <span class="material-symbols-rounded">touch_app</span> Chế độ Hướng dẫn
+                </div>
+                <div style="font-size: 14px; color: #555; line-height: 1.5; margin-top: 8px;">
+                    Chạm vào các ô viền vàng trên màn hình để xem giải thích chi tiết.
+                </div>
             </div>
         `;
         document.body.appendChild(infoPanel);
+        
+        document.getElementById('btn-close-help-panel').addEventListener('click', () => {
+            this.toggleHelpMode();
+        });
     },
     
     updateInfoPanel(title, desc) {
+        const content = document.getElementById('help-info-content');
         const infoPanel = document.getElementById('help-info-panel');
-        if (infoPanel) {
-            infoPanel.innerHTML = `
-                <div style="font-weight: 700; color: #e67e22; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        if (content && infoPanel) {
+            content.innerHTML = `
+                <div style="font-weight: 700; color: #e67e22; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 20px;">
                     <span class="material-symbols-rounded">info</span> ${title}
                 </div>
                 <div style="font-size: 14px; color: #333; line-height: 1.5; margin-top: 8px;">
