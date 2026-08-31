@@ -219,8 +219,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.7';
+const CURRENT_APP_VERSION = 'v2.9.8';
 const APP_CHANGELOG = {
+    'v2.9.8': '• Tối ưu hiển thị nhắc hẹn: Đưa các lịch hẹn đã hoàn thành vào một nhóm riêng ở cuối trang, chỉ hiển thị khi bạn nhấn vào (chuyển sang trang xem riêng). Các lịch quá hạn vẫn hiển thị nổi bật ở danh sách chính để nhắc nhở xử lý.',
     'v2.9.7': '• Thêm cơ chế chống trùng lặp tự động: Khi phân tích AI nhiều lần, hệ thống sẽ chỉ thêm các lịch hẹn mới và tự động bỏ qua các lịch đã tồn tại.',
     'v2.9.6': '• Tinh chỉnh thuật toán sắp xếp lịch hẹn theo đúng trình tự thời gian thực (Lịch quá hạn xếp trước, rồi đến lịch tương lai).\n• Thay đổi thiết kế Nút Hướng dẫn: thu gọn thành biểu tượng chấm hỏi ở góc phải trên cùng màn hình.',
     'v2.9.4': '• Nhắc hẹn uống thuốc giờ đây được gom gọn theo ngày.\n• Tách biệt thông báo hệ thống và nhắc hẹn.\n• Thêm tùy chọn tắt/bật chuông báo cho từng thành viên (trong Cài đặt Hệ thống).\n• Cải thiện âm lượng nghe thử chuông báo.\n• Thêm mục Cấp Quyền Đầy Đủ trong Cài đặt.',

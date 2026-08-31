@@ -733,6 +733,7 @@ const UI = {
 
         const mainReminders = [];
         const futureMedicineReminders = [];
+        const completedReminders = [];
 
         const isMedicineReminder = (rm) => {
             const str = (rm.title + ' ' + (rm.note || '')).toLowerCase();
@@ -743,12 +744,14 @@ const UI = {
             const rmDate = new Date(rm.datetime).getTime();
             const isMedicine = isMedicineReminder(rm);
             
-            if (rmDate < tomorrowStart || rm.completed || !isMedicine) {
-                // Quá khứ, Hôm nay, đã hoàn thành, HOẶC KHÔNG PHẢI LỊCH UỐNG THUỐC (như Tái khám)
-                mainReminders.push(rm);
-            } else {
+            if (rm.completed) {
+                completedReminders.push(rm);
+            } else if (rmDate >= tomorrowStart && isMedicine) {
                 // Tương lai VÀ LÀ lịch uống thuốc -> Ẩn đi để tránh rối mắt
                 futureMedicineReminders.push(rm);
+            } else {
+                // Quá khứ, Hôm nay, HOẶC KHÔNG PHẢI LỊCH UỐNG THUỐC (như Tái khám)
+                mainReminders.push(rm);
             }
         });
 
@@ -828,11 +831,10 @@ const UI = {
             details.style.marginTop = '15px';
             details.style.background = 'rgba(0,0,0,0.02)';
             details.style.borderRadius = '12px';
-            details.style.padding = '12px';
-            details.style.border = '1px solid rgba(0,0,0,0.05)';
+            details.style.padding = '5px 15px 15px 15px';
             
             const summary = document.createElement('summary');
-            summary.style.fontWeight = '600';
+            summary.style.fontWeight = 'bold';
             summary.style.cursor = 'pointer';
             summary.style.color = 'var(--text-muted)';
             summary.style.display = 'flex';
@@ -850,6 +852,32 @@ const UI = {
             renderGroup(futureMedicineReminders, futureContainer);
             details.appendChild(futureContainer);
             container.appendChild(details);
+        }
+
+        if (completedReminders.length > 0) {
+            const btnCompleted = document.createElement('button');
+            btnCompleted.className = 'neumorphic-btn';
+            btnCompleted.style.width = '100%';
+            btnCompleted.style.marginTop = '20px';
+            btnCompleted.style.padding = '12px';
+            btnCompleted.style.color = '#10b981';
+            btnCompleted.style.display = 'flex';
+            btnCompleted.style.alignItems = 'center';
+            btnCompleted.style.justifyContent = 'center';
+            btnCompleted.style.gap = '8px';
+            btnCompleted.style.fontWeight = '600';
+            btnCompleted.innerHTML = `<span class="material-symbols-rounded">task_alt</span> Xem ${completedReminders.length} nhắc nhở đã hoàn thành`;
+            
+            btnCompleted.addEventListener('click', () => {
+                const modal = document.getElementById('modal-completed-reminders');
+                if (!modal) return;
+                const list = document.getElementById('completed-reminders-list');
+                list.innerHTML = '';
+                renderGroup(completedReminders, list);
+                modal.classList.remove('hidden');
+            });
+            
+            container.appendChild(btnCompleted);
         }
 
         this.enhanceA11y(container);

@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.7"></script>
-    <script defer src="js/ai.js?v=2.9.7"></script>
-    <script defer src="js/components.js?v=2.9.7"></script>
-    <script defer src="js/help.js?v=2.9.7"></script>
-    <script defer src="js/speech.js?v=2.9.7"></script>
-    <script defer src="js/app.js?v=2.9.7"></script>
+    <script defer src="js/data.js?v=2.9.8"></script>
+    <script defer src="js/ai.js?v=2.9.8"></script>
+    <script defer src="js/components.js?v=2.9.8"></script>
+    <script defer src="js/help.js?v=2.9.8"></script>
+    <script defer src="js/speech.js?v=2.9.8"></script>
+    <script defer src="js/app.js?v=2.9.8"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -1210,6 +1210,24 @@
             <div class="modal-footer" style="border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" class="icon-btn neumorphic-btn close-modal" style="border-radius: 8px; width: auto; padding: 8px 20px; font-size: 14px; font-weight: 600;">Không, cảm ơn</button>
                 <button type="button" id="btn-save-smart-reminders" class="primary-btn neumorphic-btn hidden" style="border-radius: 8px; font-size: 14px; padding: 8px 20px;">Tạo lịch nhắc đã chọn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Lịch hẹn đã hoàn thành -->
+    <div id="modal-completed-reminders" class="modal-overlay hidden" role="dialog" aria-modal="true" style="z-index: 10000;">
+        <div class="modal-content neumorphic-modal" style="display: flex; flex-direction: column; height: 85vh; max-height: 800px; padding: 0;">
+            <div class="modal-header" style="padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <h3 style="display: flex; align-items: center; gap: 8px; color: #10b981;">
+                    <span class="material-symbols-rounded">task_alt</span>
+                    Lịch hẹn đã hoàn thành
+                </h3>
+                <button class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 20px; background: var(--bg-color);">
+                <div id="completed-reminders-list" style="display: flex; flex-direction: column; gap: 15px;">
+                    <!-- Sẽ được render qua JS -->
+                </div>
             </div>
         </div>
     </div>
