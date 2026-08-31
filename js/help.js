@@ -88,13 +88,11 @@ const HelpService = {
             document.body.classList.add('help-mode-active');
             this.createInfoPanel();
             
-            if (this.btnWorkflow) this.btnWorkflow.classList.remove('hidden');
             if (this.btnAiHelp) this.btnAiHelp.classList.remove('hidden');
         } else {
             document.body.classList.remove('help-mode-active');
             this.removeInfoPanel();
             
-            if (this.btnWorkflow) this.btnWorkflow.classList.add('hidden');
             if (this.btnAiHelp) this.btnAiHelp.classList.add('hidden');
             if (this.modalAiHelp) this.modalAiHelp.classList.add('hidden');
             if (this.modalWorkflow) this.modalWorkflow.classList.add('hidden');
