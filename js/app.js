@@ -1362,15 +1362,75 @@ function setupEventListeners() {
         }
     }
 
+    // Format helpers for UI
+    function formatDateShort(isoString) {
+        if (!isoString) return '';
+        const d = new Date(isoString);
+        return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    }
+
     // Evaluate Health Trend Action
-    document.getElementById('btn-evaluate-trend').addEventListener('click', async () => {
+    document.getElementById('btn-evaluate-trend').addEventListener('click', () => {
         if (!currentMemberId) return;
         const records = DataManager.getRecords(currentMemberId);
         if (!records || records.length === 0) {
             alert('Thành viên này chưa có hồ sơ khám bệnh nào để đánh giá.');
             return;
         }
+        
+        renderTrendReportsList();
+        openModal('modal-trend-history');
+    });
 
+    function renderTrendReportsList() {
+        const container = document.getElementById('trend-reports-list');
+        const reports = DataManager.getTrendReports(currentMemberId);
+        container.innerHTML = '';
+        if (!reports || reports.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted); font-size: 14px; text-align: center;">Chưa có bản đánh giá nào được lưu.</p>';
+            return;
+        }
+
+        reports.forEach(r => {
+            const div = document.createElement('div');
+            div.className = 'neumorphic-panel clickable-row';
+            div.style.padding = '12px';
+            div.style.borderRadius = '12px';
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div style="font-weight: 600; color: var(--primary-blue); font-size: 14px;">${r.title || 'Đánh giá xu hướng'}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${formatDateShort(r.date)}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">${r.comparedRecordsSummary || ''}</div>
+                    </div>
+                    <button class="icon-btn danger btn-del-trend" data-id="${r.id}" style="padding: 4px;"><span class="material-symbols-rounded" style="font-size: 18px;">delete</span></button>
+                </div>
+            `;
+            
+            // Xoá
+            div.querySelector('.btn-del-trend').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm('Xóa bản đánh giá này?')) {
+                    DataManager.deleteTrendReport(currentMemberId, r.id);
+                    renderTrendReportsList();
+                }
+            });
+
+            // Mở xem lại
+            div.addEventListener('click', () => {
+                document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">history</span> Đánh giá xu hướng sức khỏe (Đã lưu)`;
+                document.getElementById('ai-assessment-loading').classList.add('hidden');
+                document.getElementById('ai-assessment-content').innerHTML = UI.renderMarkdown(r.content);
+                // Gắn metadata để lúc lưu PDF biết tên
+                window.currentTrendMetadata = r; 
+                openModal('modal-ai-assessment');
+            });
+            container.appendChild(div);
+        });
+    }
+
+    document.getElementById('btn-create-new-trend').addEventListener('click', async () => {
+        const records = DataManager.getRecords(currentMemberId);
         const member = DataManager.getMembers().find(m => m.id === currentMemberId);
         const activeProvider = DataManager.getProviderTrend();
         const pName = activeProvider === 'openai' ? 'ChatGPT' : (activeProvider === 'anthropic' ? 'Claude' : 'Gemini');
@@ -1388,6 +1448,47 @@ function setupEventListeners() {
             const mdText = await AIService.evaluateHealthTrend(records, member);
             loading.classList.add('hidden');
             content.innerHTML = UI.renderMarkdown(mdText);
+            
+            // Inject TTS buttons to all headings so users can read section by section
+            content.querySelectorAll('h2, h3').forEach(heading => {
+                const playBtn = document.createElement('button');
+                playBtn.className = 'icon-btn tts-speak-btn';
+                playBtn.style.cssText = 'font-size: 12px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; color: #8e44ad; background: rgba(142,68,173,0.1); border-radius: 12px;';
+                playBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">volume_up</span> Nghe phần này';
+                playBtn.title = 'Nghe phần này';
+                
+                playBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (window.TTSService && TTSService.isPlaying && TTSService.activeBtnElement === playBtn) {
+                        TTSService.stop();
+                        return;
+                    }
+                    
+                    let textToRead = heading.innerText.replace('Nghe phần này', '').trim() + '\n';
+                    let nextEl = heading.nextElementSibling;
+                    const stopTags = ['H1', 'H2', 'H3'];
+                    while(nextEl && !stopTags.includes(nextEl.tagName)) {
+                        textToRead += nextEl.innerText + '\n';
+                        nextEl = nextEl.nextElementSibling;
+                    }
+                    
+                    if (window.TTSService) {
+                        TTSService.speak(textToRead.trim(), heading.innerText.replace('volume_up', '').replace('Nghe phần này', '').trim(), playBtn, 'assessment', '#ai-assessment-content');
+                    }
+                });
+                heading.appendChild(playBtn);
+            });
+            
+            // Tạo metadata chờ người dùng bấm Lưu
+            const dates = records.map(r => r.date).sort();
+            const summary = dates.length > 0 ? `Từ ${dates[0]} đến ${dates[dates.length-1]} (${dates.length} hồ sơ)` : '';
+            window.currentTrendMetadata = {
+                title: 'Đánh giá xu hướng sức khỏe',
+                date: new Date().toISOString(),
+                recordIds: records.map(r => r.id),
+                comparedRecordsSummary: summary,
+                content: mdText
+            };
         } catch (err) {
             loading.classList.add('hidden');
             content.innerHTML = `<p style="color:var(--danger);">Lỗi khi liên hệ AI: ${err.message}</p>`;
@@ -1631,6 +1732,36 @@ function setupEventListeners() {
                 try {
                     const mdText = await AIService.generateHealthAssessment(record, member);
                     content.innerHTML = UI.renderMarkdown(mdText);
+            
+            // Inject TTS buttons to all headings so users can read section by section
+            content.querySelectorAll('h2, h3').forEach(heading => {
+                const playBtn = document.createElement('button');
+                playBtn.className = 'icon-btn tts-speak-btn';
+                playBtn.style.cssText = 'font-size: 12px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; color: #8e44ad; background: rgba(142,68,173,0.1); border-radius: 12px;';
+                playBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">volume_up</span> Nghe phần này';
+                playBtn.title = 'Nghe phần này';
+                
+                playBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (window.TTSService && TTSService.isPlaying && TTSService.activeBtnElement === playBtn) {
+                        TTSService.stop();
+                        return;
+                    }
+                    
+                    let textToRead = heading.innerText.replace('Nghe phần này', '').trim() + '\n';
+                    let nextEl = heading.nextElementSibling;
+                    const stopTags = ['H1', 'H2', 'H3'];
+                    while(nextEl && !stopTags.includes(nextEl.tagName)) {
+                        textToRead += nextEl.innerText + '\n';
+                        nextEl = nextEl.nextElementSibling;
+                    }
+                    
+                    if (window.TTSService) {
+                        TTSService.speak(textToRead.trim(), heading.innerText.replace('volume_up', '').replace('Nghe phần này', '').trim(), playBtn, 'assessment', '#ai-assessment-content');
+                    }
+                });
+                heading.appendChild(playBtn);
+            });
                 } catch (err) {
                     content.innerHTML = `<p style="color:var(--danger);">Lỗi khi liên hệ AI: ${err.message}</p>`;
                 } finally {
@@ -2022,7 +2153,22 @@ function setupEventListeners() {
     document.getElementById('btn-download-assessment-pdf').addEventListener('click', async () => {
         const element = document.getElementById('ai-assessment-content');
         let rawTitle = document.querySelector('#modal-ai-assessment .modal-header h3').innerText.trim();
-        const titleText = rawTitle.replace(/psychiatry|travel_explore|auto_awesome/g, '').trim() || 'AI_Assessment';
+        const titleText = rawTitle.replace(/psychiatry|travel_explore|auto_awesome|history/g, '').trim() || 'AI_Assessment';
+        
+        // Save locally if this is a trend evaluation
+        if (window.currentTrendMetadata) {
+            // Check if already saved by id
+            const existing = DataManager.getTrendReports(currentMemberId).find(x => x.id === window.currentTrendMetadata.id);
+            if (!existing) {
+                // If it doesn't have an ID yet, it's newly created. Save it.
+                DataManager.saveTrendReport(currentMemberId, window.currentTrendMetadata);
+                showToast('Đã lưu bản đánh giá vào hồ sơ!');
+                // We don't have the exact ID returned since saveTrendReport assigns it, 
+                // but we can set a dummy id to prevent saving again.
+                window.currentTrendMetadata.id = 'saved'; 
+            }
+        }
+        
         await downloadPdf(element, `${titleText}.pdf`.replace(/\s+/g, '_'));
     });
 

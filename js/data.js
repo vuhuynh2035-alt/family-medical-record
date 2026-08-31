@@ -1,4 +1,4 @@
-﻿// Cấu trúc lưu trữ dữ liệu trong LocalStorage
+// Cấu trúc lưu trữ dữ liệu trong LocalStorage
 // 'family_members': [{ id, name, dob, blood, conditions, avatar }]
 // 'family_records_m_{id}': [{ id, date, hospital, type, doctor, disease, cost, treatment, originalImages, comprehensiveReport }]
 // 'family_reminders': [{ id, memberId, title, date, time, note, datetime, notified }]
@@ -183,6 +183,30 @@ const DataManager = {
         records = records.filter(r => r.id !== recordId);
         localStorage.setItem(`family_records_m_${memberId}`, JSON.stringify(records));
         this.isDataChanged = true;
+    },
+    saveTrendReport(memberId, reportData) {
+        const data = this.getData();
+        const m = data.members.find(x => x.id === memberId);
+        if (m) {
+            if (!m.trendReports) m.trendReports = [];
+            m.trendReports.push({
+                id: 'tr_' + Date.now(),
+                ...reportData
+            });
+            this.saveData(data);
+        }
+    },
+    getTrendReports(memberId) {
+        const m = this.getMemberById(memberId);
+        return (m && m.trendReports) ? m.trendReports.sort((a,b) => new Date(b.date) - new Date(a.date)) : [];
+    },
+    deleteTrendReport(memberId, reportId) {
+        const data = this.getData();
+        const m = data.members.find(x => x.id === memberId);
+        if (m && m.trendReports) {
+            m.trendReports = m.trendReports.filter(r => r.id !== reportId);
+            this.saveData(data);
+        }
     },
 
     // ---- REMINDERS ----
