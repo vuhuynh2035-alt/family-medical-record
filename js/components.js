@@ -796,8 +796,10 @@ const UI = {
         if (count > 0) {
             badge.innerText = count;
             badge.style.display = 'block';
+            badge.classList.remove('hidden');
         } else {
             badge.style.display = 'none';
+            badge.classList.add('hidden');
         }
 
         // Cập nhật số thông báo lên App Icon (PWA)
