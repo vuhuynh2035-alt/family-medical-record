@@ -1,5 +1,5 @@
-﻿{
-  "version": "v2.7.1",
-  "updatedAt": "2026-08-30T13:56:00Z",
-  "releaseNotes": "Thêm tính năng tùy chọn Giọng đọc (Cho phép chọn Giọng mạng chuẩn Google Dịch mượt mà hơn)."
+{
+  "version": "v2.9.4",
+  "updatedAt": "2026-08-31T17:30:00Z",
+  "releaseNotes": "Quản lý nhắc nhở cá nhân hóa, gom nhóm nhắc hẹn theo ngày, cải thiện hệ thống chuông báo và xin quyền ứng dụng."
 }

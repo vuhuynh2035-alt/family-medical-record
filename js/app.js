@@ -219,8 +219,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.7.1';
+const CURRENT_APP_VERSION = 'v2.9.4';
 const APP_CHANGELOG = {
+    'v2.9.4': '• Nhắc hẹn uống thuốc giờ đây được gom gọn theo ngày.\n• Tách biệt thông báo hệ thống và nhắc hẹn.\n• Thêm tùy chọn tắt/bật chuông báo cho từng thành viên (trong Cài đặt Hệ thống).\n• Cải thiện âm lượng nghe thử chuông báo.\n• Thêm mục Cấp Quyền Đầy Đủ trong Cài đặt.',
     'v2.9.3': '• Thêm thông báo Cập nhật tính năng mới ngay trong bảng Chuông thông báo.',
     'v2.9.2': '• Khắc phục lỗi không thể xuất PDF Bảng đánh giá phân tích AI.\n• Sửa lỗi cấp phát sai ID khi lưu báo cáo nhiều lần liên tiếp.',
     'v2.9.1': '• Tự động lưu Báo cáo phân tích xu hướng AI ngay khi tạo để tránh mất dữ liệu nếu lỡ vuốt màn hình.\n• Cho phép nghe đọc Báo cáo (Text-to-Speech) theo từng phần nhỏ thay vì phải nghe từ đầu.\n• Thêm Lịch sử để xem lại các bản Đánh giá cũ.',
