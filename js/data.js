@@ -75,7 +75,8 @@ const DataManager = {
             // "tạm ẩn" nhắc nhở khi người dùng bấm "Để sau".
             lastBackupAt: null,
             firstRunAt: null,
-            backupReminderSnoozeUntil: null
+            backupReminderSnoozeUntil: null,
+            mutedMembers: [] // Mảng chứa ID của các thành viên KHÔNG đổ chuông/thông báo trên máy này
         };
         const stored = localStorage.getItem('family_settings');
         return stored ? { ...defaultSettings, ...JSON.parse(stored) } : defaultSettings;

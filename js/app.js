@@ -597,9 +597,35 @@ function setupEventListeners() {
                 opt.innerText = settings.anthropicModel;
                 select.appendChild(opt);
             }
-            if (select) select.value = settings.anthropicModel;
+        if (select) select.value = settings.anthropicModel;
         }
         updatePinUIState();
+        
+        // Render danh sách thành viên cho Cài đặt Chuông báo
+        const members = DataManager.getMembers();
+        const alarmMembersContainer = document.getElementById('alarm-members-settings');
+        if (alarmMembersContainer) {
+            alarmMembersContainer.innerHTML = '';
+            if (members.length === 0) {
+                alarmMembersContainer.innerHTML = '<div style="font-size:13px; color:var(--text-muted);">Chưa có thành viên nào.</div>';
+            } else {
+                members.forEach(m => {
+                    const isMuted = (settings.mutedMembers || []).includes(m.id);
+                    const div = document.createElement('label');
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'center';
+                    div.style.gap = '8px';
+                    div.style.cursor = 'pointer';
+                    div.style.fontSize = '14px';
+                    div.innerHTML = `
+                        <input type="checkbox" class="chk-alarm-member" value="${m.id}" ${!isMuted ? 'checked' : ''} style="width:16px; height:16px;">
+                        <span>${UI.escapeHtml(m.name)}</span>
+                    `;
+                    alarmMembersContainer.appendChild(div);
+                });
+            }
+        }
+        
         openModal('modal-settings');
     });
     
@@ -772,6 +798,8 @@ function setupEventListeners() {
         const anthropicModel = document.getElementById('input-anthropic-model') ? document.getElementById('input-anthropic-model').value.trim() : '';
 
         const alarmSound = document.getElementById('input-alarm-sound') ? document.getElementById('input-alarm-sound').value : DEFAULT_ALARM_SOUND_URL;
+        
+        const mutedMembers = Array.from(document.querySelectorAll('.chk-alarm-member:not(:checked)')).map(cb => cb.value);
 
         DataManager.saveSettings({
             geminiApiKey: geminiKey,
@@ -785,11 +813,12 @@ function setupEventListeners() {
             geminiModel: geminiModel,
             openaiModel: openaiModel,
             anthropicModel: anthropicModel,
-            alarmSound: alarmSound
+            alarmSound: alarmSound,
+            mutedMembers: mutedMembers
         });
 
         closeModal('modal-settings');
-        showToast("Đã lưu Cấu hình Đa AI.");
+        showToast("Đã lưu Cài đặt Hệ thống.");
     });
 
     // Helper tải file backup về máy
@@ -2655,6 +2684,8 @@ function checkReminders() {
         return checkReminders();
     }
 
+    const settings = DataManager.getSettings();
+    const mutedMembers = settings.mutedMembers || [];
     let alarmTriggered = null;
     let modified = false;
 
@@ -2679,7 +2710,9 @@ function checkReminders() {
             if (offset.ms > 0 || offset.id === '0') {
                 const triggerTime = new Date(rmDate.getTime() - offset.ms);
                 if (now >= triggerTime && !rm.notified_offsets[offset.id]) {
-                    alarmTriggered = rm;
+                    if (!mutedMembers.includes(rm.memberId)) {
+                        alarmTriggered = rm;
+                    }
                     rm.notified_offsets[offset.id] = true;
                     modified = true;
                 }
@@ -2691,7 +2724,7 @@ function checkReminders() {
         localStorage.setItem('family_reminders', JSON.stringify(allReminders));
     }
 
-    let pendingCount = allReminders.filter(rm => !rm.completed).length;
+    let pendingCount = allReminders.filter(rm => !rm.completed && !mutedMembers.includes(rm.memberId)).length;
     const runningVer = getRunningAppVersion();
     if (localStorage.getItem('last_seen_changelog') !== runningVer && APP_CHANGELOG[runningVer]) {
         pendingCount += 1; // Thêm 1 thông báo cho bản cập nhật mới
