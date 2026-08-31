@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.5",
-  "updatedAt": "2026-08-31T17:43:00Z",
-  "releaseNotes": "Sửa thiết kế nút Hướng dẫn."
+  "version": "v2.9.6",
+  "updatedAt": "2026-08-31T17:45:00Z",
+  "releaseNotes": "Sắp xếp lịch hẹn theo thứ tự thời gian chuẩn xác."
 }

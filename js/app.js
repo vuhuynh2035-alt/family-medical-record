@@ -219,9 +219,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.5';
+const CURRENT_APP_VERSION = 'v2.9.6';
 const APP_CHANGELOG = {
-    'v2.9.5': '• Thay đổi thiết kế Nút Hướng dẫn: thu gọn thành biểu tượng chấm hỏi ở góc phải trên cùng màn hình.',
+    'v2.9.6': '• Tinh chỉnh thuật toán sắp xếp lịch hẹn theo đúng trình tự thời gian thực (Lịch quá hạn xếp trước, rồi đến lịch tương lai).\n• Thay đổi thiết kế Nút Hướng dẫn: thu gọn thành biểu tượng chấm hỏi ở góc phải trên cùng màn hình.',
     'v2.9.4': '• Nhắc hẹn uống thuốc giờ đây được gom gọn theo ngày.\n• Tách biệt thông báo hệ thống và nhắc hẹn.\n• Thêm tùy chọn tắt/bật chuông báo cho từng thành viên (trong Cài đặt Hệ thống).\n• Cải thiện âm lượng nghe thử chuông báo.\n• Thêm mục Cấp Quyền Đầy Đủ trong Cài đặt.',
     'v2.9.3': '• Thêm thông báo Cập nhật tính năng mới ngay trong bảng Chuông thông báo.',
     'v2.9.2': '• Khắc phục lỗi không thể xuất PDF Bảng đánh giá phân tích AI.\n• Sửa lỗi cấp phát sai ID khi lưu báo cáo nhiều lần liên tiếp.',
@@ -2638,13 +2638,12 @@ function reloadRecordsAndStats() {
         }
     });
     
-    const sortByClosest = (a, b) => Math.abs(new Date(a.datetime) - now) - Math.abs(new Date(b.datetime) - now);
+    group1.sort((a, b) => new Date(a.datetime) - new Date(b.datetime)); // Sắp tới: tăng dần thời gian
+    group2.sort((a, b) => new Date(a.datetime) - new Date(b.datetime)); // Quá hạn: tăng dần thời gian (cũ nhất xếp trước)
+    group3.sort((a, b) => new Date(b.datetime) - new Date(a.datetime)); // Đã xong: mới hoàn thành xếp trước
     
-    group1.sort(sortByClosest);
-    group2.sort(sortByClosest);
-    group3.sort(sortByClosest);
-    
-    const sortedReminders = [...group1, ...group2, ...group3];
+    // Gộp theo thứ tự: Quá hạn -> Sắp tới -> Đã hoàn thành
+    const sortedReminders = [...group2, ...group1, ...group3];
     
     UI.renderRemindersList(sortedReminders, 'member-reminders-list', false);
 }
