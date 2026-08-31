@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.8",
-  "updatedAt": "2026-08-31T23:25:00Z",
-  "releaseNotes": "Tách riêng lịch hẹn đã hoàn thành ra một trang chuyên biệt."
+  "version": "v2.9.9",
+  "updatedAt": "2026-08-31T23:38:00Z",
+  "releaseNotes": "Tự động dọn dẹp các lịch hẹn bị trùng lặp cũ và thêm chức năng Xóa toàn bộ lịch hẹn."
 }

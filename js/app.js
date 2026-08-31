@@ -219,8 +219,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.8';
+const CURRENT_APP_VERSION = 'v2.9.9';
 const APP_CHANGELOG = {
+    'v2.9.9': '• Cập nhật thuật toán chống lỗi ngày tháng để đảm bảo sắp xếp lịch hẹn theo đúng trình tự thời gian.\n• Tự động dọn dẹp các lịch hẹn bị lưu trùng lặp từ trước.\n• Bổ sung tính năng "Xóa toàn bộ lịch hẹn" trong trang Hồ sơ cá nhân của từng thành viên.',
     'v2.9.8': '• Tối ưu hiển thị nhắc hẹn: Đưa các lịch hẹn đã hoàn thành vào một nhóm riêng ở cuối trang, chỉ hiển thị khi bạn nhấn vào (chuyển sang trang xem riêng). Các lịch quá hạn vẫn hiển thị nổi bật ở danh sách chính để nhắc nhở xử lý.',
     'v2.9.7': '• Thêm cơ chế chống trùng lặp tự động: Khi phân tích AI nhiều lần, hệ thống sẽ chỉ thêm các lịch hẹn mới và tự động bỏ qua các lịch đã tồn tại.',
     'v2.9.6': '• Tinh chỉnh thuật toán sắp xếp lịch hẹn theo đúng trình tự thời gian thực (Lịch quá hạn xếp trước, rồi đến lịch tương lai).\n• Thay đổi thiết kế Nút Hướng dẫn: thu gọn thành biểu tượng chấm hỏi ở góc phải trên cùng màn hình.',
@@ -2344,6 +2345,15 @@ function setupEventListeners() {
         openModal('modal-reminder');
     });
 
+    document.getElementById('btn-delete-all-reminders')?.addEventListener('click', () => {
+        if (confirm('⚠️ Bạn có chắc chắn muốn XÓA TOÀN BỘ lịch hẹn của thành viên này? Hành động này không thể hoàn tác!')) {
+            DataManager.deleteAllReminders(currentMemberId);
+            reloadRecordsAndStats();
+            checkReminders();
+            showToast('Đã xóa toàn bộ lịch hẹn thành công!', 'success');
+        }
+    });
+
     // Dynamic Fields Logic
     document.getElementById('btn-add-dynamic-field').addEventListener('click', () => {
         addDynamicFieldRow();
@@ -2624,25 +2634,43 @@ function reloadRecordsAndStats() {
     applyFilters(); // Render with current filters
     UI.renderStatistics(currentRecords);
 
-    // Load reminders for this member
+    // Xóa trùng lặp tự động mỗi khi load hồ sơ
+    if (DataManager.deduplicateReminders()) {
+        console.log("Đã tự động dọn dẹp các lịch hẹn bị trùng lặp.");
+    }
+    
+    // Tải lại sau khi dọn dẹp
     const memberReminders = DataManager.getReminders().filter(r => r.memberId === currentMemberId);
     
     const now = new Date();
     const group1 = [], group2 = [], group3 = [];
     
+    const parseTime = (dateStr) => {
+        let t = new Date(dateStr).getTime();
+        if (isNaN(t)) {
+            // Thử parse định dạng DD/MM/YYYYT... nếu bị lỗi
+            const parts = String(dateStr).split('T');
+            if (parts.length === 2 && parts[0].includes('/')) {
+                const [d, m, y] = parts[0].split('/');
+                t = new Date(`${y}-${m}-${d}T${parts[1]}`).getTime();
+            }
+        }
+        return isNaN(t) ? 0 : t;
+    };
+
     memberReminders.forEach(rm => {
         if (rm.completed) {
             group3.push(rm);
-        } else if (new Date(rm.datetime) < now) {
+        } else if (parseTime(rm.datetime) < now.getTime()) {
             group2.push(rm);
         } else {
             group1.push(rm);
         }
     });
     
-    group1.sort((a, b) => new Date(a.datetime) - new Date(b.datetime)); // Sắp tới: tăng dần thời gian
-    group2.sort((a, b) => new Date(a.datetime) - new Date(b.datetime)); // Quá hạn: tăng dần thời gian (cũ nhất xếp trước)
-    group3.sort((a, b) => new Date(b.datetime) - new Date(a.datetime)); // Đã xong: mới hoàn thành xếp trước
+    group1.sort((a, b) => parseTime(a.datetime) - parseTime(b.datetime)); // Sắp tới: tăng dần thời gian
+    group2.sort((a, b) => parseTime(a.datetime) - parseTime(b.datetime)); // Quá hạn: tăng dần thời gian
+    group3.sort((a, b) => parseTime(b.datetime) - parseTime(a.datetime)); // Đã xong: mới hoàn thành xếp trước
     
     // Gộp theo thứ tự: Quá hạn -> Sắp tới -> Đã hoàn thành
     const sortedReminders = [...group2, ...group1, ...group3];

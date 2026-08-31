@@ -247,6 +247,33 @@ const DataManager = {
             localStorage.setItem('family_reminders', JSON.stringify(reminders));
         }
     },
+    deduplicateReminders() {
+        let reminders = this.getReminders();
+        const unique = [];
+        const seen = new Set();
+        let changed = false;
+        
+        reminders.forEach(r => {
+            // Khóa nhận diện trùng lặp: MemberID + Tiêu đề + Ngày + Giờ + Ghi chú
+            const key = `${r.memberId}_${r.title}_${r.datetime}_${r.note || ''}`;
+            if (seen.has(key)) {
+                changed = true; // Phát hiện trùng lặp
+            } else {
+                seen.add(key);
+                unique.push(r);
+            }
+        });
+        
+        if (changed) {
+            localStorage.setItem('family_reminders', JSON.stringify(unique));
+        }
+        return changed;
+    },
+    deleteAllReminders(memberId) {
+        let reminders = this.getReminders();
+        reminders = reminders.filter(r => r.memberId !== memberId);
+        localStorage.setItem('family_reminders', JSON.stringify(reminders));
+    },
 
     // ---- IMAGE UTILS ----
     // Helper to read file as Base64 for avatar / OCR image

@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.8"></script>
-    <script defer src="js/ai.js?v=2.9.8"></script>
-    <script defer src="js/components.js?v=2.9.8"></script>
-    <script defer src="js/help.js?v=2.9.8"></script>
-    <script defer src="js/speech.js?v=2.9.8"></script>
-    <script defer src="js/app.js?v=2.9.8"></script>
+    <script defer src="js/data.js?v=2.9.9"></script>
+    <script defer src="js/ai.js?v=2.9.9"></script>
+    <script defer src="js/components.js?v=2.9.9"></script>
+    <script defer src="js/help.js?v=2.9.9"></script>
+    <script defer src="js/speech.js?v=2.9.9"></script>
+    <script defer src="js/app.js?v=2.9.9"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -255,6 +255,9 @@
                     <!-- Reminders Tab -->
                     <div id="tab-reminders" class="tab-pane active">
                         <div class="history-controls neumorphic-panel" style="justify-content: flex-end;">
+                            <button id="btn-delete-all-reminders" class="icon-btn neumorphic-btn" style="margin-right: 10px;" title="Dọn dẹp / Xóa toàn bộ lịch hẹn">
+                                <span class="material-symbols-rounded" style="color: #e11d48;">delete_sweep</span>
+                            </button>
                             <button id="btn-add-reminder" class="primary-btn neumorphic-btn">
                                 <span class="material-symbols-rounded">alarm_add</span> Tạo lịch hẹn mới
                             </button>
