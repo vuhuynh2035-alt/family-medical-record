@@ -1,4 +1,4 @@
-﻿/**
+/**
  * app.js — điểm khởi tạo (bootstrap), gắn sự kiện (event listeners) và các hàm điều phối
  * (logic functions) nối UI (components.js), dữ liệu (data.js) và AI (ai.js) lại với nhau.
  * Không chứa logic hiển thị HTML trực tiếp — việc đó thuộc về `UI` trong components.js.
@@ -2318,6 +2318,11 @@ function setupEventListeners() {
         closeModal('modal-reminder');
         reloadRecordsAndStats();
         checkReminders();
+        
+        // Yêu cầu quyền thông báo để kích hoạt App Badge và Local Notifications
+        if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+            Notification.requestPermission();
+        }
     });
 }
 
@@ -2695,6 +2700,29 @@ function checkReminders() {
 
     if (alarmTriggered) {
         showAlarmModal(alarmTriggered);
+        
+        // Bắn thông báo ra hệ điều hành (nếu được cấp quyền)
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                const member = DataManager.getMemberById(alarmTriggered.memberId);
+                const memberName = member ? member.name : 'Người thân';
+                const notifBody = (alarmTriggered.note ? alarmTriggered.note + '\n' : '') + 'Bệnh nhân: ' + memberName;
+                const sysNotif = new Notification(alarmTriggered.title || 'Nhắc nhở lịch hẹn', {
+                    body: notifBody,
+                    icon: 'favicon.png',
+                    tag: 'alarm-' + alarmTriggered.id,
+                    requireInteraction: true // Giữ thông báo trên màn hình cho đến khi người dùng tắt
+                });
+                
+                // Nhấn vào thông báo để mở/focus vào app
+                sysNotif.onclick = function() {
+                    window.focus();
+                    this.close();
+                };
+            } catch(e) {
+                console.warn('Không thể gửi thông báo hệ thống:', e);
+            }
+        }
     }
 }
 
