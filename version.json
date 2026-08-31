@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.12",
-  "updatedAt": "2026-08-31T23:53:00Z",
-  "releaseNotes": "Tối giản giao diện: Gộp chế độ hướng dẫn tương tác và cẩm nang quy trình vào chung 1 nút (?)."
+  "version": "v2.9.13",
+  "updatedAt": "2026-08-31T23:56:00Z",
+  "releaseNotes": "Sửa lỗi không nhận diện được các lịch hẹn trùng cũ để tự động xóa."
 }

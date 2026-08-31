@@ -219,8 +219,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.12';
+const CURRENT_APP_VERSION = 'v2.9.13';
 const APP_CHANGELOG = {
+    'v2.9.13': '• Sửa lỗi thuật toán quét dọn trùng lặp: Nhận diện chính xác và tự động xóa sạch các lịch hẹn rác sinh ra do lỗi từ phiên bản cũ.',
     'v2.9.12': '• Tối giản tối đa: Gộp chung "Chế độ Giải thích Giao diện" và "Cẩm nang Quy trình" vào cùng một nút Trợ giúp (?) duy nhất trên thanh tiêu đề.',
     'v2.9.11': '• Tối giản giao diện: Ẩn nút "Giải thích giao diện" trên thanh tiêu đề. Tính năng này được tích hợp chung vào bên trong Cẩm nang Hướng dẫn sử dụng.',
     'v2.9.10': '• Thêm nút "Xóa bỏ" ngay bên trong giao diện Sửa nhắc hẹn để dễ dàng xóa từng lịch hẹn.\n• Cập nhật thuật toán chống lỗi ngày tháng để đảm bảo sắp xếp lịch hẹn theo đúng trình tự thời gian.\n• Tự động dọn dẹp các lịch hẹn bị lưu trùng lặp từ trước.\n• Bổ sung tính năng "Xóa toàn bộ lịch hẹn" trong trang Hồ sơ cá nhân của từng thành viên.',
