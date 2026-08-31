@@ -219,8 +219,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.6';
+const CURRENT_APP_VERSION = 'v2.9.7';
 const APP_CHANGELOG = {
+    'v2.9.7': '• Thêm cơ chế chống trùng lặp tự động: Khi phân tích AI nhiều lần, hệ thống sẽ chỉ thêm các lịch hẹn mới và tự động bỏ qua các lịch đã tồn tại.',
     'v2.9.6': '• Tinh chỉnh thuật toán sắp xếp lịch hẹn theo đúng trình tự thời gian thực (Lịch quá hạn xếp trước, rồi đến lịch tương lai).\n• Thay đổi thiết kế Nút Hướng dẫn: thu gọn thành biểu tượng chấm hỏi ở góc phải trên cùng màn hình.',
     'v2.9.4': '• Nhắc hẹn uống thuốc giờ đây được gom gọn theo ngày.\n• Tách biệt thông báo hệ thống và nhắc hẹn.\n• Thêm tùy chọn tắt/bật chuông báo cho từng thành viên (trong Cài đặt Hệ thống).\n• Cải thiện âm lượng nghe thử chuông báo.\n• Thêm mục Cấp Quyền Đầy Đủ trong Cài đặt.',
     'v2.9.3': '• Thêm thông báo Cập nhật tính năng mới ngay trong bảng Chuông thông báo.',
@@ -3485,6 +3486,11 @@ document.getElementById('btn-save-smart-reminders')?.addEventListener('click', (
     const now = new Date();
     const baseDateStr = document.getElementById('record-date')?.value || new Date().toISOString().split('T')[0];
     const baseDate = new Date(baseDateStr);
+    
+    // Lấy danh sách nhắc nhở hiện có để lọc trùng lặp
+    const existingReminders = DataManager.getReminders().filter(r => r.memberId === memberId);
+    let addedCount = 0;
+    let duplicateCount = 0;
 
     checkboxes.forEach(chk => {
         const index = parseInt(chk.value);
@@ -3503,38 +3509,58 @@ document.getElementById('btn-save-smart-reminders')?.addEventListener('click', (
                 times.forEach(t => {
                     const dt = new Date(`${dateStr}T${t}:00`);
                     if (dt > now) {
-                        DataManager.saveReminder({
-                            memberId: memberId,
-                            title: rmData.title,
-                            date: dateStr,
-                            time: t,
-                            datetime: `${dateStr}T${t}:00`,
-                            note: `Đơn thuốc ngày thứ ${d + 1}/${days}`,
-                            selected_offsets: ["0"], // Nhắc đúng giờ
-                            completed: false
-                        });
+                        // Kiểm tra trùng lặp
+                        const isDup = existingReminders.some(r => r.title === rmData.title && r.date === dateStr && r.time === t);
+                        if (!isDup) {
+                            DataManager.saveReminder({
+                                memberId: memberId,
+                                title: rmData.title,
+                                date: dateStr,
+                                time: t,
+                                datetime: `${dateStr}T${t}:00`,
+                                note: `Đơn thuốc ngày thứ ${d + 1}/${days}`,
+                                selected_offsets: ["0"], // Nhắc đúng giờ
+                                completed: false
+                            });
+                            addedCount++;
+                        } else {
+                            duplicateCount++;
+                        }
                     }
                 });
             }
         } else {
             const dt = new Date(`${rmData.date}T08:00:00`);
             if (dt > now) {
-                DataManager.saveReminder({
-                    memberId: memberId,
-                    title: rmData.title,
-                    date: rmData.date,
-                    time: '08:00',
-                    datetime: `${rmData.date}T08:00:00`,
-                    note: rmData.note,
-                    selected_offsets: ["0", "86400000", "259200000"], // Nhắc trước 3 ngày, 1 ngày, và đúng lúc
-                    completed: false
-                });
+                // Kiểm tra trùng lặp
+                const isDup = existingReminders.some(r => r.title === rmData.title && r.date === rmData.date);
+                if (!isDup) {
+                    DataManager.saveReminder({
+                        memberId: memberId,
+                        title: rmData.title,
+                        date: rmData.date,
+                        time: '08:00',
+                        datetime: `${rmData.date}T08:00:00`,
+                        note: rmData.note,
+                        selected_offsets: ["0", "86400000", "259200000"], // Nhắc trước 3 ngày, 1 ngày, và đúng lúc
+                        completed: false
+                    });
+                    addedCount++;
+                } else {
+                    duplicateCount++;
+                }
             }
         }
     });
 
     closeModal('modal-smart-reminders-prompt');
-    showToast('Đã tạo hàng loạt lịch nhắc hẹn thành công!', 'success');
+    
+    if (addedCount > 0) {
+        showToast(`Đã thêm ${addedCount} lịch nhắc mới! ${duplicateCount > 0 ? `(Bỏ qua ${duplicateCount} lịch đã có sẵn)` : ''}`, 'success');
+    } else if (duplicateCount > 0) {
+        showToast(`Tất cả ${duplicateCount} lịch nhắc này đã tồn tại từ trước!`, 'error');
+    }
+    
     checkReminders();
     reloadRecordsAndStats();
 });

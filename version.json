@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.6",
-  "updatedAt": "2026-08-31T17:45:00Z",
-  "releaseNotes": "Sắp xếp lịch hẹn theo thứ tự thời gian chuẩn xác."
+  "version": "v2.9.7",
+  "updatedAt": "2026-08-31T23:20:00Z",
+  "releaseNotes": "Thêm cơ chế chống trùng lặp tự động khi lưu lịch hẹn thông minh từ AI."
 }
