@@ -49,6 +49,7 @@
     <script defer src="js/ai.js?v=2.7.1"></script>
     <script defer src="js/components.js?v=2.7.1"></script>
     <script defer src="js/help.js?v=2.7.1"></script>
+    <script defer src="js/speech.js?v=2.8.4"></script>
     <script defer src="js/app.js?v=2.7.1"></script>
 </head>
 <body>
@@ -146,7 +147,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.8.3</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.8.4</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -591,7 +592,7 @@
 
 
                 <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    Phiên bản <strong class="version-tag">v2.8.3</strong> (Tích hợp AI tạo Lịch nhắc thông minh)
+                    Phiên bản <strong class="version-tag">v2.8.4</strong> (Tích hợp AI tạo Lịch nhắc thông minh)
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
@@ -1082,6 +1083,9 @@
             </div>
             <div style="padding: 15px 20px; border-top: 1px solid rgba(0,0,0,0.05); background: white; border-radius: 0 0 20px 20px;">
                 <div style="display: flex; gap: 10px;">
+                    <button id="btn-help-chat-mic" class="chat-btn-mic" title="Nhập bằng giọng nói" style="width: 45px; height: 45px; margin: 0; background: #f1f3f5; color: #555;">
+                        <span class="material-symbols-rounded">mic</span>
+                    </button>
                     <input type="text" id="input-ai-help-chat" placeholder="Nhập câu hỏi của bạn (VD: Làm sao đổi mã PIN?)..." class="neumorphic-input" style="flex: 1; margin: 0; border-radius: 20px;">
                     <button id="btn-send-ai-help" class="primary-btn neumorphic-btn" style="border-radius: 50%; width: 45px; height: 45px; padding: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white;">
                         <span class="material-symbols-rounded">send</span>
@@ -1172,6 +1176,9 @@
                     </div>
                 </div>
                 <div class="chat-input-container" style="border-radius: 0; border-top: 1px solid rgba(0,0,0,0.05); padding: 15px 20px;">
+                    <button id="btn-deep-chat-mic" class="chat-btn-mic" title="Nhập bằng giọng nói">
+                        <span class="material-symbols-rounded">mic</span>
+                    </button>
                     <input type="text" id="deep-chat-input" class="chat-input" placeholder="Nhập câu hỏi chuyên sâu..." autocomplete="off">
                     <button id="btn-deep-chat-send" class="chat-btn-send" title="Gửi tin nhắn">
                         <span class="material-symbols-rounded">send</span>
