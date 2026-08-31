@@ -719,74 +719,130 @@ const UI = {
     // ==================== 5. Render Reminders ====================
     renderRemindersList(reminders, containerId, showMemberName = false) {
         const container = document.getElementById(containerId);
+        if (!container) return;
         container.innerHTML = '';
-
+        
         if (reminders.length === 0) {
             container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">Không có lịch hẹn nào.</div>`;
             return;
         }
 
         const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        const tomorrowStart = todayStart + 24 * 60 * 60 * 1000;
+
+        const todayReminders = [];
+        const futureReminders = [];
+
         reminders.forEach(rm => {
-            const rmDate = new Date(rm.datetime);
-            const isPast = rmDate < now;
-            
-            let statusObj = { text: '', color: '', bg: '', border: '', isCompleted: !!rm.completed, isOverdue: false, isUpcoming: false };
-            
-            if (rm.completed) {
-                statusObj.text = 'Đã hoàn thành';
-                statusObj.color = '#10b981';
-                statusObj.bg = '#d1fae5';
-                statusObj.border = '#10b981';
-                statusObj.isCompleted = true;
-            } else if (isPast) {
-                statusObj.text = 'Quá hạn';
-                statusObj.color = '#e11d48';
-                statusObj.bg = '#ffe4e6';
-                statusObj.border = '#e11d48';
-                statusObj.isOverdue = true;
+            const rmDate = new Date(rm.datetime).getTime();
+            if (rmDate < tomorrowStart || rm.completed) {
+                // Quá khứ, Hôm nay, hoặc đã hoàn thành
+                todayReminders.push(rm);
             } else {
-                statusObj.text = 'Sắp tới';
-                statusObj.color = '#f39c12';
-                statusObj.bg = '#fef3c7';
-                statusObj.border = '#f39c12';
-                statusObj.isUpcoming = true;
+                futureReminders.push(rm);
             }
-
-            const el = document.createElement('div');
-            el.className = 'record-item'; 
-            el.style.borderLeft = `4px solid ${statusObj.border}`;
-            
-            if (statusObj.isOverdue || statusObj.isCompleted) {
-                el.style.opacity = '0.6';
-                if (statusObj.isOverdue) el.style.backgroundColor = 'rgba(225, 29, 72, 0.05)';
-            }
-
-            const memberNameHtml = showMemberName ? `<strong>👤 ${this.escapeHtml(rm.memberName)}</strong><br>` : '';
-            const statusHtml = `<span class="type-badge" style="background:${statusObj.bg}; color:${statusObj.color};">${statusObj.text}</span>`;
-
-            el.innerHTML = `
-                <div class="record-header" style="margin-bottom: 5px;">
-                    <span class="record-date" style="color: ${statusObj.border}">${this.escapeHtml(this.formatDate(rm.date))} ${this.escapeHtml(rm.time)}</span>
-                    ${statusHtml}
-                </div>
-                <div class="record-body" style="grid-template-columns: 1fr;">
-                    <div class="record-detail" style="${statusObj.isCompleted ? 'text-decoration: line-through;' : ''}">
-                        ${memberNameHtml}
-                        <span class="material-symbols-rounded">alarm</span> <strong>${this.escapeHtml(rm.title)}</strong>
-                    </div>
-                    ${rm.note ? `<div class="record-detail"><span class="material-symbols-rounded">notes</span> ${this.escapeHtml(rm.note)}</div>` : ''}
-                </div>
-                <div class="record-actions" style="margin-top: 10px;">
-                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer; font-weight:600; color:${rm.completed ? '#10b981' : 'var(--text-muted)'}; font-size:14px; margin-right:auto;">
-                        <input type="checkbox" class="chk-complete-reminder" data-id="${this.escapeHtml(rm.id)}" aria-label="Hoàn thành lịch hẹn" ${rm.completed ? 'checked' : ''} style="width:16px;height:16px;"> Hoàn thành
-                    </label>
-                    ${!showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-go-member" data-id="${this.escapeHtml(rm.memberId)}" title="Xem hồ sơ"><span class="material-symbols-rounded">person</span></button>`}
-                    ${showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-edit-reminder" data-id="${this.escapeHtml(rm.id)}" title="Sửa lịch hẹn"><span class="material-symbols-rounded">edit</span></button>`}
-                </div>
-            `;
-            container.appendChild(el);
         });
+
+        const renderGroup = (group, parentEl) => {
+            group.forEach(rm => {
+                const rmDateObj = new Date(rm.datetime);
+                const isPast = rmDateObj < now;
+                
+                let statusObj = { text: '', color: '', bg: '', border: '', isCompleted: !!rm.completed, isOverdue: false, isUpcoming: false };
+                
+                if (rm.completed) {
+                    statusObj.text = 'Đã hoàn thành';
+                    statusObj.color = '#10b981';
+                    statusObj.bg = '#d1fae5';
+                    statusObj.border = '#10b981';
+                    statusObj.isCompleted = true;
+                } else if (isPast) {
+                    statusObj.text = 'Quá hạn';
+                    statusObj.color = '#e11d48';
+                    statusObj.bg = '#ffe4e6';
+                    statusObj.border = '#e11d48';
+                    statusObj.isOverdue = true;
+                } else {
+                    statusObj.text = 'Sắp tới';
+                    statusObj.color = '#f39c12';
+                    statusObj.bg = '#fef3c7';
+                    statusObj.border = '#f39c12';
+                    statusObj.isUpcoming = true;
+                }
+
+                const el = document.createElement('div');
+                el.className = 'record-item'; 
+                el.style.borderLeft = `4px solid ${statusObj.border}`;
+                
+                if (statusObj.isOverdue || statusObj.isCompleted) {
+                    el.style.opacity = '0.6';
+                    if (statusObj.isOverdue) el.style.backgroundColor = 'rgba(225, 29, 72, 0.05)';
+                }
+
+                const memberNameHtml = showMemberName ? `<strong>👤 ${this.escapeHtml(rm.memberName)}</strong><br>` : '';
+                const statusHtml = `<span class="type-badge" style="background:${statusObj.bg}; color:${statusObj.color};">${statusObj.text}</span>`;
+
+                el.innerHTML = `
+                    <div class="record-header" style="margin-bottom: 5px;">
+                        <span class="record-date" style="color: ${statusObj.border}">${this.escapeHtml(this.formatDate(rm.date))} ${this.escapeHtml(rm.time)}</span>
+                        ${statusHtml}
+                    </div>
+                    <div class="record-body" style="grid-template-columns: 1fr;">
+                        <div class="record-detail" style="${statusObj.isCompleted ? 'text-decoration: line-through;' : ''}">
+                            ${memberNameHtml}
+                            <span class="material-symbols-rounded">alarm</span> <strong>${this.escapeHtml(rm.title)}</strong>
+                        </div>
+                        ${rm.note ? `<div class="record-detail"><span class="material-symbols-rounded">notes</span> ${this.escapeHtml(rm.note)}</div>` : ''}
+                    </div>
+                    <div class="record-actions" style="margin-top: 10px;">
+                        <label style="display:flex; align-items:center; gap:5px; cursor:pointer; font-weight:600; color:${rm.completed ? '#10b981' : 'var(--text-muted)'}; font-size:14px; margin-right:auto;">
+                            <input type="checkbox" class="chk-complete-reminder" data-id="${this.escapeHtml(rm.id)}" aria-label="Hoàn thành lịch hẹn" ${rm.completed ? 'checked' : ''} style="width:16px;height:16px;"> Hoàn thành
+                        </label>
+                        ${!showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-go-member" data-id="${this.escapeHtml(rm.memberId)}" title="Xem hồ sơ"><span class="material-symbols-rounded">person</span></button>`}
+                        ${showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-edit-reminder" data-id="${this.escapeHtml(rm.id)}" title="Sửa lịch hẹn"><span class="material-symbols-rounded">edit</span></button>`}
+                    </div>
+                `;
+                parentEl.appendChild(el);
+            });
+        };
+
+        if (todayReminders.length > 0) {
+            renderGroup(todayReminders, container);
+        } else if (futureReminders.length > 0) {
+            const emptyMsg = document.createElement('div');
+            emptyMsg.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">Hôm nay không có lịch hẹn nào.</div>`;
+            container.appendChild(emptyMsg);
+        }
+
+        if (futureReminders.length > 0) {
+            const details = document.createElement('details');
+            details.style.marginTop = '15px';
+            details.style.background = 'rgba(0,0,0,0.02)';
+            details.style.borderRadius = '12px';
+            details.style.padding = '12px';
+            details.style.border = '1px solid rgba(0,0,0,0.05)';
+            
+            const summary = document.createElement('summary');
+            summary.style.fontWeight = '600';
+            summary.style.cursor = 'pointer';
+            summary.style.color = 'var(--text-muted)';
+            summary.style.display = 'flex';
+            summary.style.alignItems = 'center';
+            summary.style.gap = '5px';
+            summary.innerHTML = `<span class="material-symbols-rounded" style="font-size:18px;">calendar_month</span> Hiện thêm ${futureReminders.length} lịch của các ngày tiếp theo...`;
+            details.appendChild(summary);
+
+            const futureContainer = document.createElement('div');
+            futureContainer.style.marginTop = '15px';
+            futureContainer.style.display = 'flex';
+            futureContainer.style.flexDirection = 'column';
+            futureContainer.style.gap = '15px';
+            
+            renderGroup(futureReminders, futureContainer);
+            details.appendChild(futureContainer);
+            container.appendChild(details);
+        }
 
         this.enhanceA11y(container);
     },
