@@ -246,15 +246,9 @@ TUYỆT ĐỐI CHỈ TRẢ VỀ JSON, KHÔNG THÊM BẤT KỲ ĐOẠN VĂN BẢN
 - "labs": Tóm tắt các kết quả xét nghiệm cận lâm sàng (máu, X-Quang, siêu âm...).
 - "disease": Chẩn đoán bệnh hoặc tên vắc xin tiêm chủng (kèm số mũi, vd: "Tiêm vắc xin 6 trong 1 (Hexaxim) mũi 1").
 - "treatment": Phương án điều trị, đơn thuốc, hoặc chi tiết vắc xin đã tiêm (tên thuốc, số lô, đường tiêm).
-- "note": Lời khuyên của bác sĩ, theo dõi phản ứng sau tiêm hoặc kiêng cữ.
+- "note": Lời khuyên của bác sĩ, kiêng cữ, VÀ ĐẶC BIỆT LÀ TOÀN BỘ CHI TIẾT LỊCH HẸN TÁI KHÁM, XÉT NGHIỆM ĐỊNH KỲ (nếu có).
 - "cost": Tổng chi phí (chỉ lấy con số, ví dụ 500000. Nếu không thấy, trả về 0).
 - "dynamicFields": Mảng các chỉ số xét nghiệm chi tiết hoặc chuyên sâu. Mỗi phần tử là một object có "key" (Tên chỉ số, vd: "Glucose"), "value" (Kết quả kèm đơn vị), "isAbnormal" (boolean: true/false), và "explanation" (Giải thích siêu ngắn 1 câu về ý nghĩa của chỉ số này để hiển thị nhanh cho người dùng, vd: "Đường huyết, dùng để theo dõi bệnh tiểu đường"). Nếu không có, để mảng rỗng [].
-- "reminders": Mảng các nhắc nhở cần tạo (tái khám, lịch uống thuốc, lịch hẹn tiêm phòng mũi kế tiếp...). Bạn hãy tự động tính toán ngày tháng dựa vào ngày khám/tiêm và lời dặn của bác sĩ hoặc phác đồ tiêm chủng chuẩn. Mỗi phần tử là một object có:
-  + "title": Tóm tắt nhắc nhở (vd: "Tiêm mũi 2 vắc xin 6 trong 1", "Tái khám nội tiết", "Uống thuốc sáng").
-  + "date": Ngày hẹn (định dạng YYYY-MM-DD). Cố gắng tính toán ngày chính xác từ ngày khám/tiêm nếu bác sĩ hẹn "sau 30 ngày" hay "sau 1 tháng".
-  + "time": Giờ nhắc nhở (định dạng HH:MM, mặc định "08:00" nếu không có giờ cụ thể).
-  + "note": Ghi chú hoặc lời dặn chi tiết của bác sĩ.
-  Nếu không có bất kỳ lời dặn dò, hẹn tái khám hay đơn thuốc nào, để mảng rỗng [].
 - "vaccineInfo": Nếu đây là hồ sơ tiêm chủng, trả về object: { "name": string, "dose": number/string, "diseaseTarget": string, "nextDoseDate": "YYYY-MM-DD", "nextDoseTitle": string, "careInstructions": string, "sideEffects": string }. Nếu không phải tiêm chủng, để null.
 
 Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy để chuỗi rỗng "" (hoặc 0 đối với số, [] đối với mảng, null đối với vaccineInfo).`;
@@ -624,11 +618,15 @@ Nhiệm vụ của bạn là phân tích và trả về ĐÚNG 1 ĐỐI TƯỢNG
   ],
   "followups": [
       {
-        "title": "Tên lịch hẹn (vd: Tái khám, Xét nghiệm máu, Nhắc nhở tiêm)",
-        "date": "YYYY-MM-DD", // ngày hẹn
-        "note": "Ghi chú hẹn (null nếu không có)"
+        "title": "Tên lịch hẹn (vd: Tái khám, Xét nghiệm máu, Siêu âm, Nhắc nhở tiêm)",
+        "date": "YYYY-MM-DD",
+        "note": "Ghi chú hẹn chi tiết (BẮT BUỘC giữ lại ĐẦY ĐỦ các chỉ định xét nghiệm, siêu âm...)"
       }
     ]
+  }
+  
+  Chú ý quan trọng về Lịch hẹn (followups):
+  - BẮT BUỘC TÁCH RIÊNG từng mục khám/xét nghiệm thành một lịch hẹn độc lập trong mảng `followups`. Ví dụ: nếu bác sĩ dặn "Sau 3 tháng tái khám, xét nghiệm máu, siêu âm", bạn PHẢI tạo 3 object riêng biệt (1 cái Tái khám, 1 cái Xét nghiệm máu, 1 cái Siêu âm), TUYỆT ĐỐI KHÔNG gộp chung lại thành 1 lịch dù chúng diễn ra cùng ngày!
 }
 
 Chú ý:
