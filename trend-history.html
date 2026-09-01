@@ -1,0 +1,19 @@
+﻿    <!-- Trend History Modal -->
+    <div id="modal-trend-history" class="modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="modal-content neumorphic-modal">
+            <div class="modal-header">
+                <h3><span class="material-symbols-rounded">history</span> Bảng phân tích đánh giá</h3>
+                <button class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="modal-body" style="padding: 10px;">
+                <button id="btn-create-new-trend" class="primary-btn neumorphic-btn" style="width: 100%; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span class="material-symbols-rounded ai-sparkle">auto_awesome</span> Tạo đánh giá phân tích mới
+                </button>
+                
+                <h4 style="margin-bottom: 10px; font-size: 14px; color: var(--text-color);">Danh sách phân tích đã lưu</h4>
+                <div id="trend-reports-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto;">
+                    <!-- Danh sách các report sẽ được chèn vào đây bằng JS -->
+                </div>
+            </div>
+        </div>
+    </div>

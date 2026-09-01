@@ -731,6 +731,7 @@ const UI = {
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
         const tomorrowStart = todayStart + 24 * 60 * 60 * 1000;
 
+        const medPlans = [];
         const mainReminders = [];
         const futureMedicineReminders = [];
         const completedReminders = [];
@@ -741,18 +742,58 @@ const UI = {
         };
 
         reminders.forEach(rm => {
+            if (rm.type === 'medication_plan') {
+                medPlans.push(rm);
+                return; // Không xét completed/past/future cho Plan ở đây
+            }
+
             const rmDate = new Date(rm.datetime).getTime();
             const isMedicine = isMedicineReminder(rm);
             
             if (rm.completed) {
                 completedReminders.push(rm);
             } else if (rmDate >= tomorrowStart && isMedicine) {
-                // Tương lai VÀ LÀ lịch uống thuốc -> Ẩn đi để tránh rối mắt
+                // Tương lai VÀ LÀ lịch uống thuốc lẻ tẻ -> Ẩn đi để tránh rối mắt
                 futureMedicineReminders.push(rm);
             } else {
-                // Quá khứ, Hôm nay, HOẶC KHÔNG PHẢI LỊCH UỐNG THUỐC (như Tái khám)
+                // Quá khứ, Hôm nay, HOẶC KHÔNG PHẢI LỊCH UỐNG THUỐC
                 mainReminders.push(rm);
             }
+        });
+
+        // 1. Render Medication Plans (Ghim lên đầu)
+        medPlans.forEach(plan => {
+            const el = document.createElement('div');
+            el.className = 'record-item';
+            el.style.borderLeft = `4px solid #3b82f6`;
+            el.style.backgroundColor = '#f0f9ff';
+            el.style.cursor = 'pointer';
+            
+            const memberNameHtml = showMemberName ? `<strong>👤 ${this.escapeHtml(plan.memberName)}</strong><br>` : '';
+            
+            el.innerHTML = `
+                <div class="record-header" style="margin-bottom: 5px;">
+                    <span class="record-date" style="color: #3b82f6">${this.escapeHtml(this.formatDate(plan.startDate))} - ${this.escapeHtml(this.formatDate(plan.endDate))}</span>
+                    <span class="type-badge" style="background: #bfdbfe; color: #1d4ed8;">${plan.times.length} lần/ngày</span>
+                </div>
+                <div class="record-body" style="grid-template-columns: 1fr;">
+                    <div class="record-detail">
+                        ${memberNameHtml}
+                        <span class="material-symbols-rounded">pill</span> <strong style="color: #1e40af;">${this.escapeHtml(plan.title)}</strong>
+                    </div>
+                    <div class="record-detail" style="color: #475569; font-size: 13px;">
+                        Gồm ${plan.medications.length} loại thuốc. Nhấn để xem chi tiết...
+                    </div>
+                </div>
+            `;
+            
+            el.addEventListener('click', () => {
+                if (typeof window.openMedicationPlanModal === 'function') {
+                    window.openMedicationPlanModal(plan);
+                }
+            });
+            
+            container.appendChild(el);
         });
 
         const renderGroup = (group, parentEl) => {

@@ -1,15 +1,12 @@
-﻿import re
+const fs = require('fs');
+let code = fs.readFileSync('js/help.js', 'utf8');
 
-with open('js/help.js', 'r', encoding='utf-8') as f:
-    content = f.read()
-
-# Replace the whole HelpService object up to window.HelpService = HelpService
-new_help_service = '''const HelpService = {
+const newService = `const HelpService = {
     isHelpModeActive: false,
     
     init() {
         this.btnHelp = document.getElementById('btn-help');
-        this.btnHelpMobile = document.getElementById('btn-help-mobile'); // In case it exists
+        this.btnHelpMobile = document.getElementById('btn-help-mobile');
         this.btnWorkflow = document.getElementById('btn-workflow-guide');
         this.btnAiHelp = document.getElementById('btn-ai-help-chat');
         this.modalWorkflow = document.getElementById('modal-workflow-guide');
@@ -114,7 +111,7 @@ new_help_service = '''const HelpService = {
         const infoPanel = document.createElement('div');
         infoPanel.id = 'help-info-panel';
         infoPanel.className = 'neumorphic-panel';
-        infoPanel.style.cssText = 
+        infoPanel.style.cssText = \`
             position: fixed;
             top: 20px;
             left: 50%;
@@ -131,29 +128,29 @@ new_help_service = '''const HelpService = {
             flex-direction: column;
             pointer-events: auto;
             transition: transform 0.15s ease;
-        ;
-        infoPanel.innerHTML = 
+        \`;
+        infoPanel.innerHTML = \`
             <div style="font-weight: 700; color: #e67e22; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 6px;">
                 <span class="material-symbols-rounded">touch_app</span> Chế độ Hướng dẫn
             </div>
             <div style="font-size: 14px; color: #555; line-height: 1.5; margin-top: 8px;">
                 Chạm vào các ô viền vàng trên màn hình để xem giải thích chi tiết. Nhấn lại nút "?" để thoát.
             </div>
-        ;
+        \`;
         document.body.appendChild(infoPanel);
     },
     
     updateInfoPanel(title, desc) {
         const infoPanel = document.getElementById('help-info-panel');
         if (infoPanel) {
-            infoPanel.innerHTML = 
+            infoPanel.innerHTML = \`
                 <div style="font-weight: 700; color: #e67e22; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                    <span class="material-symbols-rounded">info</span> 
+                    <span class="material-symbols-rounded">info</span> \${title}
                 </div>
                 <div style="font-size: 14px; color: #333; line-height: 1.5; margin-top: 8px;">
-                    
+                    \${desc}
                 </div>
-            ;
+            \`;
             infoPanel.style.transform = 'translateX(-50%) scale(1.05)';
             setTimeout(() => { if (infoPanel) infoPanel.style.transform = 'translateX(-50%) scale(1)'; }, 150);
         }
@@ -170,16 +167,16 @@ new_help_service = '''const HelpService = {
         let html = '';
 
         if (viewId === 'view-dashboard') {
-            html = 
+            html = \`
                 <h3>Luồng 1: Tạo hồ sơ mới</h3>
                 <ol>
                     <li>Bấm nút <strong>"Thêm thành viên"</strong> để tạo profile.</li>
                     <li>Điền tên, ngày sinh, và bấm <strong>"Lưu"</strong>.</li>
                     <li>Bấm vào tên người vừa tạo để vào trang chi tiết.</li>
                 </ol>
-            ;
+            \`;
         } else if (viewId === 'view-member-detail') {
-            html = 
+            html = \`
                 <h3>Luồng 2: Nhập kết quả khám</h3>
                 <ol>
                     <li>Trong tab <strong>"Hồ sơ"</strong>, bấm <strong>"Hồ sơ mới"</strong>.</li>
@@ -187,9 +184,9 @@ new_help_service = '''const HelpService = {
                     <li>Nếu dùng AI: tải ảnh Đơn thuốc/Xét nghiệm lên, chờ 5-10 giây.</li>
                     <li>Sau khi AI đọc xong, kiểm tra lại thông tin và bấm <strong>"Lưu"</strong>.</li>
                 </ol>
-            ;
+            \`;
         } else {
-            html = 
+            html = \`
                 <h3>Quy trình cơ bản</h3>
                 <ol>
                     <li>Tạo thành viên ở Trang chủ.</li>
@@ -197,7 +194,7 @@ new_help_service = '''const HelpService = {
                     <li>Sử dụng AI để tự động đọc Đơn thuốc / Phiếu xét nghiệm.</li>
                     <li>Tạo Lịch hẹn tái khám để nhận thông báo.</li>
                 </ol>
-            ;
+            \`;
         }
         
         if (this.workflowContent) this.workflowContent.innerHTML = html;
@@ -231,8 +228,8 @@ new_help_service = '''const HelpService = {
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         try {
-            const prompt = Bạn là trợ lý AI hướng dẫn sử dụng phần mềm quản lý Sổ khám bệnh gia đình. 
-Trả lời ngắn gọn, thân thiện câu hỏi sau của người dùng: "";
+            const prompt = \`Bạn là trợ lý AI hướng dẫn sử dụng phần mềm quản lý Sổ khám bệnh gia đình. 
+Trả lời ngắn gọn, thân thiện câu hỏi sau của người dùng: "\${text}"\`;
             const responseText = await AIProcessor.processWithAI(null, prompt);
             aiMsg.innerHTML = responseText.replace(/\\n/g, '<br>');
         } catch (e) {
@@ -240,9 +237,7 @@ Trả lời ngắn gọn, thân thiện câu hỏi sau của người dùng: "";
         }
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-};'''
+};`;
 
-new_content = re.sub(r'const HelpService = \{.*?\n\};', new_help_service, content, flags=re.DOTALL)
-
-with open('js/help.js', 'w', encoding='utf-8') as f:
-    f.write(new_content)
+code = code.replace(/const HelpService = \{[\s\S]*?\n\};/, newService);
+fs.writeFileSync('js/help.js', code);

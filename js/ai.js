@@ -610,7 +610,10 @@ Nhiệm vụ của bạn là phân tích và trả về ĐÚNG 1 ĐỐI TƯỢNG
     {
       "name": "Tên thuốc",
       "days": 5, // số ngày uống (số nguyên, mặc định 5 nếu không rõ)
-      "times": ["08:00", "20:00"] // mảng các giờ uống tự suy luận logic (vd: 2 lần thì 08:00 và 20:00, 3 lần thì 08:00, 12:00, 20:00)
+      "times": ["08:00", "20:00"], // mảng các giờ uống tự suy luận logic (vd: 2 lần thì 08:00 và 20:00, 3 lần thì 08:00, 12:00, 20:00)
+      "usage": "Uống trước khi ăn", // Cách dùng (trước ăn/sau ăn/ngậm/thoa...)
+      "purpose": "Giảm đau, hạ sốt", // Công dụng (ngắn gọn)
+      "contraindications": "Không dùng chung với rượu bia" // Chống chỉ định hoặc lưu ý quan trọng (nếu có)
     }
   ],
   "followup": {

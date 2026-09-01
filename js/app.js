@@ -219,8 +219,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.13';
+const CURRENT_APP_VERSION = 'v2.9.14';
 const APP_CHANGELOG = {
+    'v2.9.14': '• Đại tu Tính năng Nhắc Thuốc: Tự động gom toàn bộ lộ trình uống thuốc thành 1 Kế hoạch duy nhất (Medication Plan) để không làm rối danh sách nhắc hẹn.\n• Hiển thị Hướng dẫn sử dụng thuốc: AI sẽ tự động phân tích và trích xuất chi tiết công dụng, chống chỉ định, cách dùng trước/sau ăn cho từng loại thuốc.\n• Nhắc nhở thông minh: Tự động báo chuông theo từng buổi trong ngày, khi chạm vào thông báo sẽ hiện chi tiết thuốc cần uống ngay lúc đó.',
     'v2.9.13': '• Sửa lỗi thuật toán quét dọn trùng lặp: Nhận diện chính xác và tự động xóa sạch các lịch hẹn rác sinh ra do lỗi từ phiên bản cũ.',
     'v2.9.12': '• Tối giản tối đa: Gộp chung "Chế độ Giải thích Giao diện" và "Cẩm nang Quy trình" vào cùng một nút Trợ giúp (?) duy nhất trên thanh tiêu đề.',
     'v2.9.11': '• Tối giản giao diện: Ẩn nút "Giải thích giao diện" trên thanh tiêu đề. Tính năng này được tích hợp chung vào bên trong Cẩm nang Hướng dẫn sử dụng.',
@@ -2337,6 +2338,91 @@ function setupEventListeners() {
     document.getElementById('filter-type').addEventListener('change', applyFilters);
     document.getElementById('filter-month').addEventListener('change', applyFilters);
 
+    window.openMedicationPlanModal = function(plan) {
+        const modal = document.getElementById('modal-medication-plan-details');
+        if (!modal) return;
+        
+        document.getElementById('medplan-title').innerText = plan.title || 'Lịch Uống Thuốc';
+        document.getElementById('medplan-desc').innerText = `Lộ trình ${plan.totalDays} ngày. Hãy tuân thủ đúng giờ để đạt hiệu quả tốt nhất.`;
+        document.getElementById('medplan-dates').innerText = `${UI.formatDate(plan.startDate)} - ${UI.formatDate(plan.endDate)}`;
+        document.getElementById('medplan-times').innerText = `${plan.times.length} lần/ngày`;
+
+        const timeSelector = document.getElementById('medplan-time-selector');
+        timeSelector.innerHTML = '';
+        const pillsList = document.getElementById('medplan-pills-list');
+        pillsList.innerHTML = '';
+
+        // Hàm render thuốc theo mốc giờ
+        const renderPillsForTime = (timeStr) => {
+            pillsList.innerHTML = '';
+            // Lọc ra các thuốc có chứa timeStr trong mảng times
+            const meds = plan.medications.filter(m => m.times && m.times.includes(timeStr));
+            
+            if (meds.length === 0) {
+                pillsList.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-muted);">Không có thuốc nào ở mốc giờ này.</div>`;
+                return;
+            }
+
+            meds.forEach(med => {
+                const usesHtml = med.purpose ? `<div style="font-size: 13px; color: #475569; margin-top: 5px;"><strong>Công dụng:</strong> ${UI.escapeHtml(med.purpose)}</div>` : '';
+                const usageHtml = med.usage ? `<div style="font-size: 13px; color: #15803d; margin-top: 5px;"><strong>Cách dùng:</strong> ${UI.escapeHtml(med.usage)}</div>` : '';
+                const contraHtml = med.contraindications ? `<div style="font-size: 13px; color: #b91c1c; margin-top: 5px;"><strong>Lưu ý:</strong> ${UI.escapeHtml(med.contraindications)}</div>` : '';
+                
+                const card = document.createElement('div');
+                card.className = 'neumorphic-card';
+                card.style.padding = '15px';
+                card.style.borderLeft = '3px solid #3b82f6';
+                card.innerHTML = `
+                    <div style="font-weight: 700; color: #1e40af; font-size: 15px;">${UI.escapeHtml(med.name)}</div>
+                    ${usageHtml}
+                    ${usesHtml}
+                    ${contraHtml}
+                `;
+                pillsList.appendChild(card);
+            });
+        };
+
+        // Render các tab chọn giờ (Sáng/Trưa/Chiều)
+        plan.times.forEach((time, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'neumorphic-btn';
+            btn.style.padding = '8px 16px';
+            btn.style.borderRadius = '20px';
+            btn.style.fontSize = '14px';
+            btn.style.fontWeight = '600';
+            btn.style.flexShrink = '0';
+            btn.style.transition = 'all 0.2s';
+            
+            // Hàm chuyển đổi giờ thành buổi
+            let label = time;
+            const hour = parseInt(time.split(':')[0]);
+            if (hour >= 5 && hour < 11) label = 'Buổi sáng (' + time + ')';
+            else if (hour >= 11 && hour < 14) label = 'Buổi trưa (' + time + ')';
+            else if (hour >= 14 && hour < 18) label = 'Buổi chiều (' + time + ')';
+            else label = 'Buổi tối (' + time + ')';
+            
+            btn.innerText = label;
+            
+            btn.addEventListener('click', () => {
+                Array.from(timeSelector.children).forEach(c => {
+                    c.style.background = 'var(--bg-color)';
+                    c.style.color = 'var(--text-color)';
+                });
+                btn.style.background = '#3b82f6';
+                btn.style.color = 'white';
+                renderPillsForTime(time);
+            });
+            timeSelector.appendChild(btn);
+
+            if (index === 0) {
+                // Chọn tab đầu tiên mặc định
+                setTimeout(() => btn.click(), 10);
+            }
+        });
+
+        openModal('modal-medication-plan-details');
+    };
+
     // Add Reminder (Member View)
     document.getElementById('btn-add-reminder').addEventListener('click', () => {
         document.getElementById('form-reminder').reset();
@@ -2769,32 +2855,61 @@ function checkReminders() {
     allReminders.forEach(rm => {
         if (rm.completed) return; // Skip checking alarms for completed reminders
 
-        const rmDate = new Date(rm.datetime);
-        let offsets = [];
-        if (rm.selected_offsets && Array.isArray(rm.selected_offsets)) {
-            offsets = rm.selected_offsets.map(ms => ({ id: 'ms_' + ms, ms: parseInt(ms) }));
-        } else {
-            offsets = [
-                { id: 'offset1', ms: getOffsetMs(rm.offset1_val, rm.offset1_unit) },
-                { id: 'offset2', ms: getOffsetMs(rm.offset2_val, rm.offset2_unit) },
-                { id: '0', ms: 0 }
-            ];
-        }
+        if (rm.type === 'medication_plan') {
+            const todayStr = now.toISOString().split('T')[0];
+            const start = new Date(rm.startDate);
+            const end = new Date(rm.endDate);
+            const todayDate = new Date(todayStr);
 
-        if (!rm.notified_offsets) rm.notified_offsets = {};
-        
-        offsets.forEach(offset => {
-            if (offset.ms > 0 || offset.id === '0') {
-                const triggerTime = new Date(rmDate.getTime() - offset.ms);
-                if (now >= triggerTime && !rm.notified_offsets[offset.id]) {
-                    if (!mutedMembers.includes(rm.memberId)) {
-                        alarmTriggered = rm;
+            if (todayDate >= start && todayDate <= end) {
+                if (!rm.notified_times) rm.notified_times = {};
+
+                rm.times.forEach(t => {
+                    const timeKey = `${todayStr}_${t}`;
+                    const triggerTime = new Date(`${todayStr}T${t}:00`);
+                    
+                    if (now >= triggerTime && !rm.notified_times[timeKey]) {
+                        // Chỉ báo động nếu chưa qua quá 2 tiếng (tránh báo động dồn dập các ngày cũ)
+                        if (now - triggerTime < 2 * 60 * 60 * 1000) {
+                            if (!mutedMembers.includes(rm.memberId)) {
+                                alarmTriggered = rm;
+                                alarmTriggered.isPlan = true;
+                                alarmTriggered.triggerTimeStr = t;
+                            }
+                        }
+                        rm.notified_times[timeKey] = true;
+                        modified = true;
                     }
-                    rm.notified_offsets[offset.id] = true;
-                    modified = true;
-                }
+                });
             }
-        });
+        } else {
+            const rmDate = new Date(rm.datetime);
+            let offsets = [];
+            if (rm.selected_offsets && Array.isArray(rm.selected_offsets)) {
+                offsets = rm.selected_offsets.map(ms => ({ id: 'ms_' + ms, ms: parseInt(ms) }));
+            } else {
+                offsets = [
+                    { id: 'offset1', ms: getOffsetMs(rm.offset1_val, rm.offset1_unit) },
+                    { id: 'offset2', ms: getOffsetMs(rm.offset2_val, rm.offset2_unit) },
+                    { id: '0', ms: 0 }
+                ];
+            }
+
+            if (!rm.notified_offsets) rm.notified_offsets = {};
+            
+            offsets.forEach(offset => {
+                if (offset.ms > 0 || offset.id === '0') {
+                    const triggerTime = new Date(rmDate.getTime() - offset.ms);
+                    if (now >= triggerTime && !rm.notified_offsets[offset.id]) {
+                        if (!mutedMembers.includes(rm.memberId)) {
+                            alarmTriggered = rm;
+                        }
+                        rm.notified_offsets[offset.id] = true;
+                        modified = true;
+                    }
+                }
+            });
+        }
     });
 
     if (modified) {
@@ -2809,15 +2924,27 @@ function checkReminders() {
     UI.updateNotificationBadge(pendingCount);
 
     if (alarmTriggered) {
-        showAlarmModal(alarmTriggered);
+        if (alarmTriggered.isPlan && typeof window.openMedicationPlanModal === 'function') {
+            showAlarmModal(alarmTriggered);
+        } else {
+            showAlarmModal(alarmTriggered);
+        }
         
         // Bắn thông báo ra hệ điều hành (nếu được cấp quyền)
         if ('Notification' in window && Notification.permission === 'granted') {
             try {
                 const member = DataManager.getMemberById(alarmTriggered.memberId);
                 const memberName = member ? member.name : 'Người thân';
-                const notifBody = (alarmTriggered.note ? alarmTriggered.note + '\n' : '') + 'Bệnh nhân: ' + memberName;
-                const sysNotif = new Notification(alarmTriggered.title || 'Nhắc nhở lịch hẹn', {
+                
+                let title = alarmTriggered.title || 'Nhắc nhở lịch hẹn';
+                let notifBody = (alarmTriggered.note ? alarmTriggered.note + '\n' : '') + 'Bệnh nhân: ' + memberName;
+                
+                if (alarmTriggered.isPlan) {
+                    title = 'Đã đến giờ uống thuốc!';
+                    notifBody = `Mốc giờ: ${alarmTriggered.triggerTimeStr}\nBệnh nhân: ${memberName}`;
+                }
+
+                const sysNotif = new Notification(title, {
                     body: notifBody,
                     icon: 'favicon.png',
                     tag: 'alarm-' + alarmTriggered.id,
@@ -2827,6 +2954,10 @@ function checkReminders() {
                 // Nhấn vào thông báo để mở/focus vào app
                 sysNotif.onclick = function() {
                     window.focus();
+                    if (alarmTriggered.isPlan && typeof window.openMedicationPlanModal === 'function') {
+                        document.getElementById('modal-alarm').classList.add('hidden'); // Ẩn alarm thường
+                        window.openMedicationPlanModal(alarmTriggered);
+                    }
                     this.close();
                 };
             } catch(e) {
@@ -2902,14 +3033,51 @@ function stopLoudBell() {
 }
 
 function showAlarmModal(rm) {
-    document.getElementById('alarm-title').innerText = rm.title;
-    document.getElementById('alarm-time').innerText = new Date(rm.datetime).toLocaleString('vi-VN');
-    if (rm.note) {
+    document.getElementById('alarm-title').innerText = rm.isPlan ? 'Đã đến giờ uống thuốc!' : rm.title;
+    document.getElementById('alarm-time').innerText = rm.isPlan ? rm.triggerTimeStr : new Date(rm.datetime).toLocaleString('vi-VN');
+    
+    const noteText = rm.isPlan ? `Gồm ${rm.medications.length} loại thuốc. Nhấn nút bên dưới để xem chi tiết danh sách cần uống.` : rm.note;
+    
+    if (noteText) {
         document.getElementById('alarm-note-container').style.display = 'block';
-        document.getElementById('alarm-note').innerText = rm.note;
+        document.getElementById('alarm-note').innerText = noteText;
     } else {
         document.getElementById('alarm-note-container').style.display = 'none';
     }
+    
+    // Nút xem chi tiết (chỉ hiện cho Plan)
+    let btnDetails = document.getElementById('btn-alarm-view-plan');
+    if (!btnDetails) {
+        btnDetails = document.createElement('button');
+        btnDetails.id = 'btn-alarm-view-plan';
+        btnDetails.className = 'primary-btn neumorphic-btn';
+        btnDetails.style.width = '100%';
+        btnDetails.style.marginTop = '15px';
+        btnDetails.style.borderRadius = '8px';
+        btnDetails.innerText = 'Xem danh sách thuốc cần uống';
+        document.querySelector('#modal-alarm .modal-footer').insertBefore(btnDetails, document.getElementById('btn-stop-alarm'));
+    }
+    
+    if (rm.isPlan) {
+        btnDetails.style.display = 'block';
+        btnDetails.onclick = () => {
+            stopLoudBell();
+            document.getElementById('modal-alarm').classList.add('hidden');
+            if (typeof window.openMedicationPlanModal === 'function') {
+                window.openMedicationPlanModal(rm);
+                // Chọn đúng giờ
+                setTimeout(() => {
+                    const btns = document.querySelectorAll('#medplan-time-selector button');
+                    Array.from(btns).forEach(btn => {
+                        if (btn.innerText.includes(rm.triggerTimeStr)) btn.click();
+                    });
+                }, 50);
+            }
+        };
+    } else {
+        btnDetails.style.display = 'none';
+    }
+
     document.getElementById('modal-alarm').classList.remove('hidden');
     playLoudBell();
 }
@@ -3438,31 +3606,39 @@ async function promptSmartRemindersModal(memberId, recordData) {
         const aiResult = await AIService.extractSmartReminders(recordData);
         
         if (aiResult) {
-            if (aiResult.medications && Array.isArray(aiResult.medications)) {
+            if (aiResult.medications && Array.isArray(aiResult.medications) && aiResult.medications.length > 0) {
+                // Nhóm tất cả các loại thuốc vào chung một Kế hoạch (Medication Plan)
+                let maxDays = 0;
+                let allTimes = new Set();
+                let validDosesCount = 0;
+
                 aiResult.medications.forEach(med => {
                     const days = med.days || 5;
-                    const times = med.times || ['08:00', '20:00'];
-                    
-                    let validDosesCount = 0;
-                    for (let d = 0; d < days; d++) {
-                        const targetDate = new Date(baseDate.getTime() + d * 24 * 60 * 60 * 1000);
-                        const dateStr = targetDate.toISOString().split('T')[0];
-                        times.forEach(t => {
-                            if (new Date(`${dateStr}T${t}:00`) > now) {
-                                validDosesCount++;
-                            }
-                        });
-                    }
-
-                    if (validDosesCount > 0) {
-                        parsedReminders.push({
-                            type: 'medication',
-                            title: `Uống thuốc: ${med.name}`,
-                            desc: `Uống ${times.length} lần/ngày trong ${days} ngày (Còn ${validDosesCount} lượt nhắc có hiệu lực)`,
-                            medData: med
-                        });
+                    if (days > maxDays) maxDays = days;
+                    if (med.times) {
+                        med.times.forEach(t => allTimes.add(t));
                     }
                 });
+                
+                // Tính toán endDate dựa vào maxDays
+                const endDate = new Date(baseDate.getTime() + (maxDays - 1) * 24 * 60 * 60 * 1000);
+                const sortedTimes = Array.from(allTimes).sort();
+
+                // Kiểm tra xem plan này có hiệu lực trong tương lai không
+                if (endDate >= new Date(now.setHours(0,0,0,0))) {
+                    parsedReminders.push({
+                        type: 'medication_plan',
+                        title: '💊 Kế hoạch Uống thuốc',
+                        desc: `Gồm ${aiResult.medications.length} loại thuốc. Lộ trình ${maxDays} ngày, mỗi ngày ${sortedTimes.length} lần (${sortedTimes.join(', ')}).`,
+                        planData: {
+                            medications: aiResult.medications,
+                            startDate: baseDateStr,
+                            endDate: endDate.toISOString().split('T')[0],
+                            times: sortedTimes,
+                            totalDays: maxDays
+                        }
+                    });
+                }
             }
             
             if (aiResult.followup && aiResult.followup.date) {
@@ -3550,39 +3726,27 @@ document.getElementById('btn-save-smart-reminders')?.addEventListener('click', (
         const rmData = currentSmartRemindersToSave[index];
         if (!rmData) return;
 
-        if (rmData.type === 'medication') {
-            const med = rmData.medData;
-            const days = med.days || 5;
-            const times = med.times || ['08:00', '20:00'];
-            
-            for (let d = 0; d < days; d++) {
-                const targetDate = new Date(baseDate.getTime() + d * 24 * 60 * 60 * 1000);
-                const dateStr = targetDate.toISOString().split('T')[0];
-                
-                times.forEach(t => {
-                    const dt = new Date(`${dateStr}T${t}:00`);
-                    if (dt > now) {
-                        // Kiểm tra trùng lặp
-                        const isDup = existingReminders.some(r => r.title === rmData.title && r.date === dateStr && r.time === t);
-                        if (!isDup) {
-                            DataManager.saveReminder({
-                                memberId: memberId,
-                                title: rmData.title,
-                                date: dateStr,
-                                time: t,
-                                datetime: `${dateStr}T${t}:00`,
-                                note: `Đơn thuốc ngày thứ ${d + 1}/${days}`,
-                                selected_offsets: ["0"], // Nhắc đúng giờ
-                                completed: false
-                            });
-                            addedCount++;
-                        } else {
-                            duplicateCount++;
-                        }
-                    }
+        if (rmData.type === 'medication_plan') {
+            const plan = rmData.planData;
+            // Kiểm tra trùng lặp: Nếu đã có plan nào cùng startDate, endDate và times
+            const isDup = existingReminders.some(r => r.type === 'medication_plan' && r.startDate === plan.startDate && r.endDate === plan.endDate);
+            if (!isDup) {
+                DataManager.saveReminder({
+                    memberId: memberId,
+                    type: 'medication_plan',
+                    title: rmData.title,
+                    startDate: plan.startDate,
+                    endDate: plan.endDate,
+                    times: plan.times,
+                    medications: plan.medications,
+                    totalDays: plan.totalDays,
+                    completed: false
                 });
+                addedCount++;
+            } else {
+                duplicateCount++;
             }
-        } else {
+        } else if (rmData.type === 'vaccine' || rmData.type === 'followup') {
             const dt = new Date(`${rmData.date}T08:00:00`);
             if (dt > now) {
                 // Kiểm tra trùng lặp

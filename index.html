@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.13"></script>
-    <script defer src="js/ai.js?v=2.9.13"></script>
-    <script defer src="js/components.js?v=2.9.13"></script>
-    <script defer src="js/help.js?v=2.9.13"></script>
-    <script defer src="js/speech.js?v=2.9.13"></script>
-    <script defer src="js/app.js?v=2.9.13"></script>
+    <script defer src="js/data.js?v=2.9.14"></script>
+    <script defer src="js/ai.js?v=2.9.14"></script>
+    <script defer src="js/components.js?v=2.9.14"></script>
+    <script defer src="js/help.js?v=2.9.14"></script>
+    <script defer src="js/speech.js?v=2.9.14"></script>
+    <script defer src="js/app.js?v=2.9.14"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -1216,6 +1216,39 @@
             <div class="modal-footer" style="border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" class="icon-btn neumorphic-btn close-modal" style="border-radius: 8px; width: auto; padding: 8px 20px; font-size: 14px; font-weight: 600;">Không, cảm ơn</button>
                 <button type="button" id="btn-save-smart-reminders" class="primary-btn neumorphic-btn hidden" style="border-radius: 8px; font-size: 14px; padding: 8px 20px;">Tạo lịch nhắc đã chọn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Lịch Uống Thuốc Chi tiết -->
+    <div id="modal-medication-plan-details" class="modal-overlay hidden" role="dialog" aria-modal="true" style="z-index: 10001;">
+        <div class="modal-content neumorphic-modal" style="max-width: 600px; padding: 0;">
+            <div class="modal-header" style="padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.05); background: #f8fafc; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                <h3 style="display: flex; align-items: center; gap: 8px; color: #3b82f6;">
+                    <span class="material-symbols-rounded">pill</span>
+                    <span id="medplan-title">Lịch Uống Thuốc</span>
+                </h3>
+                <button type="button" class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="modal-body" style="padding: 0; max-height: 60vh; overflow-y: auto; background: #f1f5f9;">
+                <div style="padding: 15px 20px; background: white; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                    <p id="medplan-desc" style="font-size: 14px; color: var(--text-color); margin-bottom: 8px;"></p>
+                    <div style="display: flex; gap: 10px; font-size: 13px; color: var(--text-muted);">
+                        <span style="display: flex; align-items: center; gap: 4px;"><span class="material-symbols-rounded" style="font-size: 16px;">calendar_month</span> <span id="medplan-dates"></span></span>
+                        <span style="display: flex; align-items: center; gap: 4px;"><span class="material-symbols-rounded" style="font-size: 16px;">schedule</span> <span id="medplan-times"></span></span>
+                    </div>
+                </div>
+                
+                <div id="medplan-time-selector" style="display: flex; gap: 10px; padding: 15px 20px; overflow-x: auto; scrollbar-width: none;">
+                    <!-- Thời điểm uống thuốc sẽ được tạo động -->
+                </div>
+
+                <div id="medplan-pills-list" style="padding: 0 20px 20px 20px; display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Chi tiết từng loại thuốc -->
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid rgba(0,0,0,0.05); text-align: center; background: white; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                <button type="button" class="primary-btn neumorphic-btn close-modal" style="width: 100%; border-radius: 8px;">Đóng lại</button>
             </div>
         </div>
     </div>
