@@ -219,10 +219,11 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.19';
+const CURRENT_APP_VERSION = 'v2.9.20';
 const APP_CHANGELOG = {
-    'v2.9.19': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
-    'v2.9.19': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
+    'v2.9.20': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
+    'v2.9.20': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
+    'v2.9.20': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
     'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gần gũi và dễ hiểu hơn.',
     'v2.9.16': '• Tùy chỉnh Giờ uống thuốc: Bạn giờ đây có thể tự do thay đổi mốc giờ uống thuốc mặc định cho các buổi Sáng, Trưa, Chiều, Tối trong phần Cài đặt Hệ thống. AI sẽ tự động ưu tiên các khung giờ này khi lập kế hoạch.',
     'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
@@ -3114,210 +3115,32 @@ function checkReminders() {
     let pendingCount = 0;
     const runningVer = getRunningAppVersion();
     if (localStorage.getItem('last_seen_changelog') !== runningVer && APP_CHANGELOG[runningVer]) {
-        pendingCount += 1; // Thêm 1 thông báo cho bản cập nhật mới
-    }
-    UI.updateNotificationBadge(pendingCount);
-
-    if (alarmTriggered) {
-        if (alarmTriggered.isPlan && typeof window.openMedicationPlanModal === 'function') {
-            showAlarmModal(alarmTriggered);
-        } else {
-            showAlarmModal(alarmTriggered);
-        }
-        
-        // Bắn thông báo ra hệ điều hành (nếu được cấp quyền)
-        if ('Notification' in window && Notification.permission === 'granted') {
-            try {
-                const member = DataManager.getMemberById(alarmTriggered.memberId);
-                const memberName = member ? member.name : 'Người thân';
-                
-                let title = alarmTriggered.title || 'Nhắc nhở lịch hẹn';
-                let notifBody = (alarmTriggered.note ? alarmTriggered.note + '\n' : '') + 'Bệnh nhân: ' + memberName;
-                
-                if (alarmTriggered.isPlan) {
-                    title = 'Đã đến giờ uống thuốc!';
-                    notifBody = `Mốc giờ: ${alarmTriggered.triggerTimeStr}\nBệnh nhân: ${memberName}`;
-                }
-
-                const sysNotif = new Notification(title, {
-                    body: notifBody,
-                    icon: 'favicon.png',
-                    tag: 'alarm-' + alarmTriggered.id,
-                    requireInteraction: true // Giữ thông báo trên màn hình cho đến khi người dùng tắt
-                });
-                
-                // Nhấn vào thông báo để mở/focus vào app
-                sysNotif.onclick = function() {
-                    window.focus();
-                    if (alarmTriggered.isPlan && typeof window.openMedicationPlanModal === 'function') {
-                        document.getElementById('modal-alarm').classList.add('hidden'); // Ẩn alarm thường
-                        window.openMedicationPlanModal(alarmTriggered);
-                    }
-                    this.close();
-                };
-            } catch(e) {
-                console.warn('Không thể gửi thông báo hệ thống:', e);
-            }
-        }
-    }
-}
-
-let currentAlarmAudio = null;
-let vibrationInterval = null;
-
-function playLoudBell(customUrl = null) {
-    try {
-        if (currentAlarmAudio) {
-            currentAlarmAudio.pause();
-            currentAlarmAudio.currentTime = 0;
-        }
-        if (vibrationInterval) {
-            clearInterval(vibrationInterval);
-        }
-        
-        const settings = DataManager.getSettings();
-        const alarmUrl = customUrl || settings.alarmSound || DEFAULT_ALARM_SOUND_URL;
-        
-        // Tạo AudioContext để tăng âm lượng (GainNode) lên gấp 3 lần bình thường (boost volume)
-        try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            const ctx = new AudioContext();
-            const audioEl = new Audio(alarmUrl);
-            audioEl.crossOrigin = "anonymous";
-            const source = ctx.createMediaElementSource(audioEl);
-            const gainNode = ctx.createGain();
-            gainNode.gain.value = 3.0; // Tăng âm lượng lên 300%
-            source.connect(gainNode);
-            gainNode.connect(ctx.destination);
-            currentAlarmAudio = source.mediaElement;
-        } catch (audioCtxError) {
-            // Fallback nếu trình duyệt không hỗ trợ AudioContext hoặc lỗi CORS
-            currentAlarmAudio = new Audio(alarmUrl);
-        }
-
-        currentAlarmAudio.volume = 1.0;
-        currentAlarmAudio.loop = true; // Lặp liên tục
-        const playPromise = currentAlarmAudio.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(e => console.log("Trình duyệt chặn tự động phát âm thanh.", e));
-        }
-        if (navigator.vibrate) {
-            // Rung ngay lập tức
-            navigator.vibrate([1000, 500, 1000, 500]);
-            // Lặp lại việc rung mỗi 3 giây
-            vibrationInterval = setInterval(() => {
-                navigator.vibrate([1000, 500, 1000, 500]);
-            }, 3000);
-        }
-    } catch (err) {}
-}
-
-function stopLoudBell() {
-    if (currentAlarmAudio) {
-        currentAlarmAudio.pause();
-        currentAlarmAudio.currentTime = 0;
-        currentAlarmAudio = null;
-    }
-    if (vibrationInterval) {
-        clearInterval(vibrationInterval);
-        vibrationInterval = null;
-    }
-    if (navigator.vibrate) {
-        navigator.vibrate(0); // Dừng rung ngay lập tức
-    }
-}
-
-function showAlarmModal(rm) {
-    document.getElementById('alarm-title').innerText = rm.isPlan ? 'Đã đến giờ uống thuốc!' : rm.title;
-    document.getElementById('alarm-time').innerText = rm.isPlan ? rm.triggerTimeStr : new Date(rm.datetime).toLocaleString('vi-VN');
-    
-    const noteText = rm.isPlan ? `Gồm ${rm.medications.length} loại thuốc. Nhấn nút bên dưới để xem chi tiết danh sách cần uống.` : rm.note;
-    
-    if (noteText) {
-        document.getElementById('alarm-note-container').style.display = 'block';
-        document.getElementById('alarm-note').innerText = noteText;
-    } else {
-        document.getElementById('alarm-note-container').style.display = 'none';
-    }
-    
-    // Nút xem chi tiết (chỉ hiện cho Plan)
-    let btnDetails = document.getElementById('btn-alarm-view-plan');
-    if (!btnDetails) {
-        btnDetails = document.createElement('button');
-        btnDetails.id = 'btn-alarm-view-plan';
-        btnDetails.className = 'primary-btn neumorphic-btn';
-        btnDetails.style.width = '100%';
-        btnDetails.style.marginTop = '15px';
-        btnDetails.style.borderRadius = '8px';
-        btnDetails.innerText = 'Xem danh sách thuốc cần uống';
-        document.querySelector('#modal-alarm .modal-footer').insertBefore(btnDetails, document.getElementById('btn-stop-alarm'));
-    }
-    
-    if (rm.isPlan) {
-        btnDetails.style.display = 'block';
-        btnDetails.onclick = () => {
-            stopLoudBell();
-            document.getElementById('modal-alarm').classList.add('hidden');
-            if (typeof window.openMedicationPlanModal === 'function') {
-                window.openMedicationPlanModal(rm);
-                // Mở đúng tab giờ (nếu có)
-                setTimeout(() => {
-                    const details = document.querySelectorAll('#medplan-accordion-container details');
-                    Array.from(details).forEach(d => {
-                        const summary = d.querySelector('summary').innerText;
-                        if (summary.includes(rm.triggerTimeStr)) {
-                            d.open = true;
-                        } else {
-                            d.open = false; // Đóng các mục khác để tập trung
-                        }
-                    });
-                }, 50);
-            }
-        };
-    } else {
-        btnDetails.style.display = 'none';
-    }
-
-    document.getElementById('modal-alarm').classList.remove('hidden');
-    playLoudBell();
-}
-
-function openNotifications() {
-    const notifList = document.getElementById('notifications-list');
-    notifList.innerHTML = '';
-    
-    // Inject system update notification
-    const runningVer = getRunningAppVersion();
-    let hasSystemNotif = false;
-    
-    if (localStorage.getItem('last_seen_changelog') !== runningVer && APP_CHANGELOG[runningVer]) {
         hasSystemNotif = true;
+        const changelogText = APP_CHANGELOG[runningVer];
         const updateDiv = document.createElement('div');
         updateDiv.className = 'neumorphic-panel';
         updateDiv.style.padding = '12px';
         updateDiv.style.marginBottom = '10px';
         updateDiv.style.borderLeft = '4px solid var(--primary-blue)';
         updateDiv.style.background = 'rgba(41, 128, 185, 0.05)';
+        
+        const listHtml = '<ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-color); margin-bottom: 15px; line-height: 1.4;">' + changelogText.split('\n').map(line => `<li style="margin-bottom: 8px;">${line.replace('• ', '')}</li>`).join('') + '</ul>';
+
         updateDiv.innerHTML = `
-            <h4 style="color: var(--primary-blue); margin: 0 0 5px 0; font-size: 14px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded">new_releases</span> Đã cập nhật lên ${runningVer}!</h4>
-            <p style="font-size: 12px; margin: 0 0 10px 0; color: var(--text-color);">Nhấn vào để xem những tính năng mới vừa được bổ sung.</p>
-            <button id="btn-view-changelog" class="primary-btn neumorphic-btn" style="font-size: 12px; padding: 6px 12px; width: 100%;">Xem thay đổi</button>
+            <h4 style="color: var(--primary-blue); margin: 0 0 10px 0; font-size: 15px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded">new_releases</span> Đã cập nhật lên ${runningVer}!</h4>
+            ${listHtml}
+            <button id="btn-dismiss-changelog" class="primary-btn neumorphic-btn" style="font-size: 13px; padding: 8px 12px; width: 100%;">Đã hiểu</button>
         `;
         
         notifList.appendChild(updateDiv);
         
-        updateDiv.querySelector('#btn-view-changelog').addEventListener('click', () => {
-            // Hiển thị nội dung
-            const changelogText = APP_CHANGELOG[runningVer];
-            const contentDiv = document.getElementById('changelog-content');
-            contentDiv.innerHTML = '<ul style="margin: 0; padding-left: 20px;">' + changelogText.split('\n').map(line => `<li style="margin-bottom: 8px;">${line.replace('• ', '')}</li>`).join('') + '</ul>';
-            
-            closeModal('modal-notifications');
-            openModal('modal-changelog');
-            
-            // Đánh dấu đã xem
+        updateDiv.querySelector('#btn-dismiss-changelog').addEventListener('click', () => {
+            updateDiv.remove();
             localStorage.setItem('last_seen_changelog', runningVer);
             checkReminders(); // Cập nhật lại số lượng chuông
+            if (notifList.children.length === 0) {
+                notifList.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0;"><span class="material-symbols-rounded" style="font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.5;">notifications_paused</span>Không có thông báo chung nào từ hệ thống.</div>';
+            }
         });
     }
 
