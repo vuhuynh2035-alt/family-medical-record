@@ -626,7 +626,9 @@ Nhiệm vụ của bạn là phân tích và trả về ĐÚNG 1 ĐỐI TƯỢNG
   }
   
   Chú ý quan trọng về Lịch hẹn (followups):
-  - BẮT BUỘC TÁCH RIÊNG từng mục khám/xét nghiệm thành một lịch hẹn độc lập trong mảng `followups`. Ví dụ: nếu bác sĩ dặn "Sau 3 tháng tái khám, xét nghiệm máu, siêu âm", bạn PHẢI tạo 3 object riêng biệt (1 cái Tái khám, 1 cái Xét nghiệm máu, 1 cái Siêu âm), TUYỆT ĐỐI KHÔNG gộp chung lại thành 1 lịch dù chúng diễn ra cùng ngày!
+  - NGUYÊN TẮC GỘP/TÁCH LỊCH HẸN: 
+    + Nếu CÙNG 1 BÁC SĨ (cùng 1 tờ đơn/chuyên khoa) yêu cầu nhiều mục (vd: "Tái khám, xét nghiệm máu, siêu âm") trong CÙNG 1 NGÀY, hãy GỘP CHUNG chúng lại thành 1 lịch hẹn duy nhất (tiêu đề liệt kê đủ các mục) cho gọn gàng.
+    + NHƯNG nếu có nhiều lịch hẹn diễn ra CÙNG NGÀY nhưng do CÁC BÁC SĨ KHÁC NHAU (từ các chuyên khoa khác nhau, vd: Phụ khoa và Nội khoa) chỉ định, thì BẮT BUỘC PHẢI TÁCH thành các lịch hẹn riêng biệt (tiêu đề ghi rõ tên chuyên khoa).
 }
 
 Chú ý:
