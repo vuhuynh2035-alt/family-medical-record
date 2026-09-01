@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.18"></script>
-    <script defer src="js/ai.js?v=2.9.18"></script>
-    <script defer src="js/components.js?v=2.9.18"></script>
-    <script defer src="js/help.js?v=2.9.18"></script>
-    <script defer src="js/speech.js?v=2.9.18"></script>
-    <script defer src="js/app.js?v=2.9.18"></script>
+    <script defer src="js/data.js?v=2.9.19"></script>
+    <script defer src="js/ai.js?v=2.9.19"></script>
+    <script defer src="js/components.js?v=2.9.19"></script>
+    <script defer src="js/help.js?v=2.9.19"></script>
+    <script defer src="js/speech.js?v=2.9.19"></script>
+    <script defer src="js/app.js?v=2.9.19"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -361,6 +361,14 @@
                             <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
                                 <input type="checkbox" name="reminder_offsets" value="0" style="width:18px; height:18px;" checked>
                                 Ngay tại thời điểm hẹn
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="reminder_offsets" value="3600000" style="width:18px; height:18px;">
+                                Trước 1 giờ
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="reminder_offsets" value="10800000" style="width:18px; height:18px;">
+                                Trước 3 giờ
                             </label>
                             <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
                                 <input type="checkbox" name="reminder_offsets" value="86400000" style="width:18px; height:18px;">
