@@ -53,9 +53,9 @@ const HelpService = {
         }, true); // Use capture phase to run before other handlers
 
         document.body.addEventListener('click', (e) => {
-            if (e.target.closest('.btn-workflow-guide') || e.target.closest('#btn-workflow-guide')) {
-                this.toggleHelpMode();
-            }
+            if (e.target.closest('.btn-workflow-guide')) {
+                  this.showAiHelpChat();
+              }
         });
 
         if (this.btnAiHelp) {
