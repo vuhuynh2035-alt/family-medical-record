@@ -268,19 +268,20 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.33';
+const CURRENT_APP_VERSION = 'v2.9.34';
 const APP_CHANGELOG = {
-    'v2.9.33': '• Tối ưu giao diện Trợ lý AI: Thiết kế lại nút Trợ lý AI Hỏi đáp (trong Chế độ Hướng dẫn) thành biểu tượng dấu chấm hỏi nhỏ gọn, đặt ở góc trên cùng bên phải màn hình để không che khuất tầm nhìn và đồng bộ với giao diện chính.',
-    'v2.9.33': '• Cải tiến thao tác tạo Lịch: Tách nút "Tạo lịch hẹn mới" thành 2 nút riêng biệt "+ Khám bệnh" và "+ Uống thuốc" đặt ngay bên ngoài màn hình danh sách, giúp thao tác nhanh hơn 1 bước và bố cục cân đối hơn.',
-    'v2.9.33': '• Nâng cấp giao diện Xác nhận: Thay thế toàn bộ các thông báo xác nhận trắng đen (xóa, ghi đè dữ liệu, khôi phục) của trình duyệt bằng một giao diện Pop-up hiện đại, đẹp mắt và đồng bộ với thiết kế của ứng dụng.',
-    'v2.9.33': '• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.',
-    'v2.9.33': '• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).',
-    'v2.9.33': '• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.',
-    'v2.9.33': '• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.',
-    'v2.9.33': '• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).',
-    'v2.9.33': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
-    'v2.9.33': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
-    'v2.9.33': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
+    'v2.9.34': '• Sửa lỗi (Bugfix): Khắc phục sự cố khi tạo hồ sơ bằng AI OCR (quét ảnh), hệ thống tự động sinh ra hàng loạt Lịch uống thuốc lẻ tẻ theo thiết kế cũ (bị trùng lặp với Kế hoạch nhắc thuốc thông minh).',
+    'v2.9.34': '• Tối ưu giao diện Trợ lý AI: Thiết kế lại nút Trợ lý AI Hỏi đáp (trong Chế độ Hướng dẫn) thành biểu tượng dấu chấm hỏi nhỏ gọn, đặt ở góc trên cùng bên phải màn hình để không che khuất tầm nhìn và đồng bộ với giao diện chính.',
+    'v2.9.34': '• Cải tiến thao tác tạo Lịch: Tách nút "Tạo lịch hẹn mới" thành 2 nút riêng biệt "+ Khám bệnh" và "+ Uống thuốc" đặt ngay bên ngoài màn hình danh sách, giúp thao tác nhanh hơn 1 bước và bố cục cân đối hơn.',
+    'v2.9.34': '• Nâng cấp giao diện Xác nhận: Thay thế toàn bộ các thông báo xác nhận trắng đen (xóa, ghi đè dữ liệu, khôi phục) của trình duyệt bằng một giao diện Pop-up hiện đại, đẹp mắt và đồng bộ với thiết kế của ứng dụng.',
+    'v2.9.34': '• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.',
+    'v2.9.34': '• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).',
+    'v2.9.34': '• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.',
+    'v2.9.34': '• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.',
+    'v2.9.34': '• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).',
+    'v2.9.34': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
+    'v2.9.34': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
+    'v2.9.34': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
     'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gần gũi và dễ hiểu hơn.',
     'v2.9.16': '• Tùy chỉnh Giờ uống thuốc: Bạn giờ đây có thể tự do thay đổi mốc giờ uống thuốc mặc định cho các buổi Sáng, Trưa, Chiều, Tối trong phần Cài đặt Hệ thống. AI sẽ tự động ưu tiên các khung giờ này khi lập kế hoạch.',
     'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
@@ -2114,25 +2115,7 @@ function setupEventListeners() {
                 });
             }
             
-            if (data.reminders && data.reminders.length > 0) {
-                let reminderCount = 0;
-                data.reminders.forEach(r => {
-                    if (r.title && r.date) {
-                        DataManager.saveReminder({
-                            memberId: currentMemberId,
-                            title: r.title,
-                            date: r.date,
-                            time: r.time || "08:00",
-                            note: r.note || ""
-                        });
-                        reminderCount++;
-                    }
-                });
-                if (reminderCount > 0) {
-                    showToast(`Đã tự động tạo ${reminderCount} nhắc nhở từ hồ sơ bệnh án.`, 'success');
-                    checkReminders(); // Cập nhật lại chuông thông báo
-                }
-            }
+            
 
             autofillOk = true;
         } else {
