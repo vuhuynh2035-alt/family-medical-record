@@ -219,11 +219,12 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.20';
+const CURRENT_APP_VERSION = 'v2.9.21';
 const APP_CHANGELOG = {
-    'v2.9.20': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
-    'v2.9.20': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
-    'v2.9.20': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
+    'v2.9.21': '• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).',
+    'v2.9.21': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
+    'v2.9.21': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
+    'v2.9.21': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
     'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gần gũi và dễ hiểu hơn.',
     'v2.9.16': '• Tùy chỉnh Giờ uống thuốc: Bạn giờ đây có thể tự do thay đổi mốc giờ uống thuốc mặc định cho các buổi Sáng, Trưa, Chiều, Tối trong phần Cài đặt Hệ thống. AI sẽ tự động ưu tiên các khung giờ này khi lập kế hoạch.',
     'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
@@ -2517,6 +2518,12 @@ function setupEventListeners() {
         document.getElementById('reminder-id').value = '';
         document.getElementById('medplan-id').value = '';
         
+        const settings = DataManager.getSettings();
+        document.getElementById('medplan-time-morning').value = settings.medTimeMorning || '08:00';
+        document.getElementById('medplan-time-noon').value = settings.medTimeNoon || '12:00';
+        document.getElementById('medplan-time-afternoon').value = settings.medTimeAfternoon || '14:00';
+        document.getElementById('medplan-time-evening').value = settings.medTimeEvening || '20:00';
+
         document.querySelectorAll('input[name="reminder_offsets"]').forEach(cb => cb.checked = false);
         const cb0 = document.querySelector('input[name="reminder_offsets"][value="0"]');
         if (cb0) cb0.checked = true;
@@ -2616,10 +2623,10 @@ function setupEventListeners() {
                 <div class="form-group" style="margin-bottom: 0;">
                     <label>Chọn cữ uống *</label>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
-                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${settings.medTimeMorning || '08:00'}"> Sáng</label>
-                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${settings.medTimeNoon || '12:00'}"> Trưa</label>
-                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${settings.medTimeAfternoon || '14:00'}"> Chiều</label>
-                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${settings.medTimeEvening || '20:00'}"> Tối</label>
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="morning"> Sáng</label>
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="noon"> Trưa</label>
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="afternoon"> Chiều</label>
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="evening"> Tối</label>
                     </div>
                 </div>
             </div>
@@ -2662,14 +2669,32 @@ function setupEventListeners() {
             let medications = [];
             let allTimes = new Set();
             let isValid = true;
+            
+            const timeMap = {
+                'morning': document.getElementById('medplan-time-morning').value,
+                'noon': document.getElementById('medplan-time-noon').value,
+                'afternoon': document.getElementById('medplan-time-afternoon').value,
+                'evening': document.getElementById('medplan-time-evening').value
+            };
+
             items.forEach(item => {
                 const name = item.querySelector('.med-name').value.trim();
                 const usage = item.querySelector('.med-usage').value.trim();
                 const purpose = item.querySelector('.med-purpose').value.trim();
                 const timeChks = Array.from(item.querySelectorAll('.med-time-chk:checked')).map(cb => cb.value);
+                
                 if (!name || timeChks.length === 0) isValid = false;
-                timeChks.forEach(t => allTimes.add(t));
-                medications.push({ name, usage, purpose, contraindications: '', times: timeChks, days: totalDays });
+                
+                const realTimes = [];
+                timeChks.forEach(sess => {
+                    const t = timeMap[sess];
+                    if (t) {
+                        realTimes.push(t);
+                        allTimes.add(t);
+                    }
+                });
+                
+                medications.push({ name, usage, purpose, contraindications: '', times: realTimes, days: totalDays });
             });
             if (!isValid) { alert('Vui lòng nhập tên thuốc và chọn ít nhất 1 cữ uống cho mỗi loại thuốc.'); return; }
             const startD = new Date(startDate);
@@ -3239,11 +3264,43 @@ document.addEventListener('click', (e) => {
             document.getElementById('medplan-start-date').value = reminder.startDate || '';
             document.getElementById('medplan-total-days').value = reminder.totalDays || 7;
             
+            const settings = DataManager.getSettings();
+            let morningTime = settings.medTimeMorning || '08:00';
+            let noonTime = settings.medTimeNoon || '12:00';
+            let afternoonTime = settings.medTimeAfternoon || '14:00';
+            let eveningTime = settings.medTimeEvening || '20:00';
+
+            // Phân loại các mốc thời gian có trong reminder.times vào các buổi
+            if (reminder.times && Array.isArray(reminder.times)) {
+                reminder.times.forEach(t => {
+                    const hr = parseInt(t.split(':')[0]);
+                    if (hr < 11) morningTime = t;
+                    else if (hr < 14) noonTime = t;
+                    else if (hr < 18) afternoonTime = t;
+                    else eveningTime = t;
+                });
+            }
+
+            document.getElementById('medplan-time-morning').value = morningTime;
+            document.getElementById('medplan-time-noon').value = noonTime;
+            document.getElementById('medplan-time-afternoon').value = afternoonTime;
+            document.getElementById('medplan-time-evening').value = eveningTime;
+            
             const container = document.getElementById('medplan-items-container');
             container.innerHTML = '';
             
             if (reminder.medications && Array.isArray(reminder.medications)) {
                 reminder.medications.forEach(med => {
+                    // Map back specific times to sessions
+                    let sessMorning = false, sessNoon = false, sessAfternoon = false, sessEvening = false;
+                    med.times.forEach(t => {
+                        const hr = parseInt(t.split(':')[0]);
+                        if (hr < 11) sessMorning = true;
+                        else if (hr < 14) sessNoon = true;
+                        else if (hr < 18) sessAfternoon = true;
+                        else sessEvening = true;
+                    });
+
                     const html = `
                         <div class="neumorphic-card medplan-item" data-id="${Date.now() + Math.random()}" style="padding: 15px; border-left: 3px solid #3b82f6; position: relative;">
                             <button type="button" class="icon-btn btn-remove-med-item" style="position: absolute; top: 10px; right: 10px; color: #e11d48; width: 30px; height: 30px; font-size: 18px;"><span class="material-symbols-rounded">close</span></button>
@@ -3262,10 +3319,10 @@ document.addEventListener('click', (e) => {
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label>Chọn cữ uống *</label>
                                 <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
-                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${DataManager.getSettings().medTimeMorning || '08:00'}" ${med.times.includes(DataManager.getSettings().medTimeMorning || '08:00') ? 'checked' : ''}> Sáng</label>
-                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${DataManager.getSettings().medTimeNoon || '12:00'}" ${med.times.includes(DataManager.getSettings().medTimeNoon || '12:00') ? 'checked' : ''}> Trưa</label>
-                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${DataManager.getSettings().medTimeAfternoon || '14:00'}" ${med.times.includes(DataManager.getSettings().medTimeAfternoon || '14:00') ? 'checked' : ''}> Chiều</label>
-                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${DataManager.getSettings().medTimeEvening || '20:00'}" ${med.times.includes(DataManager.getSettings().medTimeEvening || '20:00') ? 'checked' : ''}> Tối</label>
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="morning" ${sessMorning ? 'checked' : ''}> Sáng</label>
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="noon" ${sessNoon ? 'checked' : ''}> Trưa</label>
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="afternoon" ${sessAfternoon ? 'checked' : ''}> Chiều</label>
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="evening" ${sessEvening ? 'checked' : ''}> Tối</label>
                                 </div>
                             </div>
                         </div>

@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.20"></script>
-    <script defer src="js/ai.js?v=2.9.20"></script>
-    <script defer src="js/components.js?v=2.9.20"></script>
-    <script defer src="js/help.js?v=2.9.20"></script>
-    <script defer src="js/speech.js?v=2.9.20"></script>
-    <script defer src="js/app.js?v=2.9.20"></script>
+    <script defer src="js/data.js?v=2.9.21"></script>
+    <script defer src="js/ai.js?v=2.9.21"></script>
+    <script defer src="js/components.js?v=2.9.21"></script>
+    <script defer src="js/help.js?v=2.9.21"></script>
+    <script defer src="js/speech.js?v=2.9.21"></script>
+    <script defer src="js/app.js?v=2.9.21"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -397,6 +397,32 @@
                         <div class="form-group">
                             <label>Số ngày uống *</label>
                             <input type="number" id="medplan-total-days" class="neumorphic-input" required min="1" value="7">
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(41, 128, 185, 0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                        <label style="color: var(--primary-blue); display: flex; align-items: center; gap: 5px; margin-bottom: 10px; font-weight: bold;">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">schedule</span> Khung giờ uống thuốc của Lịch này
+                        </label>
+                        <div class="form-group-row" style="margin-bottom: 10px;">
+                            <div class="form-group">
+                                <label style="font-size: 12px;">Giờ Sáng</label>
+                                <input type="time" id="medplan-time-morning" class="neumorphic-input">
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size: 12px;">Giờ Trưa</label>
+                                <input type="time" id="medplan-time-noon" class="neumorphic-input">
+                            </div>
+                        </div>
+                        <div class="form-group-row" style="margin-bottom: 0;">
+                            <div class="form-group">
+                                <label style="font-size: 12px;">Giờ Chiều</label>
+                                <input type="time" id="medplan-time-afternoon" class="neumorphic-input">
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size: 12px;">Giờ Tối</label>
+                                <input type="time" id="medplan-time-evening" class="neumorphic-input">
+                            </div>
                         </div>
                     </div>
                     
