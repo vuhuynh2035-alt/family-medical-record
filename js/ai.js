@@ -246,7 +246,7 @@ TUYỆT ĐỐI CHỈ TRẢ VỀ JSON, KHÔNG THÊM BẤT KỲ ĐOẠN VĂN BẢN
 - "labs": Tóm tắt các kết quả xét nghiệm cận lâm sàng (máu, X-Quang, siêu âm...).
 - "disease": Chẩn đoán bệnh hoặc tên vắc xin tiêm chủng (kèm số mũi, vd: "Tiêm vắc xin 6 trong 1 (Hexaxim) mũi 1").
 - "treatment": Phương án điều trị. NẾU CÓ ĐƠN THUỐC, BẮT BUỘC PHẢI GHI CHÉP LẠI ĐẦY ĐỦ VÀ CHI TIẾT TOÀN BỘ CÁC LOẠI THUỐC, LIỀU LƯỢNG, CÁCH DÙNG, SỐ NGÀY UỐNG (TUYỆT ĐỐI KHÔNG ĐƯỢC TÓM TẮT HAY BỎ SÓT BẤT KỲ LOẠI THUỐC NÀO DÙ CÓ NHIỀU ĐƠN THUỐC ĐI KÈM). Nếu là vắc xin thì ghi tên, số lô, đường tiêm.
-- "note": Lời khuyên của bác sĩ, kiêng cữ, VÀ ĐẶC BIỆT LÀ TOÀN BỘ CHI TIẾT LỊCH HẸN TÁI KHÁM, XÉT NGHIỆM ĐỊNH KỲ (nếu có).
+- "note": Lời khuyên của bác sĩ, kiêng cữ. NẾU CÓ NHIỀU ẢNH HOẶC NHIỀU ĐƠN THUỐC, BẮT BUỘC TỔNG HỢP VÀ GHI RÕ NGÀY THÁNG CỦA **TẤT CẢ** CÁC LỊCH HẸN TÁI KHÁM, XÉT NGHIỆM TỪ TẤT CẢ CÁC TRANG VÀO ĐÂY (không được bỏ sót lịch hẹn nào).
 - "cost": Tổng chi phí (chỉ lấy con số, ví dụ 500000. Nếu không thấy, trả về 0).
 - "dynamicFields": Mảng các chỉ số xét nghiệm chi tiết hoặc chuyên sâu. Mỗi phần tử là một object có "key" (Tên chỉ số, vd: "Glucose"), "value" (Kết quả kèm đơn vị), "isAbnormal" (boolean: true/false), và "explanation" (Giải thích siêu ngắn 1 câu về ý nghĩa của chỉ số này để hiển thị nhanh cho người dùng, vd: "Đường huyết, dùng để theo dõi bệnh tiểu đường"). Nếu không có, để mảng rỗng [].
 - "vaccineInfo": Nếu đây là hồ sơ tiêm chủng, trả về object: { "name": string, "dose": number/string, "diseaseTarget": string, "nextDoseDate": "YYYY-MM-DD", "nextDoseTitle": string, "careInstructions": string, "sideEffects": string }. Nếu không phải tiêm chủng, để null.
@@ -619,9 +619,9 @@ Nhiệm vụ của bạn là phân tích và trả về ĐÚNG 1 ĐỐI TƯỢNG
   "followups": [
       {
         "title": "Tên lịch hẹn (vd: Tái khám, Xét nghiệm máu, Siêu âm, Nhắc nhở tiêm)",
-        "date": "YYYY-MM-DD",
-        "note": "Ghi chú hẹn chi tiết (BẮT BUỘC giữ lại ĐẦY ĐỦ các chỉ định xét nghiệm, siêu âm...)"
-      }
+        "date": "YYYY-MM-DD", // ngày hẹn. NẾU BÁC SĨ CHỈ GHI "sau 3 tháng" HAY "sau 1 tuần", HÃY TỰ TÍNH TOÁN RA NGÀY YYYY-MM-DD CHÍNH XÁC TỪ NGÀY KHÁM.
+          "note": "Ghi chú hẹn chi tiết (BẮT BUỘC giữ lại ĐẦY ĐỦ các chỉ định xét nghiệm, siêu âm...)"
+        }
     ]
   }
   
