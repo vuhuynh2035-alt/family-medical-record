@@ -268,25 +268,26 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.39';
+const CURRENT_APP_VERSION = 'v2.9.40';
 const APP_CHANGELOG = {
-    'v2.9.39': '• Sửa lỗi AI Nhắc lịch: Bắt buộc AI phải tách riêng từng lịch khám/xét nghiệm thành các mục độc lập, không được tự ý gộp chung lại làm mất chi tiết khi chúng trùng ngày.',
-    'v2.9.39': '• Cải tiến AI (Smart Reminders): Khắc phục lỗi AI chỉ trích xuất được 1 lịch hẹn duy nhất và bỏ sót các lịch khác. Từ nay AI có thể đọc và đề xuất toàn bộ các lịch hẹn khám, xét nghiệm định kỳ có trong hồ sơ.',
-    'v2.9.39': '• Dọn dẹp giao diện: Xóa bỏ nút Hướng dẫn (màu cam) khổng lồ choán chỗ ở góc phải bên dưới màn hình, vì nút Trợ giúp đã được chuyển lên thanh menu ở góc trên.',
-    'v2.9.39': '• Gộp nút Hướng dẫn: Đơn giản hóa giao diện bằng cách gộp nút "Cẩm nang hướng dẫn" và "Trợ lý AI" vào chung 1 nút (dấu chấm hỏi). Khi bấm vào, Trợ lý AI sẽ hiện ra để bạn hỏi đáp trực tiếp, nếu muốn đọc cẩm nang, chỉ cần bấm nút "Cẩm nang" ngay góc trên của cửa sổ chat.',
-    'v2.9.39': '• Cập nhật Giao diện: Tách đôi nút tạo lịch trên màn hình chính để thao tác nhanh hơn (Khám bệnh/Uống thuốc). Di chuyển nút Trợ lý AI (dấu ?) lên góc phải màn hình theo đúng thiết kế tiêu chuẩn.',
-    'v2.9.39': '• Sửa lỗi (Bugfix): Khắc phục sự cố khi tạo hồ sơ bằng AI OCR (quét ảnh), hệ thống tự động sinh ra hàng loạt Lịch uống thuốc lẻ tẻ theo thiết kế cũ (bị trùng lặp với Kế hoạch nhắc thuốc thông minh).',
-    'v2.9.39': '• Tối ưu giao diện Trợ lý AI: Thiết kế lại nút Trợ lý AI Hỏi đáp (trong Chế độ Hướng dẫn) thành biểu tượng dấu chấm hỏi nhỏ gọn, đặt ở góc trên cùng bên phải màn hình để không che khuất tầm nhìn và đồng bộ với giao diện chính.',
-    'v2.9.39': '• Cải tiến thao tác tạo Lịch: Tách nút "Tạo lịch hẹn mới" thành 2 nút riêng biệt "+ Khám bệnh" và "+ Uống thuốc" đặt ngay bên ngoài màn hình danh sách, giúp thao tác nhanh hơn 1 bước và bố cục cân đối hơn.',
-    'v2.9.39': '• Nâng cấp giao diện Xác nhận: Thay thế toàn bộ các thông báo xác nhận trắng đen (xóa, ghi đè dữ liệu, khôi phục) của trình duyệt bằng một giao diện Pop-up hiện đại, đẹp mắt và đồng bộ với thiết kế của ứng dụng.',
-    'v2.9.39': '• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.',
-    'v2.9.39': '• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).',
-    'v2.9.39': '• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.',
-    'v2.9.39': '• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.',
-    'v2.9.39': '• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).',
-    'v2.9.39': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
-    'v2.9.39': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
-    'v2.9.39': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
+    'v2.9.40': '• Làm gọn giao diện: Tinh chỉnh lại bảng chỉ số xét nghiệm (ẩn chữ "Đỏ", thu nhỏ nút xóa thành dấu X) giúp màn hình gọn gàng, bớt rối mắt hơn trên điện thoại.',
+    'v2.9.40': '• Sửa lỗi AI Nhắc lịch: Bắt buộc AI phải tách riêng từng lịch khám/xét nghiệm thành các mục độc lập, không được tự ý gộp chung lại làm mất chi tiết khi chúng trùng ngày.',
+    'v2.9.40': '• Cải tiến AI (Smart Reminders): Khắc phục lỗi AI chỉ trích xuất được 1 lịch hẹn duy nhất và bỏ sót các lịch khác. Từ nay AI có thể đọc và đề xuất toàn bộ các lịch hẹn khám, xét nghiệm định kỳ có trong hồ sơ.',
+    'v2.9.40': '• Dọn dẹp giao diện: Xóa bỏ nút Hướng dẫn (màu cam) khổng lồ choán chỗ ở góc phải bên dưới màn hình, vì nút Trợ giúp đã được chuyển lên thanh menu ở góc trên.',
+    'v2.9.40': '• Gộp nút Hướng dẫn: Đơn giản hóa giao diện bằng cách gộp nút "Cẩm nang hướng dẫn" và "Trợ lý AI" vào chung 1 nút (dấu chấm hỏi). Khi bấm vào, Trợ lý AI sẽ hiện ra để bạn hỏi đáp trực tiếp, nếu muốn đọc cẩm nang, chỉ cần bấm nút "Cẩm nang" ngay góc trên của cửa sổ chat.',
+    'v2.9.40': '• Cập nhật Giao diện: Tách đôi nút tạo lịch trên màn hình chính để thao tác nhanh hơn (Khám bệnh/Uống thuốc). Di chuyển nút Trợ lý AI (dấu ?) lên góc phải màn hình theo đúng thiết kế tiêu chuẩn.',
+    'v2.9.40': '• Sửa lỗi (Bugfix): Khắc phục sự cố khi tạo hồ sơ bằng AI OCR (quét ảnh), hệ thống tự động sinh ra hàng loạt Lịch uống thuốc lẻ tẻ theo thiết kế cũ (bị trùng lặp với Kế hoạch nhắc thuốc thông minh).',
+    'v2.9.40': '• Tối ưu giao diện Trợ lý AI: Thiết kế lại nút Trợ lý AI Hỏi đáp (trong Chế độ Hướng dẫn) thành biểu tượng dấu chấm hỏi nhỏ gọn, đặt ở góc trên cùng bên phải màn hình để không che khuất tầm nhìn và đồng bộ với giao diện chính.',
+    'v2.9.40': '• Cải tiến thao tác tạo Lịch: Tách nút "Tạo lịch hẹn mới" thành 2 nút riêng biệt "+ Khám bệnh" và "+ Uống thuốc" đặt ngay bên ngoài màn hình danh sách, giúp thao tác nhanh hơn 1 bước và bố cục cân đối hơn.',
+    'v2.9.40': '• Nâng cấp giao diện Xác nhận: Thay thế toàn bộ các thông báo xác nhận trắng đen (xóa, ghi đè dữ liệu, khôi phục) của trình duyệt bằng một giao diện Pop-up hiện đại, đẹp mắt và đồng bộ với thiết kế của ứng dụng.',
+    'v2.9.40': '• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.',
+    'v2.9.40': '• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).',
+    'v2.9.40': '• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.',
+    'v2.9.40': '• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.',
+    'v2.9.40': '• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).',
+    'v2.9.40': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
+    'v2.9.40': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
+    'v2.9.40': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
     'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gần gũi và dễ hiểu hơn.',
     'v2.9.16': '• Tùy chỉnh Giờ uống thuốc: Bạn giờ đây có thể tự do thay đổi mốc giờ uống thuốc mặc định cho các buổi Sáng, Trưa, Chiều, Tối trong phần Cài đặt Hệ thống. AI sẽ tự động ưu tiên các khung giờ này khi lập kế hoạch.',
     'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
@@ -2995,12 +2996,12 @@ function addDynamicFieldRow(key = '', value = '', isAbnormal = false) {
         <div class="form-group" style="flex: 1; margin-bottom: 0;">
             <input type="text" class="neumorphic-input dynamic-field-value" placeholder="Kết quả (vd: 5.5 mmol/L)" value="${value}" style="${isAbnormal ? 'color: #e74c3c; font-weight: bold;' : ''}">
         </div>
-        <label style="display:flex; align-items:center; gap:3px; font-size:12px; margin:0 5px; cursor:pointer;" title="Đánh dấu nếu kết quả bất thường">
-            <input type="checkbox" class="dynamic-field-abnormal" ${isAbnormal ? 'checked' : ''}> Đỏ
-        </label>
-        <button type="button" class="icon-btn danger btn-remove-dynamic-field" style="padding: 10px; margin-top: 5px;" aria-label="Xóa chỉ số này">
-            <span class="material-symbols-rounded">delete</span>
-        </button>
+        <label style="display:flex; align-items:center; justify-content: center; margin:0 5px; cursor:pointer;" title="Đánh dấu kết quả bất thường">
+              <input type="checkbox" class="dynamic-field-abnormal" ${isAbnormal ? 'checked' : ''} style="margin: 0; width: 18px; height: 18px; accent-color: #e74c3c;">
+          </label>
+          <button type="button" class="btn-remove-dynamic-field" style="background: none; border: none; color: #e74c3c; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; opacity: 0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7" title="Xóa dòng này">
+              <span class="material-symbols-rounded" style="font-size: 20px;">close</span>
+          </button>
     `;
     
     row.querySelector('.btn-remove-dynamic-field').addEventListener('click', () => {
