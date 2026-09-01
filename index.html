@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.34"></script>
-    <script defer src="js/ai.js?v=2.9.34"></script>
-    <script defer src="js/components.js?v=2.9.34"></script>
-    <script defer src="js/help.js?v=2.9.34"></script>
-    <script defer src="js/speech.js?v=2.9.34"></script>
-    <script defer src="js/app.js?v=2.9.34"></script>
+    <script defer src="js/data.js?v=2.9.35"></script>
+    <script defer src="js/ai.js?v=2.9.35"></script>
+    <script defer src="js/components.js?v=2.9.35"></script>
+    <script defer src="js/help.js?v=2.9.35"></script>
+    <script defer src="js/speech.js?v=2.9.35"></script>
+    <script defer src="js/app.js?v=2.9.35"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -147,7 +147,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.3</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.35</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -165,7 +165,10 @@
                         <span class="material-symbols-rounded">ads_click</span>
                     </button>
                     <button id="btn-workflow-guide" class="icon-btn header-btn" title="Hướng dẫn sử dụng" data-help-title="Hướng dẫn sử dụng" data-help-desc="Mở Cẩm nang Hướng dẫn sử dụng toàn bộ tính năng của phần mềm.">
-                        <span class="material-symbols-rounded">help</span>
+                        <span class="material-symbols-rounded">menu_book</span>
+                    </button>
+                    <button id="btn-ai-help-chat" class="icon-btn header-btn" title="Trợ lý AI Hỏi đáp" data-help-title="Trợ lý AI Hỏi đáp" data-help-desc="Hỏi đáp với AI về cách sử dụng phần mềm.">
+                        <span class="material-symbols-rounded ai-sparkle">help</span>
                     </button>
                     <button id="btn-settings" class="icon-btn header-btn" title="Cài đặt" data-help-title="Bảng Cài đặt" data-help-desc="Thiết lập bảo mật (Mã PIN) và cấu hình Trí tuệ Nhân tạo.">
                         <span class="material-symbols-rounded">settings</span>
@@ -254,9 +257,12 @@
 
                     <!-- Reminders Tab -->
                     <div id="tab-reminders" class="tab-pane active">
-                        <div class="history-controls neumorphic-panel" style="justify-content: flex-end;">
-                            <button id="btn-add-reminder" class="primary-btn neumorphic-btn">
-                                <span class="material-symbols-rounded">alarm_add</span> Tạo lịch hẹn mới
+                        <div class="history-controls neumorphic-panel" style="justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+                            <button id="btn-add-reminder-appointment" class="primary-btn neumorphic-btn" style="flex: 1;">
+                                <span class="material-symbols-rounded">medical_services</span> + Khám bệnh
+                            </button>
+                            <button id="btn-add-reminder-medication" class="primary-btn neumorphic-btn" style="flex: 1; background: var(--warning-color);">
+                                <span class="material-symbols-rounded">pill</span> + Uống thuốc
                             </button>
                         </div>
                         <div id="member-reminders-list">
@@ -728,7 +734,7 @@
 
 
                 <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    Phiên bản <strong class="version-tag">v2.9.3</strong> (Tích hợp AI tạo Lịch nhắc thông minh)
+                    Phiên bản <strong class="version-tag">v2.9.35</strong> (Tích hợp AI tạo Lịch nhắc thông minh)
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
@@ -1213,10 +1219,6 @@
     <!-- Help System UI -->
     <div id="help-backdrop" class="help-backdrop hidden"></div>
     <div id="help-layer" class="help-layer hidden"></div>
-    <button id="btn-ai-help-chat" class="btn-ai-help-chat icon-btn hidden" style="position: fixed; top: 15px; right: 15px; z-index: 9005; background: var(--bg-color); color: var(--primary-blue); border: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light); transition: all 0.3s ease;" title="Trợ lý AI Hỏi đáp">
-        <span class="material-symbols-rounded ai-sparkle" style="font-size: 22px;">help</span>
-    </button>
-
     <div id="modal-ai-help-chat" class="modal-overlay hidden" style="z-index: 9010;">
         <div class="modal-content neumorphic-panel" style="max-width: 500px; display: flex; flex-direction: column; height: 80vh; max-height: 700px; padding: 0;">
             <div class="modal-header" style="padding: 15px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; border-radius: 20px 20px 0 0;">
