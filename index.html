@@ -147,7 +147,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.35</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.36</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -164,11 +164,8 @@
                     <button id="btn-help" class="icon-btn header-btn hidden" title="Giải thích giao diện" data-help-title="Giải thích giao diện" data-help-desc="Bật chế độ giải thích để tìm hiểu cách sử dụng các nút bấm trên màn hình.">
                         <span class="material-symbols-rounded">ads_click</span>
                     </button>
-                    <button id="btn-workflow-guide" class="icon-btn header-btn" title="Hướng dẫn sử dụng" data-help-title="Hướng dẫn sử dụng" data-help-desc="Mở Cẩm nang Hướng dẫn sử dụng toàn bộ tính năng của phần mềm.">
-                        <span class="material-symbols-rounded">menu_book</span>
-                    </button>
-                    <button id="btn-ai-help-chat" class="icon-btn header-btn" title="Trợ lý AI Hỏi đáp" data-help-title="Trợ lý AI Hỏi đáp" data-help-desc="Hỏi đáp với AI về cách sử dụng phần mềm.">
-                        <span class="material-symbols-rounded ai-sparkle">help</span>
+                    <button id="btn-ai-help-chat" class="icon-btn header-btn" title="Trợ giúp & Hướng dẫn" data-help-title="Trợ lý AI Hỏi đáp" data-help-desc="Hỏi đáp với AI về cách sử dụng phần mềm.">
+                        <span class="material-symbols-rounded">help</span>
                     </button>
                     <button id="btn-settings" class="icon-btn header-btn" title="Cài đặt" data-help-title="Bảng Cài đặt" data-help-desc="Thiết lập bảo mật (Mã PIN) và cấu hình Trí tuệ Nhân tạo.">
                         <span class="material-symbols-rounded">settings</span>
@@ -734,7 +731,7 @@
 
 
                 <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    Phiên bản <strong class="version-tag">v2.9.35</strong> (Tích hợp AI tạo Lịch nhắc thông minh)
+                    Phiên bản <strong class="version-tag">v2.9.36</strong> (Tích hợp AI tạo Lịch nhắc thông minh)
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
@@ -1225,7 +1222,12 @@
                 <h3 style="margin: 0; color: white; display: flex; align-items: center; gap: 8px;">
                     <span class="material-symbols-rounded ai-sparkle">support_agent</span> Trợ lý AI Hướng dẫn
                 </h3>
-                <button type="button" class="icon-btn close-modal" style="color: white; background: rgba(255,255,255,0.2);"><span class="material-symbols-rounded">close</span></button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                      <button type="button" id="btn-open-workflow-from-chat" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 6px 12px; border-radius: 15px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 500; font-family: inherit;">
+                          <span class="material-symbols-rounded" style="font-size: 18px;">menu_book</span> Cẩm nang
+                      </button>
+                      <button type="button" class="icon-btn close-modal" style="color: white; background: rgba(255,255,255,0.2);"><span class="material-symbols-rounded">close</span></button>
+                  </div>
             </div>
             <div id="ai-help-chat-messages" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: #f8f9fa;">
                 <div class="chat-message assistant-message" style="align-self: flex-start; max-width: 85%; background: white; padding: 12px 16px; border-radius: 15px 15px 15px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);">

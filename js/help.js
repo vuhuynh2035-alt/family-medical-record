@@ -59,7 +59,17 @@ const HelpService = {
         });
 
         if (this.btnAiHelp) {
-            this.btnAiHelp.addEventListener('click', () => this.showAiHelpChat());
+            this.btnAiHelp.addEventListener('click', () => {
+                this.showAiHelpChat();
+            });
+        }
+        
+        const btnOpenWorkflowFromChat = document.getElementById('btn-open-workflow-from-chat');
+        if (btnOpenWorkflowFromChat) {
+            btnOpenWorkflowFromChat.addEventListener('click', () => {
+                if (this.modalAiHelp) this.modalAiHelp.classList.add('hidden');
+                this.showWorkflowGuide();
+            });
         }
         
         // Modal close buttons
