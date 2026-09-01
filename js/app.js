@@ -219,8 +219,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.14';
+const CURRENT_APP_VERSION = 'v2.9.15';
 const APP_CHANGELOG = {
+    'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
     'v2.9.14': '• Đại tu Tính năng Nhắc Thuốc: Tự động gom toàn bộ lộ trình uống thuốc thành 1 Kế hoạch duy nhất (Medication Plan) để không làm rối danh sách nhắc hẹn.\n• Hiển thị Hướng dẫn sử dụng thuốc: AI sẽ tự động phân tích và trích xuất chi tiết công dụng, chống chỉ định, cách dùng trước/sau ăn cho từng loại thuốc.\n• Nhắc nhở thông minh: Tự động báo chuông theo từng buổi trong ngày, khi chạm vào thông báo sẽ hiện chi tiết thuốc cần uống ngay lúc đó.',
     'v2.9.13': '• Sửa lỗi thuật toán quét dọn trùng lặp: Nhận diện chính xác và tự động xóa sạch các lịch hẹn rác sinh ra do lỗi từ phiên bản cũ.',
     'v2.9.12': '• Tối giản tối đa: Gộp chung "Chế độ Giải thích Giao diện" và "Cẩm nang Quy trình" vào cùng một nút Trợ giúp (?) duy nhất trên thanh tiêu đề.',
@@ -2347,77 +2348,116 @@ function setupEventListeners() {
         document.getElementById('medplan-dates').innerText = `${UI.formatDate(plan.startDate)} - ${UI.formatDate(plan.endDate)}`;
         document.getElementById('medplan-times').innerText = `${plan.times.length} lần/ngày`;
 
-        const timeSelector = document.getElementById('medplan-time-selector');
-        timeSelector.innerHTML = '';
-        const pillsList = document.getElementById('medplan-pills-list');
-        pillsList.innerHTML = '';
+        const container = document.getElementById('medplan-accordion-container');
+        container.innerHTML = '';
 
-        // Hàm render thuốc theo mốc giờ
-        const renderPillsForTime = (timeStr) => {
-            pillsList.innerHTML = '';
-            // Lọc ra các thuốc có chứa timeStr trong mảng times
-            const meds = plan.medications.filter(m => m.times && m.times.includes(timeStr));
-            
-            if (meds.length === 0) {
-                pillsList.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-muted);">Không có thuốc nào ở mốc giờ này.</div>`;
-                return;
-            }
-
-            meds.forEach(med => {
-                const usesHtml = med.purpose ? `<div style="font-size: 13px; color: #475569; margin-top: 5px;"><strong>Công dụng:</strong> ${UI.escapeHtml(med.purpose)}</div>` : '';
-                const usageHtml = med.usage ? `<div style="font-size: 13px; color: #15803d; margin-top: 5px;"><strong>Cách dùng:</strong> ${UI.escapeHtml(med.usage)}</div>` : '';
-                const contraHtml = med.contraindications ? `<div style="font-size: 13px; color: #b91c1c; margin-top: 5px;"><strong>Lưu ý:</strong> ${UI.escapeHtml(med.contraindications)}</div>` : '';
-                
-                const card = document.createElement('div');
-                card.className = 'neumorphic-card';
-                card.style.padding = '15px';
-                card.style.borderLeft = '3px solid #3b82f6';
-                card.innerHTML = `
-                    <div style="font-weight: 700; color: #1e40af; font-size: 15px;">${UI.escapeHtml(med.name)}</div>
-                    ${usageHtml}
-                    ${usesHtml}
-                    ${contraHtml}
-                `;
-                pillsList.appendChild(card);
-            });
-        };
-
-        // Render các tab chọn giờ (Sáng/Trưa/Chiều)
+        // Render các tab accordion chọn giờ (Sáng/Trưa/Chiều/Tối)
         plan.times.forEach((time, index) => {
-            const btn = document.createElement('button');
-            btn.className = 'neumorphic-btn';
-            btn.style.padding = '8px 16px';
-            btn.style.borderRadius = '20px';
-            btn.style.fontSize = '14px';
-            btn.style.fontWeight = '600';
-            btn.style.flexShrink = '0';
-            btn.style.transition = 'all 0.2s';
-            
             // Hàm chuyển đổi giờ thành buổi
             let label = time;
             const hour = parseInt(time.split(':')[0]);
-            if (hour >= 5 && hour < 11) label = 'Buổi sáng (' + time + ')';
-            else if (hour >= 11 && hour < 14) label = 'Buổi trưa (' + time + ')';
-            else if (hour >= 14 && hour < 18) label = 'Buổi chiều (' + time + ')';
-            else label = 'Buổi tối (' + time + ')';
-            
-            btn.innerText = label;
-            
-            btn.addEventListener('click', () => {
-                Array.from(timeSelector.children).forEach(c => {
-                    c.style.background = 'var(--bg-color)';
-                    c.style.color = 'var(--text-color)';
-                });
-                btn.style.background = '#3b82f6';
-                btn.style.color = 'white';
-                renderPillsForTime(time);
-            });
-            timeSelector.appendChild(btn);
+            let icon = 'wb_twilight'; // Sáng sớm
+            if (hour >= 5 && hour < 11) { label = 'Buổi sáng (' + time + ')'; icon = 'light_mode'; }
+            else if (hour >= 11 && hour < 14) { label = 'Buổi trưa (' + time + ')'; icon = 'sunny'; }
+            else if (hour >= 14 && hour < 18) { label = 'Buổi chiều (' + time + ')'; icon = 'wb_twilight'; }
+            else { label = 'Buổi tối (' + time + ')'; icon = 'dark_mode'; }
 
-            if (index === 0) {
-                // Chọn tab đầu tiên mặc định
-                setTimeout(() => btn.click(), 10);
+            const meds = plan.medications.filter(m => m.times && m.times.includes(time));
+            
+            const detailsEl = document.createElement('details');
+            detailsEl.className = 'neumorphic-card';
+            detailsEl.style.padding = '0';
+            detailsEl.style.overflow = 'hidden';
+            detailsEl.style.borderLeft = '4px solid #3b82f6';
+            if (index === 0) detailsEl.open = true; // Mặc định mở mục đầu tiên
+
+            const summaryEl = document.createElement('summary');
+            summaryEl.style.padding = '15px';
+            summaryEl.style.cursor = 'pointer';
+            summaryEl.style.fontWeight = '700';
+            summaryEl.style.color = '#1e40af';
+            summaryEl.style.display = 'flex';
+            summaryEl.style.alignItems = 'center';
+            summaryEl.style.justifyContent = 'space-between';
+            summaryEl.style.background = 'var(--bg-color)';
+            summaryEl.style.outline = 'none';
+            summaryEl.innerHTML = `
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded">${icon}</span> ${label}
+                </span>
+                <span class="material-symbols-rounded expand-icon" style="transition: transform 0.2s;">expand_more</span>
+            `;
+
+            const contentEl = document.createElement('div');
+            contentEl.style.padding = '15px';
+            contentEl.style.borderTop = '1px solid rgba(0,0,0,0.05)';
+            contentEl.style.background = '#ffffff';
+
+            if (meds.length === 0) {
+                contentEl.innerHTML = `<div style="text-align:center; padding: 10px; color: var(--text-muted);">Không có thuốc nào ở mốc giờ này.</div>`;
+            } else {
+                const listWrapper = document.createElement('div');
+                listWrapper.style.display = 'flex';
+                listWrapper.style.flexDirection = 'column';
+                listWrapper.style.gap = '15px';
+
+                meds.forEach(med => {
+                    const usesHtml = med.purpose ? `<div style="font-size: 13px; color: #475569; margin-top: 5px;"><strong>Công dụng:</strong> ${UI.escapeHtml(med.purpose)}</div>` : '';
+                    const usageHtml = med.usage ? `<div style="font-size: 13px; color: #15803d; margin-top: 5px;"><strong>Cách dùng:</strong> ${UI.escapeHtml(med.usage)}</div>` : '';
+                    const contraHtml = med.contraindications ? `<div style="font-size: 13px; color: #b91c1c; margin-top: 5px;"><strong>Lưu ý:</strong> ${UI.escapeHtml(med.contraindications)}</div>` : '';
+                    
+                    const card = document.createElement('div');
+                    card.style.background = '#f8fafc';
+                    card.style.padding = '12px';
+                    card.style.borderRadius = '8px';
+                    
+                    // Nút bấm tìm kiếm thông tin thuốc
+                    const medNameBtn = document.createElement('button');
+                    medNameBtn.className = 'neumorphic-btn';
+                    medNameBtn.style.padding = '6px 12px';
+                    medNameBtn.style.borderRadius = '20px';
+                    medNameBtn.style.background = '#eff6ff';
+                    medNameBtn.style.color = '#1d4ed8';
+                    medNameBtn.style.border = '1px solid #bfdbfe';
+                    medNameBtn.style.display = 'inline-flex';
+                    medNameBtn.style.alignItems = 'center';
+                    medNameBtn.style.gap = '4px';
+                    medNameBtn.style.fontSize = '14px';
+                    medNameBtn.style.fontWeight = '700';
+                    medNameBtn.style.cursor = 'pointer';
+                    medNameBtn.style.width = '100%';
+                    medNameBtn.style.justifyContent = 'flex-start';
+                    medNameBtn.title = 'Tra cứu thông tin thuốc trên Google';
+                    medNameBtn.innerHTML = `<span class="material-symbols-rounded" style="font-size: 18px;">search</span> ${UI.escapeHtml(med.name)}`;
+                    
+                    medNameBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        window.open(`https://www.google.com/search?q=${encodeURIComponent(med.name + ' thuốc')}`, '_blank');
+                    });
+                    
+                    const infoDiv = document.createElement('div');
+                    infoDiv.style.marginTop = '10px';
+                    infoDiv.innerHTML = `${usageHtml}${usesHtml}${contraHtml}`;
+
+                    card.appendChild(medNameBtn);
+                    card.appendChild(infoDiv);
+                    listWrapper.appendChild(card);
+                });
+                contentEl.appendChild(listWrapper);
             }
+
+            detailsEl.appendChild(summaryEl);
+            detailsEl.appendChild(contentEl);
+            
+            // CSS cho mũi tên xoay
+            detailsEl.addEventListener('toggle', () => {
+                const iconEl = summaryEl.querySelector('.expand-icon');
+                if (iconEl) {
+                    iconEl.style.transform = detailsEl.open ? 'rotate(180deg)' : 'rotate(0deg)';
+                }
+            });
+
+            container.appendChild(detailsEl);
         });
 
         openModal('modal-medication-plan-details');
@@ -3065,11 +3105,16 @@ function showAlarmModal(rm) {
             document.getElementById('modal-alarm').classList.add('hidden');
             if (typeof window.openMedicationPlanModal === 'function') {
                 window.openMedicationPlanModal(rm);
-                // Chọn đúng giờ
+                // Mở đúng tab giờ (nếu có)
                 setTimeout(() => {
-                    const btns = document.querySelectorAll('#medplan-time-selector button');
-                    Array.from(btns).forEach(btn => {
-                        if (btn.innerText.includes(rm.triggerTimeStr)) btn.click();
+                    const details = document.querySelectorAll('#medplan-accordion-container details');
+                    Array.from(details).forEach(d => {
+                        const summary = d.querySelector('summary').innerText;
+                        if (summary.includes(rm.triggerTimeStr)) {
+                            d.open = true;
+                        } else {
+                            d.open = false; // Đóng các mục khác để tập trung
+                        }
                     });
                 }, 50);
             }

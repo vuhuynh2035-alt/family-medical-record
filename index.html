@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.14"></script>
-    <script defer src="js/ai.js?v=2.9.14"></script>
-    <script defer src="js/components.js?v=2.9.14"></script>
-    <script defer src="js/help.js?v=2.9.14"></script>
-    <script defer src="js/speech.js?v=2.9.14"></script>
-    <script defer src="js/app.js?v=2.9.14"></script>
+    <script defer src="js/data.js?v=2.9.15"></script>
+    <script defer src="js/ai.js?v=2.9.15"></script>
+    <script defer src="js/components.js?v=2.9.15"></script>
+    <script defer src="js/help.js?v=2.9.15"></script>
+    <script defer src="js/speech.js?v=2.9.15"></script>
+    <script defer src="js/app.js?v=2.9.15"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -1239,12 +1239,8 @@
                     </div>
                 </div>
                 
-                <div id="medplan-time-selector" style="display: flex; gap: 10px; padding: 15px 20px; overflow-x: auto; scrollbar-width: none;">
-                    <!-- Thời điểm uống thuốc sẽ được tạo động -->
-                </div>
-
-                <div id="medplan-pills-list" style="padding: 0 20px 20px 20px; display: flex; flex-direction: column; gap: 12px;">
-                    <!-- Chi tiết từng loại thuốc -->
+                <div id="medplan-accordion-container" style="padding: 15px 20px; display: flex; flex-direction: column; gap: 15px;">
+                    <!-- Các buổi uống thuốc (Sáng/Trưa/Chiều) sẽ được render thành các thẻ details xổ xuống -->
                 </div>
             </div>
             <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid rgba(0,0,0,0.05); text-align: center; background: white; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
