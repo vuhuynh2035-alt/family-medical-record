@@ -219,9 +219,10 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.17';
+const CURRENT_APP_VERSION = 'v2.9.18';
 const APP_CHANGELOG = {
-    'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gũi và dễ hiểu hơn.',
+    'v2.9.18': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
+    'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gần gũi và dễ hiểu hơn.',
     'v2.9.16': '• Tùy chỉnh Giờ uống thuốc: Bạn giờ đây có thể tự do thay đổi mốc giờ uống thuốc mặc định cho các buổi Sáng, Trưa, Chiều, Tối trong phần Cài đặt Hệ thống. AI sẽ tự động ưu tiên các khung giờ này khi lập kế hoạch.',
     'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
     'v2.9.14': '• Đại tu Tính năng Nhắc Thuốc: Tự động gom toàn bộ lộ trình uống thuốc thành 1 Kế hoạch duy nhất (Medication Plan) để không làm rối danh sách nhắc hẹn.\n• Hiển thị Hướng dẫn sử dụng thuốc: AI sẽ tự động phân tích và trích xuất chi tiết công dụng, chống chỉ định, cách dùng trước/sau ăn cho từng loại thuốc.\n• Nhắc nhở thông minh: Tự động báo chuông theo từng buổi trong ngày, khi chạm vào thông báo sẽ hiện chi tiết thuốc cần uống ngay lúc đó.',
@@ -2509,14 +2510,21 @@ function setupEventListeners() {
     // Add Reminder (Member View)
     document.getElementById('btn-add-reminder').addEventListener('click', () => {
         document.getElementById('form-reminder').reset();
+        document.getElementById('form-medplan').reset();
+        document.getElementById('medplan-items-container').innerHTML = '';
         document.getElementById('reminder-id').value = '';
+        document.getElementById('medplan-id').value = '';
+        
         document.querySelectorAll('input[name="reminder_offsets"]').forEach(cb => cb.checked = false);
         const cb0 = document.querySelector('input[name="reminder_offsets"][value="0"]');
         if (cb0) cb0.checked = true;
-        document.getElementById('modal-reminder-title').innerText = 'Tạo lịch hẹn mới';
+        document.getElementById('modal-reminder-title').innerText = 'Tạo lịch mới';
         
         const deleteBtn = document.getElementById('btn-delete-reminder');
         if (deleteBtn) deleteBtn.classList.add('hidden');
+        
+        const tabNormal = document.getElementById('tab-reminder-normal');
+        if (tabNormal) tabNormal.click();
         
         openModal('modal-reminder');
     });
@@ -2553,34 +2561,137 @@ function setupEventListeners() {
         document.getElementById('modal-alarm').classList.add('hidden');
     });
 
-    document.getElementById('form-reminder').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const datetime = `${document.getElementById('reminder-date').value}T${document.getElementById('reminder-time').value}`;
-        const rmData = {
-            id: document.getElementById('reminder-id').value,
-            memberId: currentMemberId,
-            title: document.getElementById('reminder-title').value,
-            date: document.getElementById('reminder-date').value,
-            time: document.getElementById('reminder-time').value,
-            note: document.getElementById('reminder-note').value,
-            datetime,
-            selected_offsets: Array.from(document.querySelectorAll('input[name="reminder_offsets"]:checked')).map(cb => cb.value),
-            notified_offsets: {} // Lưu trạng thái đã thông báo cho từng mốc (kể cả mốc 0 là đúng giờ)
-        };
-        // Nếu ngày giờ (mới) nằm trong tương lai, đảm bảo lịch hẹn được "gỡ" trạng thái đã nhắc
-        if (new Date(datetime) > new Date()) {
-            rmData.notified = false;
-            rmData.notified_offsets = {};
+    
+    let currentReminderTab = 'normal';
+    const tabNormal = document.getElementById('tab-reminder-normal');
+    const tabMedplan = document.getElementById('tab-reminder-medplan');
+    const formReminder = document.getElementById('form-reminder');
+    const formMedplan = document.getElementById('form-medplan');
+
+    if (tabNormal && tabMedplan) {
+        tabNormal.addEventListener('click', () => {
+            currentReminderTab = 'normal';
+            tabNormal.style.background = '#3b82f6';
+            tabNormal.style.color = 'white';
+            tabMedplan.style.background = 'transparent';
+            tabMedplan.style.color = 'var(--text-color)';
+            formReminder.classList.remove('hidden');
+            formMedplan.classList.add('hidden');
+        });
+        tabMedplan.addEventListener('click', () => {
+            currentReminderTab = 'medplan';
+            tabMedplan.style.background = '#3b82f6';
+            tabMedplan.style.color = 'white';
+            tabNormal.style.background = 'transparent';
+            tabNormal.style.color = 'var(--text-color)';
+            formMedplan.classList.remove('hidden');
+            formReminder.classList.add('hidden');
+            if (!document.getElementById('medplan-start-date').value) {
+                document.getElementById('medplan-start-date').value = new Date().toISOString().split('T')[0];
+            }
+        });
+    }
+
+    document.getElementById('btn-add-med-item')?.addEventListener('click', () => {
+        const container = document.getElementById('medplan-items-container');
+        const id = Date.now();
+        const settings = DataManager.getSettings();
+        const html = `
+            <div class="neumorphic-card medplan-item" data-id="${id}" style="padding: 15px; border-left: 3px solid #3b82f6; position: relative;">
+                <button type="button" class="icon-btn btn-remove-med-item" style="position: absolute; top: 10px; right: 10px; color: #e11d48; width: 30px; height: 30px; font-size: 18px;"><span class="material-symbols-rounded">close</span></button>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label>Tên thuốc *</label>
+                    <input type="text" class="neumorphic-input med-name" placeholder="VD: Paracetamol 500mg" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label>Cách dùng</label>
+                    <input type="text" class="neumorphic-input med-usage" placeholder="VD: Uống sau ăn">
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label>Công dụng / Lưu ý</label>
+                    <input type="text" class="neumorphic-input med-purpose" placeholder="VD: Giảm đau, hạ sốt">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Chọn cữ uống *</label>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${settings.medTimeMorning || '08:00'}"> Sáng</label>
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${settings.medTimeNoon || '12:00'}"> Trưa</label>
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${settings.medTimeAfternoon || '14:00'}"> Chiều</label>
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${settings.medTimeEvening || '20:00'}"> Tối</label>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+        container.lastElementChild.querySelector('.btn-remove-med-item').addEventListener('click', function() {
+            this.closest('.medplan-item').remove();
+        });
+    });
+
+    document.getElementById('btn-save-reminder-action')?.addEventListener('click', () => {
+        if (currentReminderTab === 'normal') {
+            if (!document.getElementById('reminder-title').value || !document.getElementById('reminder-date').value || !document.getElementById('reminder-time').value) {
+                alert('Vui lòng nhập đầy đủ Tiêu đề, Ngày và Giờ hẹn.');
+                return;
+            }
+            const datetime = `${document.getElementById('reminder-date').value}T${document.getElementById('reminder-time').value}`;
+            const rmData = {
+                id: document.getElementById('reminder-id').value,
+                memberId: currentMemberId,
+                title: document.getElementById('reminder-title').value,
+                date: document.getElementById('reminder-date').value,
+                time: document.getElementById('reminder-time').value,
+                note: document.getElementById('reminder-note').value,
+                datetime,
+                selected_offsets: Array.from(document.querySelectorAll('input[name="reminder_offsets"]:checked')).map(cb => cb.value),
+                notified_offsets: {} 
+            };
+            if (new Date(datetime) > new Date()) {
+                rmData.notified = false;
+                rmData.notified_offsets = {};
+            }
+            DataManager.saveReminder(rmData);
+        } else {
+            const startDate = document.getElementById('medplan-start-date').value;
+            const totalDays = parseInt(document.getElementById('medplan-total-days').value) || 1;
+            if (!startDate) { alert('Vui lòng chọn ngày bắt đầu.'); return; }
+            const items = document.querySelectorAll('.medplan-item');
+            if (items.length === 0) { alert('Vui lòng thêm ít nhất 1 loại thuốc.'); return; }
+            let medications = [];
+            let allTimes = new Set();
+            let isValid = true;
+            items.forEach(item => {
+                const name = item.querySelector('.med-name').value.trim();
+                const usage = item.querySelector('.med-usage').value.trim();
+                const purpose = item.querySelector('.med-purpose').value.trim();
+                const timeChks = Array.from(item.querySelectorAll('.med-time-chk:checked')).map(cb => cb.value);
+                if (!name || timeChks.length === 0) isValid = false;
+                timeChks.forEach(t => allTimes.add(t));
+                medications.push({ name, usage, purpose, contraindications: '', times: timeChks, days: totalDays });
+            });
+            if (!isValid) { alert('Vui lòng nhập tên thuốc và chọn ít nhất 1 cữ uống cho mỗi loại thuốc.'); return; }
+            const startD = new Date(startDate);
+            const endD = new Date(startD);
+            endD.setDate(startD.getDate() + totalDays - 1);
+            const medplanId = document.getElementById('medplan-id').value || DataManager.generateId();
+            const existingPlan = DataManager.getReminders().find(r => r.id === medplanId);
+            DataManager.saveReminder({
+                id: medplanId,
+                memberId: currentMemberId,
+                title: '💊 Lịch uống thuốc',
+                isPlan: true,
+                startDate: startDate,
+                endDate: endD.toISOString().split('T')[0],
+                totalDays: totalDays,
+                times: Array.from(allTimes).sort(),
+                medications: medications,
+                notified_times: (existingPlan && existingPlan.notified_times) ? existingPlan.notified_times : {}
+            });
         }
-        DataManager.saveReminder(rmData);
         closeModal('modal-reminder');
         reloadRecordsAndStats();
         checkReminders();
-        
-        // Yêu cầu quyền thông báo để kích hoạt App Badge và Local Notifications
-        if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-            Notification.requestPermission();
-        }
+        showToast('Đã lưu lịch thành công!');
     });
 }
 
@@ -3291,29 +3402,81 @@ document.addEventListener('click', (e) => {
         const reminder = DataManager.getReminders().find(r => r.id === id);
         if (!reminder) return;
 
-        document.getElementById('reminder-id').value = reminder.id;
-        document.getElementById('reminder-title').value = reminder.title || '';
-        document.getElementById('reminder-date').value = reminder.date || '';
-        document.getElementById('reminder-time').value = reminder.time || '';
-        document.getElementById('reminder-note').value = reminder.note || '';
-        // Clear all checkboxes first
-        document.querySelectorAll('input[name="reminder_offsets"]').forEach(cb => cb.checked = false);
-        
-        if (reminder.selected_offsets && Array.isArray(reminder.selected_offsets)) {
-            reminder.selected_offsets.forEach(val => {
-                const cb = document.querySelector(`input[name="reminder_offsets"][value="${val}"]`);
-                if (cb) cb.checked = true;
-            });
-        } else {
-            // Fallback for old reminders or default
-            const cb0 = document.querySelector('input[name="reminder_offsets"][value="0"]');
-            if (cb0) cb0.checked = true;
-        }
-        document.getElementById('modal-reminder-title').innerText = 'Sửa lịch hẹn';
-        
+        const tabNormal = document.getElementById('tab-reminder-normal');
+        const tabMedplan = document.getElementById('tab-reminder-medplan');
         const deleteBtn = document.getElementById('btn-delete-reminder');
         if (deleteBtn) deleteBtn.classList.remove('hidden');
-        
+
+        document.getElementById('modal-reminder-title').innerText = 'Sửa lịch hẹn';
+
+        if (reminder.isPlan) {
+            if (tabMedplan) tabMedplan.click();
+            document.getElementById('medplan-id').value = reminder.id;
+            document.getElementById('medplan-start-date').value = reminder.startDate || '';
+            document.getElementById('medplan-total-days').value = reminder.totalDays || 7;
+            
+            const container = document.getElementById('medplan-items-container');
+            container.innerHTML = '';
+            
+            if (reminder.medications && Array.isArray(reminder.medications)) {
+                reminder.medications.forEach(med => {
+                    const html = `
+                        <div class="neumorphic-card medplan-item" data-id="${Date.now() + Math.random()}" style="padding: 15px; border-left: 3px solid #3b82f6; position: relative;">
+                            <button type="button" class="icon-btn btn-remove-med-item" style="position: absolute; top: 10px; right: 10px; color: #e11d48; width: 30px; height: 30px; font-size: 18px;"><span class="material-symbols-rounded">close</span></button>
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <label>Tên thuốc *</label>
+                                <input type="text" class="neumorphic-input med-name" value="${med.name || ''}" placeholder="VD: Paracetamol 500mg" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <label>Cách dùng</label>
+                                <input type="text" class="neumorphic-input med-usage" value="${med.usage || ''}" placeholder="VD: Uống sau ăn">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <label>Công dụng / Lưu ý</label>
+                                <input type="text" class="neumorphic-input med-purpose" value="${med.purpose || ''}" placeholder="VD: Giảm đau, hạ sốt">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Chọn cữ uống *</label>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${DataManager.getSettings().medTimeMorning || '08:00'}" ${med.times.includes(DataManager.getSettings().medTimeMorning || '08:00') ? 'checked' : ''}> Sáng</label>
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${DataManager.getSettings().medTimeNoon || '12:00'}" ${med.times.includes(DataManager.getSettings().medTimeNoon || '12:00') ? 'checked' : ''}> Trưa</label>
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${DataManager.getSettings().medTimeAfternoon || '14:00'}" ${med.times.includes(DataManager.getSettings().medTimeAfternoon || '14:00') ? 'checked' : ''}> Chiều</label>
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="${DataManager.getSettings().medTimeEvening || '20:00'}" ${med.times.includes(DataManager.getSettings().medTimeEvening || '20:00') ? 'checked' : ''}> Tối</label>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+                
+                container.querySelectorAll('.btn-remove-med-item').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        this.closest('.medplan-item').remove();
+                    });
+                });
+            }
+        } else {
+            if (tabNormal) tabNormal.click();
+            document.getElementById('reminder-id').value = reminder.id;
+            document.getElementById('reminder-title').value = reminder.title || '';
+            document.getElementById('reminder-date').value = reminder.date || '';
+            document.getElementById('reminder-time').value = reminder.time || '';
+            document.getElementById('reminder-note').value = reminder.note || '';
+            // Clear all checkboxes first
+            document.querySelectorAll('input[name="reminder_offsets"]').forEach(cb => cb.checked = false);
+            
+            if (reminder.selected_offsets && Array.isArray(reminder.selected_offsets)) {
+                reminder.selected_offsets.forEach(val => {
+                    const cb = document.querySelector(`input[name="reminder_offsets"][value="${val}"]`);
+                    if (cb) cb.checked = true;
+                });
+            } else {
+                // Fallback for old reminders or default
+                const cb0 = document.querySelector('input[name="reminder_offsets"][value="0"]');
+                if (cb0) cb0.checked = true;
+            }
+        }
+
         openModal('modal-reminder');
         return;
     }
