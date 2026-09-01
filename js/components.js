@@ -772,9 +772,12 @@ const UI = {
             const memberNameHtml = showMemberName ? `<strong>👤 ${this.escapeHtml(plan.memberName)}</strong><br>` : '';
             
             el.innerHTML = `
-                <div class="record-header" style="margin-bottom: 5px;">
+                <div class="record-header" style="margin-bottom: 5px; align-items: center;">
                     <span class="record-date" style="color: #3b82f6">${this.escapeHtml(this.formatDate(plan.startDate))} - ${this.escapeHtml(this.formatDate(plan.endDate))}</span>
-                    <span class="type-badge" style="background: #bfdbfe; color: #1d4ed8;">${plan.times.length} lần/ngày</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="type-badge" style="background: #bfdbfe; color: #1d4ed8; margin: 0;">${plan.times.length} lần/ngày</span>
+                        ${showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-edit-reminder" data-id="${this.escapeHtml(plan.id)}" title="Sửa lịch uống thuốc" style="width: 28px; height: 28px; padding: 0;"><span class="material-symbols-rounded" style="font-size: 16px;">edit</span></button>`}
+                    </div>
                 </div>
                 <div class="record-body" style="grid-template-columns: 1fr;">
                     <div class="record-detail">
@@ -787,7 +790,8 @@ const UI = {
                 </div>
             `;
             
-            el.addEventListener('click', () => {
+            el.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-edit-reminder')) return;
                 if (typeof window.openMedicationPlanModal === 'function') {
                     window.openMedicationPlanModal(plan);
                 }
