@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.16"></script>
-    <script defer src="js/ai.js?v=2.9.16"></script>
-    <script defer src="js/components.js?v=2.9.16"></script>
-    <script defer src="js/help.js?v=2.9.16"></script>
-    <script defer src="js/speech.js?v=2.9.16"></script>
-    <script defer src="js/app.js?v=2.9.16"></script>
+    <script defer src="js/data.js?v=2.9.17"></script>
+    <script defer src="js/ai.js?v=2.9.17"></script>
+    <script defer src="js/components.js?v=2.9.17"></script>
+    <script defer src="js/help.js?v=2.9.17"></script>
+    <script defer src="js/speech.js?v=2.9.17"></script>
+    <script defer src="js/app.js?v=2.9.17"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -1245,16 +1245,16 @@
     </div>
 
     <!-- Modal Lịch Uống Thuốc Chi tiết -->
-    <div id="modal-medication-plan-details" class="modal-overlay hidden" role="dialog" aria-modal="true" style="z-index: 10001;">
-        <div class="modal-content neumorphic-modal" style="max-width: 600px; padding: 0;">
-            <div class="modal-header" style="padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.05); background: #f8fafc; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+    <div id="modal-medication-plan-details" class="modal-overlay hidden" role="dialog" aria-modal="true" style="z-index: 10001; padding: 0;">
+        <div class="modal-content" style="width: 100%; height: 100%; max-width: 100%; border-radius: 0; margin: 0; display: flex; flex-direction: column; background: #f1f5f9; padding: 0;">
+            <div class="modal-header" style="padding: 15px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); background: white; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="display: flex; align-items: center; gap: 8px; color: #3b82f6;">
                     <span class="material-symbols-rounded">pill</span>
                     <span id="medplan-title">Lịch Uống Thuốc</span>
                 </h3>
                 <button type="button" class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
             </div>
-            <div class="modal-body" style="padding: 0; max-height: 60vh; overflow-y: auto; background: #f1f5f9;">
+            <div class="modal-body" style="padding: 0; flex: 1; overflow-y: auto;">
                 <div style="padding: 15px 20px; background: white; border-bottom: 1px solid rgba(0,0,0,0.05);">
                     <p id="medplan-desc" style="font-size: 14px; color: var(--text-color); margin-bottom: 8px;"></p>
                     <div style="display: flex; gap: 10px; font-size: 13px; color: var(--text-muted);">
@@ -1267,7 +1267,7 @@
                     <!-- Các buổi uống thuốc (Sáng/Trưa/Chiều) sẽ được render thành các thẻ details xổ xuống -->
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid rgba(0,0,0,0.05); text-align: center; background: white; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+            <div class="modal-footer" style="padding: 15px 20px; text-align: center; background: white; flex-shrink: 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);">
                 <button type="button" class="primary-btn neumorphic-btn close-modal" style="width: 100%; border-radius: 8px;">Đóng lại</button>
             </div>
         </div>

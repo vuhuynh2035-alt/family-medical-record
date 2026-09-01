@@ -219,8 +219,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.16';
+const CURRENT_APP_VERSION = 'v2.9.17';
 const APP_CHANGELOG = {
+    'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gũi và dễ hiểu hơn.',
     'v2.9.16': '• Tùy chỉnh Giờ uống thuốc: Bạn giờ đây có thể tự do thay đổi mốc giờ uống thuốc mặc định cho các buổi Sáng, Trưa, Chiều, Tối trong phần Cài đặt Hệ thống. AI sẽ tự động ưu tiên các khung giờ này khi lập kế hoạch.',
     'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
     'v2.9.14': '• Đại tu Tính năng Nhắc Thuốc: Tự động gom toàn bộ lộ trình uống thuốc thành 1 Kế hoạch duy nhất (Medication Plan) để không làm rối danh sách nhắc hẹn.\n• Hiển thị Hướng dẫn sử dụng thuốc: AI sẽ tự động phân tích và trích xuất chi tiết công dụng, chống chỉ định, cách dùng trước/sau ăn cho từng loại thuốc.\n• Nhắc nhở thông minh: Tự động báo chuông theo từng buổi trong ngày, khi chạm vào thông báo sẽ hiện chi tiết thuốc cần uống ngay lúc đó.',
@@ -2367,6 +2368,32 @@ function setupEventListeners() {
         const container = document.getElementById('medplan-accordion-container');
         container.innerHTML = '';
 
+        // Tính toán mốc giờ tiếp theo (hoặc hiện tại) để mở tự động
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMin = now.getMinutes();
+        const currentTotalMins = currentHour * 60 + currentMin;
+
+        let targetTimeIndex = 0;
+        let minDiff = Infinity;
+        // Tìm mốc giờ gần nhất trong tương lai hoặc hiện tại (hoặc nhỏ nhất trong ngày hôm sau)
+        plan.times.forEach((t, i) => {
+            const [h, m] = t.split(':').map(Number);
+            const tMins = h * 60 + m;
+            // Nếu giờ đó >= giờ hiện tại (hoặc đã qua 1-2 tiếng vẫn ưu tiên nó)
+            if (tMins >= currentTotalMins - 60) { 
+                if (tMins - currentTotalMins < minDiff) {
+                    minDiff = tMins - currentTotalMins;
+                    targetTimeIndex = i;
+                }
+            }
+        });
+        // Nếu tất cả các giờ đều đã qua rất lâu (cuối ngày), thì mở cái cuối cùng hoặc cái đầu tiên của ngày hôm sau.
+        // Tạm thời nếu minDiff vẫn Infinity (đã qua hết các giờ), mở giờ đầu tiên.
+        if (minDiff === Infinity && plan.times.length > 0) {
+            targetTimeIndex = 0;
+        }
+
         // Render các tab accordion chọn giờ (Sáng/Trưa/Chiều/Tối)
         plan.times.forEach((time, index) => {
             // Hàm chuyển đổi giờ thành buổi
@@ -2385,7 +2412,7 @@ function setupEventListeners() {
             detailsEl.style.padding = '0';
             detailsEl.style.overflow = 'hidden';
             detailsEl.style.borderLeft = '4px solid #3b82f6';
-            if (index === 0) detailsEl.open = true; // Mặc định mở mục đầu tiên
+            if (index === targetTimeIndex) detailsEl.open = true; // Mở mục gần nhất
 
             const summaryEl = document.createElement('summary');
             summaryEl.style.padding = '15px';
@@ -3689,7 +3716,7 @@ async function promptSmartRemindersModal(memberId, recordData) {
                 if (endDate >= new Date(now.setHours(0,0,0,0))) {
                     parsedReminders.push({
                         type: 'medication_plan',
-                        title: '💊 Kế hoạch Uống thuốc',
+                        title: '💊 Lịch Uống thuốc',
                         desc: `Gồm ${aiResult.medications.length} loại thuốc. Lộ trình ${maxDays} ngày, mỗi ngày ${sortedTimes.length} lần (${sortedTimes.join(', ')}).`,
                         planData: {
                             medications: aiResult.medications,
