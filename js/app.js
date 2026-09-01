@@ -219,16 +219,16 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.25';
+const CURRENT_APP_VERSION = 'v2.9.26';
 const APP_CHANGELOG = {
-    'v2.9.25': '• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.',
-    'v2.9.25': '• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).',
-    'v2.9.25': '• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.',
-    'v2.9.25': '• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.',
-    'v2.9.25': '• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).',
-    'v2.9.25': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
-    'v2.9.25': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
-    'v2.9.25': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
+    'v2.9.26': '• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.',
+    'v2.9.26': '• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).',
+    'v2.9.26': '• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.',
+    'v2.9.26': '• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.',
+    'v2.9.26': '• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).',
+    'v2.9.26': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
+    'v2.9.26': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
+    'v2.9.26': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
     'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gần gũi và dễ hiểu hơn.',
     'v2.9.16': '• Tùy chỉnh Giờ uống thuốc: Bạn giờ đây có thể tự do thay đổi mốc giờ uống thuốc mặc định cho các buổi Sáng, Trưa, Chiều, Tối trong phần Cài đặt Hệ thống. AI sẽ tự động ưu tiên các khung giờ này khi lập kế hoạch.',
     'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
@@ -2424,11 +2424,18 @@ function setupEventListeners() {
             reportHtml += `</table></div>`;
             
             reportContainer.innerHTML = `
-                <h4 style="color: #3b82f6; margin: 0 0 10px 0; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
-                    Tiến độ uống thuốc
-                    <span style="font-size: 11px; font-weight: normal; color: #64748b; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">Nhấn vào ô vuông để xác nhận uống thuốc thủ công</span>
-                </h4>
-                ${reportHtml}
+                <details class="neumorphic-card" style="padding: 0; overflow: hidden; border-left: 4px solid #10b981;">
+                    <summary style="padding: 15px; cursor: pointer; font-weight: 700; color: #047857; display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); outline: none;">
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <span class="material-symbols-rounded">analytics</span> Tiến độ uống thuốc
+                        </span>
+                        <span class="material-symbols-rounded expand-icon" style="transition: transform 0.2s;">expand_more</span>
+                    </summary>
+                    <div style="padding: 15px; background: white; border-top: 1px solid rgba(0,0,0,0.05);">
+                        <p style="font-size: 12px; margin: 0 0 10px 0; color: #64748b; background: #f1f5f9; padding: 6px 10px; border-radius: 6px;">💡 Nhấn vào các ô vuông bên dưới để điểm danh bù thủ công.</p>
+                        ${reportHtml}
+                    </div>
+                </details>
             `;
             
             reportContainer.querySelectorAll('.dose-cell').forEach(cell => {
