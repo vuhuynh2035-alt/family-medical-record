@@ -219,8 +219,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.15';
+const CURRENT_APP_VERSION = 'v2.9.16';
 const APP_CHANGELOG = {
+    'v2.9.16': '• Tùy chỉnh Giờ uống thuốc: Bạn giờ đây có thể tự do thay đổi mốc giờ uống thuốc mặc định cho các buổi Sáng, Trưa, Chiều, Tối trong phần Cài đặt Hệ thống. AI sẽ tự động ưu tiên các khung giờ này khi lập kế hoạch.',
     'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
     'v2.9.14': '• Đại tu Tính năng Nhắc Thuốc: Tự động gom toàn bộ lộ trình uống thuốc thành 1 Kế hoạch duy nhất (Medication Plan) để không làm rối danh sách nhắc hẹn.\n• Hiển thị Hướng dẫn sử dụng thuốc: AI sẽ tự động phân tích và trích xuất chi tiết công dụng, chống chỉ định, cách dùng trước/sau ăn cho từng loại thuốc.\n• Nhắc nhở thông minh: Tự động báo chuông theo từng buổi trong ngày, khi chạm vào thông báo sẽ hiện chi tiết thuốc cần uống ngay lúc đó.',
     'v2.9.13': '• Sửa lỗi thuật toán quét dọn trùng lặp: Nhận diện chính xác và tự động xóa sạch các lịch hẹn rác sinh ra do lỗi từ phiên bản cũ.',
@@ -498,6 +499,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (settings.providerChat) document.getElementById('input-ai-provider-chat').value = settings.providerChat;
     else if (settings.activeProvider) document.getElementById('input-ai-provider-chat').value = settings.activeProvider;
+    
+    document.getElementById('input-med-time-morning').value = settings.medTimeMorning || '08:00';
+    document.getElementById('input-med-time-noon').value = settings.medTimeNoon || '12:00';
+    document.getElementById('input-med-time-afternoon').value = settings.medTimeAfternoon || '14:00';
+    document.getElementById('input-med-time-evening').value = settings.medTimeEvening || '20:00';
+
     if (settings.geminiModel) {
         const select = document.getElementById('input-gemini-model');
         if (!Array.from(select.options).some(opt => opt.value === settings.geminiModel)) {
@@ -838,6 +845,11 @@ function setupEventListeners() {
         
         const mutedMembers = Array.from(document.querySelectorAll('.chk-alarm-member:not(:checked)')).map(cb => cb.value);
 
+        const medTimeMorning = document.getElementById('input-med-time-morning').value || '08:00';
+        const medTimeNoon = document.getElementById('input-med-time-noon').value || '12:00';
+        const medTimeAfternoon = document.getElementById('input-med-time-afternoon').value || '14:00';
+        const medTimeEvening = document.getElementById('input-med-time-evening').value || '20:00';
+
         DataManager.saveSettings({
             geminiApiKey: geminiKey,
             openaiApiKey: openaiKey,
@@ -851,7 +863,11 @@ function setupEventListeners() {
             openaiModel: openaiModel,
             anthropicModel: anthropicModel,
             alarmSound: alarmSound,
-            mutedMembers: mutedMembers
+            mutedMembers: mutedMembers,
+            medTimeMorning: medTimeMorning,
+            medTimeNoon: medTimeNoon,
+            medTimeAfternoon: medTimeAfternoon,
+            medTimeEvening: medTimeEvening
         });
 
         closeModal('modal-settings');

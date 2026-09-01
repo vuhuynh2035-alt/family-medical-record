@@ -598,6 +598,12 @@ Không cần lời chào hỏi, đi thẳng vào giải thích ý nghĩa.`;
     },
 
     async extractSmartReminders(recordData) {
+        const settings = DataManager.getSettings();
+        const tMorning = settings.medTimeMorning || '08:00';
+        const tNoon = settings.medTimeNoon || '12:00';
+        const tAfternoon = settings.medTimeAfternoon || '14:00';
+        const tEvening = settings.medTimeEvening || '20:00';
+
         const prompt = `Hôm nay là: ${recordData.date}. Dựa vào hồ sơ dưới đây, hãy trích xuất lịch hẹn thông minh.
 - Chẩn đoán: ${recordData.disease || 'Không rõ'}
 - Đơn thuốc/Điều trị: ${recordData.treatment || 'Không rõ'}
@@ -610,7 +616,7 @@ Nhiệm vụ của bạn là phân tích và trả về ĐÚNG 1 ĐỐI TƯỢNG
     {
       "name": "Tên thuốc",
       "days": 5, // số ngày uống (số nguyên, mặc định 5 nếu không rõ)
-      "times": ["08:00", "20:00"], // mảng các giờ uống tự suy luận logic (vd: 2 lần thì 08:00 và 20:00, 3 lần thì 08:00, 12:00, 20:00)
+      "times": ["${tMorning}", "${tEvening}"], // mảng các giờ uống tự suy luận logic. Tham khảo giờ mặc định: Sáng=${tMorning}, Trưa=${tNoon}, Chiều=${tAfternoon}, Tối=${tEvening}.
       "usage": "Uống trước khi ăn", // Cách dùng (trước ăn/sau ăn/ngậm/thoa...)
       "purpose": "Giảm đau, hạ sốt", // Công dụng (ngắn gọn)
       "contraindications": "Không dùng chung với rượu bia" // Chống chỉ định hoặc lưu ý quan trọng (nếu có)
@@ -624,7 +630,7 @@ Nhiệm vụ của bạn là phân tích và trả về ĐÚNG 1 ĐỐI TƯỢNG
 
 Chú ý:
 - Nếu hồ sơ KHÔNG CÓ đơn thuốc, trả về "medications": [].
-- Hãy đoán giờ uống một cách hợp lý nhất dựa vào từ khoá (sáng, trưa, chiều, tối). Nếu chỉ nói "uống 2 lần", lấy ["08:00", "20:00"].`;
+- Hãy đoán giờ uống hợp lý. Nếu bác sĩ ghi rõ giờ thì lấy đúng giờ đó. Nếu chỉ nói "uống 2 lần" hoặc "sáng tối", hãy dùng đúng mốc giờ mặc định: Sáng=${tMorning}, Tối=${tEvening}.`;
 
         try {
             let resText = '';

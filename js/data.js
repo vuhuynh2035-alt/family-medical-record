@@ -64,9 +64,16 @@ const DataManager = {
             openaiApiKey: '',
             anthropicApiKey: '',
             // Cho phép ghi đè tên model của ChatGPT/Claude (mặc định dùng model khá cũ do OpenAI/
+            // Cho phép ghi đè tên model của ChatGPT/Claude (mặc định dùng model khá cũ do OpenAI/
             // Anthropic cũng thường xuyên ra bản mới) — để trống thì dùng giá trị mặc định bên dưới.
             openaiModel: '',
             anthropicModel: '',
+            
+            // Giờ nhắc uống thuốc mặc định
+            medTimeMorning: '08:00',
+            medTimeNoon: '12:00',
+            medTimeAfternoon: '14:00',
+            medTimeEvening: '20:00',
             // Khóa màn hình bằng mã PIN (xem sha256Hex ở trên) — mặc định tắt.
             pinEnabled: false,
             pinHash: '',
