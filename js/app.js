@@ -219,15 +219,16 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.24';
+const CURRENT_APP_VERSION = 'v2.9.25';
 const APP_CHANGELOG = {
-    'v2.9.24': '• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).',
-    'v2.9.24': '• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.',
-    'v2.9.24': '• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.',
-    'v2.9.24': '• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).',
-    'v2.9.24': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
-    'v2.9.24': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
-    'v2.9.24': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
+    'v2.9.25': '• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.',
+    'v2.9.25': '• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).',
+    'v2.9.25': '• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.',
+    'v2.9.25': '• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.',
+    'v2.9.25': '• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).',
+    'v2.9.25': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
+    'v2.9.25': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
+    'v2.9.25': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
     'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gần gũi và dễ hiểu hơn.',
     'v2.9.16': '• Tùy chỉnh Giờ uống thuốc: Bạn giờ đây có thể tự do thay đổi mốc giờ uống thuốc mặc định cho các buổi Sáng, Trưa, Chiều, Tối trong phần Cài đặt Hệ thống. AI sẽ tự động ưu tiên các khung giờ này khi lập kế hoạch.',
     'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
@@ -2377,6 +2378,73 @@ function setupEventListeners() {
 
         // (Đã loại bỏ logic tự động mở accordion theo yêu cầu)
 
+        // Báo cáo tuân thủ
+        const reportContainer = document.getElementById('medplan-report-container');
+        if (reportContainer) {
+            let reportHtml = `<div style="overflow-x: auto;"><table class="report-table" style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px; text-align: center;">`;
+            
+            reportHtml += `<tr><th style="border: 1px solid #cbd5e1; padding: 5px; background: #f8fafc; position: sticky; left: 0; z-index: 1;">Ngày</th>`;
+            plan.times.forEach(t => {
+                reportHtml += `<th style="border: 1px solid #cbd5e1; padding: 5px; background: #f8fafc;">${t}</th>`;
+            });
+            reportHtml += `</tr>`;
+            
+            const startD = new Date(plan.startDate);
+            if (!plan.dose_status) plan.dose_status = {};
+            
+            for (let d_i = 0; d_i < plan.totalDays; d_i++) {
+                const d = new Date(startD.getTime() + d_i * 24 * 60 * 60 * 1000);
+                const dStr = d.toISOString().split('T')[0];
+                const displayDate = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}`;
+                
+                reportHtml += `<tr><td style="border: 1px solid #cbd5e1; padding: 5px; background: #f8fafc; font-weight: bold; position: sticky; left: 0; z-index: 1;">${displayDate}</td>`;
+                
+                plan.times.forEach(t => {
+                    const timeKey = `${dStr}_${t}`;
+                    const status = plan.dose_status[timeKey];
+                    let cellContent = '';
+                    let bgColor = 'white';
+                    let fgColor = 'var(--text-color)';
+                    
+                    if (status === 'taken') {
+                        cellContent = '✅';
+                        bgColor = '#dcfce7';
+                    } else if (status === 'skipped') {
+                        cellContent = ''; 
+                        bgColor = 'white';
+                    } else {
+                        // pending
+                        cellContent = '';
+                    }
+                    
+                    reportHtml += `<td class="dose-cell" data-key="${timeKey}" style="border: 1px solid #cbd5e1; padding: 8px; background: ${bgColor}; color: ${fgColor}; cursor: pointer; user-select: none;">${cellContent}</td>`;
+                });
+                reportHtml += `</tr>`;
+            }
+            reportHtml += `</table></div>`;
+            
+            reportContainer.innerHTML = `
+                <h4 style="color: #3b82f6; margin: 0 0 10px 0; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
+                    Tiến độ uống thuốc
+                    <span style="font-size: 11px; font-weight: normal; color: #64748b; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">Nhấn vào ô vuông để xác nhận uống thuốc thủ công</span>
+                </h4>
+                ${reportHtml}
+            `;
+            
+            reportContainer.querySelectorAll('.dose-cell').forEach(cell => {
+                cell.addEventListener('click', function() {
+                    const key = this.dataset.key;
+                    if (plan.dose_status[key] === 'taken') {
+                        plan.dose_status[key] = 'skipped';
+                    } else {
+                        plan.dose_status[key] = 'taken';
+                    }
+                    DataManager.saveReminder(plan);
+                    window.openMedicationPlanModal(plan);
+                });
+            });
+        }
+
         // Render các tab accordion chọn giờ (Sáng/Trưa/Chiều/Tối)
         plan.times.forEach((time, index) => {
             // Hàm chuyển đổi giờ thành buổi
@@ -3064,21 +3132,38 @@ function checkReminders() {
 
             if (todayDate >= start && todayDate <= end) {
                 if (!rm.notified_times) rm.notified_times = {};
+                if (!rm.dose_status) rm.dose_status = {};
+                if (!rm.snoozed_doses) rm.snoozed_doses = {};
 
                 rm.times.forEach(t => {
                     const timeKey = `${todayStr}_${t}`;
                     const triggerTime = new Date(`${todayStr}T${t}:00`);
                     
-                    if (now >= triggerTime && !rm.notified_times[timeKey]) {
-                        // Chỉ báo động nếu chưa qua quá 2 tiếng (tránh báo động dồn dập các ngày cũ)
+                    if (rm.dose_status[timeKey]) return; // Đã xong hoặc bỏ qua
+
+                    let shouldRing = false;
+
+                    if (!rm.notified_times[timeKey] && now >= triggerTime) {
                         if (now - triggerTime < 2 * 60 * 60 * 1000) {
-                            if (!mutedMembers.includes(rm.memberId)) {
-                                alarmTriggered = rm;
-                                alarmTriggered.isPlan = true;
-                                alarmTriggered.triggerTimeStr = t;
-                            }
+                            shouldRing = true;
+                        } else {
+                            // Expired
+                            rm.notified_times[timeKey] = true;
+                            modified = true;
                         }
+                    } else if (rm.snoozed_doses[timeKey] && now.getTime() >= rm.snoozed_doses[timeKey]) {
+                        shouldRing = true;
+                    }
+
+                    if (shouldRing) {
                         rm.notified_times[timeKey] = true;
+                        delete rm.snoozed_doses[timeKey];
+                        if (!mutedMembers.includes(rm.memberId)) {
+                            alarmTriggered = rm;
+                            alarmTriggered.isPlan = true;
+                            alarmTriggered.triggerTimeStr = t;
+                            alarmTriggered.timeKey = timeKey;
+                        }
                         modified = true;
                     }
                 });

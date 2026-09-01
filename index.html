@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.24"></script>
-    <script defer src="js/ai.js?v=2.9.24"></script>
-    <script defer src="js/components.js?v=2.9.24"></script>
-    <script defer src="js/help.js?v=2.9.24"></script>
-    <script defer src="js/speech.js?v=2.9.24"></script>
-    <script defer src="js/app.js?v=2.9.24"></script>
+    <script defer src="js/data.js?v=2.9.25"></script>
+    <script defer src="js/ai.js?v=2.9.25"></script>
+    <script defer src="js/components.js?v=2.9.25"></script>
+    <script defer src="js/help.js?v=2.9.25"></script>
+    <script defer src="js/speech.js?v=2.9.25"></script>
+    <script defer src="js/app.js?v=2.9.25"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -462,8 +462,15 @@
                     <p id="alarm-note" style="margin: 0; color: var(--text-muted); font-size: 15px;"></p>
                 </div>
             </div>
-            <div class="modal-footer" style="display: flex; justify-content: center;">
-                <button id="btn-stop-alarm" class="primary-btn neumorphic-btn" style="padding: 15px 40px; font-size: 18px; width: 100%;">TẮT CHUÔNG & ĐÓNG</button>
+            <div class="modal-footer" style="display: flex; flex-direction: column; gap: 10px;">
+                <div id="alarm-normal-actions" style="width: 100%;">
+                    <button id="btn-stop-alarm" class="primary-btn neumorphic-btn" style="padding: 15px; font-size: 16px; width: 100%;">ĐÃ HIỂU & TẮT CHUÔNG</button>
+                </div>
+                <div id="alarm-medplan-actions" class="hidden" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                    <button id="btn-med-taken" class="primary-btn neumorphic-btn" style="padding: 12px; font-size: 15px; width: 100%; background: #10b981;">Đã uống (Hoàn thành)</button>
+                    <button id="btn-med-snooze" class="secondary-btn neumorphic-btn" style="padding: 12px; font-size: 15px; width: 100%;">Nhắc lại sau 30 phút</button>
+                    <button id="btn-med-skip" class="danger-btn neumorphic-btn" style="padding: 12px; font-size: 15px; width: 100%;">Bỏ qua (Không uống)</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1325,6 +1332,7 @@
                     </div>
                 </div>
                 
+                <div id="medplan-report-container" style="padding: 15px 20px 0 20px;"></div>
                 <div id="medplan-accordion-container" style="padding: 15px 20px; display: flex; flex-direction: column; gap: 15px;">
                     <!-- Các buổi uống thuốc (Sáng/Trưa/Chiều) sẽ được render thành các thẻ details xổ xuống -->
                 </div>
