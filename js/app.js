@@ -46,6 +46,55 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 3200);
 }
+window.showConfirm = function(message) {
+    return new Promise((resolve) => {
+        let modal = document.getElementById('modal-custom-confirm');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'modal-custom-confirm';
+            modal.className = 'modal-overlay hidden';
+            modal.style.zIndex = '100000';
+            modal.style.background = 'rgba(0,0,0,0.5)';
+            modal.style.display = 'flex';
+            modal.innerHTML = `
+                <div class="modal-content neumorphic-modal" style="max-width: 350px; width: 90%; text-align: center; border: 1px solid rgba(0,0,0,0.05); border-radius: 16px; margin: auto;">
+                    <div style="margin-bottom: 20px;">
+                        <span class="material-symbols-rounded" style="font-size: 48px; color: #f59e0b; margin-bottom: 10px; display: block;">warning</span>
+                        <h3 style="margin: 0 0 10px 0; color: var(--text-dark); font-size: 18px;">Xác nhận</h3>
+                        <p id="custom-confirm-message" style="margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.5;"></p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btn-custom-confirm-cancel" class="secondary-btn neumorphic-btn" style="flex: 1; padding: 12px; font-weight: 600;">Hủy bỏ</button>
+                        <button id="btn-custom-confirm-ok" class="primary-btn neumorphic-btn" style="flex: 1; padding: 12px; font-weight: 600; background: #e11d48; color: white;">Đồng ý</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        document.getElementById('custom-confirm-message').innerText = message;
+        modal.classList.remove('hidden');
+        
+        const btnCancel = document.getElementById('btn-custom-confirm-cancel');
+        const btnOk = document.getElementById('btn-custom-confirm-ok');
+        
+        const newBtnCancel = btnCancel.cloneNode(true);
+        const newBtnOk = btnOk.cloneNode(true);
+        btnCancel.replaceWith(newBtnCancel);
+        btnOk.replaceWith(newBtnOk);
+        
+        newBtnCancel.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            resolve(false);
+        });
+        
+        newBtnOk.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            resolve(true);
+        });
+    });
+};
+
 
 // ==================== KHÓA MÀN HÌNH BẰNG MÃ PIN ====================
 // Đây là một lớp khóa GIAO DIỆN nhằm tránh người khác vô tình xem được hồ sơ khi
@@ -178,8 +227,8 @@ function setupPinLockListeners() {
         }
     });
 
-    document.getElementById('btn-disable-pin').addEventListener('click', () => {
-        if (confirm('Tắt khóa PIN? Ứng dụng sẽ mở trực tiếp mà không cần nhập mã PIN nữa. (Mã PIN vẫn sẽ được dùng để xác nhận bảo mật khi xoá dữ liệu).')) {
+    document.getElementById('btn-disable-pin').addEventListener('click', async () => {
+        if (await window.showConfirm('Tắt khóa PIN? Ứng dụng sẽ mở trực tiếp mà không cần nhập mã PIN nữa. (Mã PIN vẫn sẽ được dùng để xác nhận bảo mật khi xoá dữ liệu).')) {
             DataManager.saveSettings({ pinEnabled: false });
             updatePinUIState();
             showToast('Đã tắt yêu cầu mã PIN khi mở ứng dụng.');
@@ -219,16 +268,17 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.27';
+const CURRENT_APP_VERSION = 'v2.9.28';
 const APP_CHANGELOG = {
-    'v2.9.27': '• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.',
-    'v2.9.27': '• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).',
-    'v2.9.27': '• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.',
-    'v2.9.27': '• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.',
-    'v2.9.27': '• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).',
-    'v2.9.27': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
-    'v2.9.27': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
-    'v2.9.27': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
+    'v2.9.28': '• Nâng cấp giao diện Xác nhận: Thay thế toàn bộ các thông báo xác nhận trắng đen (xóa, ghi đè dữ liệu, khôi phục) của trình duyệt bằng một giao diện Pop-up hiện đại, đẹp mắt và đồng bộ với thiết kế của ứng dụng.',
+    'v2.9.28': '• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.',
+    'v2.9.28': '• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).',
+    'v2.9.28': '• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.',
+    'v2.9.28': '• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.',
+    'v2.9.28': '• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).',
+    'v2.9.28': '• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.',
+    'v2.9.28': '• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.',
+    'v2.9.28': '• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.',
     'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gần gũi và dễ hiểu hơn.',
     'v2.9.16': '• Tùy chỉnh Giờ uống thuốc: Bạn giờ đây có thể tự do thay đổi mốc giờ uống thuốc mặc định cho các buổi Sáng, Trưa, Chiều, Tối trong phần Cài đặt Hệ thống. AI sẽ tự động ưu tiên các khung giờ này khi lập kế hoạch.',
     'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
@@ -981,7 +1031,7 @@ function setupEventListeners() {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (confirm("LƯU Ý: Quá trình này sẽ XÓA TOÀN BỘ dữ liệu hiện tại trên máy này và thay thế bằng dữ liệu từ file sao lưu. Bạn có chắc chắn muốn tiếp tục?")) {
+        if (await window.showConfirm("LƯU Ý: Quá trình này sẽ XÓA TOÀN BỘ dữ liệu hiện tại trên máy này và thay thế bằng dữ liệu từ file sao lưu. Bạn có chắc chắn muốn tiếp tục?")) {
             const reader = new FileReader();
             reader.onload = async (event) => {
                 try {
@@ -1028,7 +1078,7 @@ function setupEventListeners() {
                 if (hash === settings.pinHash) {
                     // Valid PIN, execute wipe
                     document.getElementById('modal-confirm-pin').classList.add('hidden');
-                    if (confirm("CẢNH BÁO CUỐI: Hành động này sẽ xóa VĨNH VIỄN toàn bộ hồ sơ khám bệnh và thành viên. Bạn có chắc chắn?")) {
+                    if (await window.showConfirm("CẢNH BÁO CUỐI: Hành động này sẽ xóa VĨNH VIỄN toàn bộ hồ sơ khám bệnh và thành viên. Bạn có chắc chắn?")) {
                         DataManager.wipeAllDataKeepSettings();
                         alert("Đã xóa sạch dữ liệu thành công! Ứng dụng sẽ tải lại.");
                         window.location.reload();
@@ -1128,7 +1178,7 @@ function setupEventListeners() {
                     listEl.querySelectorAll('.btn-restore-auto').forEach(btn => {
                         btn.addEventListener('click', async (e) => {
                             const id = e.target.dataset.id;
-                            if (confirm('CẢNH BÁO: Hành động này sẽ GHI ĐÈ toàn bộ dữ liệu hiện tại (bao gồm cài đặt và hồ sơ) bằng bản sao lưu này. Không thể hoàn tác! Bạn có chắc chắn?')) {
+                            if (await window.showConfirm('CẢNH BÁO: Hành động này sẽ GHI ĐÈ toàn bộ dữ liệu hiện tại (bao gồm cài đặt và hồ sơ) bằng bản sao lưu này. Không thể hoàn tác! Bạn có chắc chắn?')) {
                                 try {
                                     const backup = await AutoBackupStore.getAutoBackupById(id);
                                     if (backup && backup.data) {
@@ -1366,7 +1416,7 @@ function setupEventListeners() {
     });
 
     document.getElementById('btn-delete-member').addEventListener('click', async () => {
-        if (confirm("Bạn có chắc chắn muốn xóa thành viên này và toàn bộ hồ sơ khám bệnh liên quan?")) {
+        if (await window.showConfirm("Bạn có chắc chắn muốn xóa thành viên này và toàn bộ hồ sơ khám bệnh liên quan?")) {
             const records = DataManager.getRecords(currentMemberId);
             for (let record of records) {
                 const images = record.originalImages || (record.originalImage ? [record.originalImage] : []);
@@ -1508,7 +1558,7 @@ function setupEventListeners() {
             // Xoá
             div.querySelector('.btn-del-trend').addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (confirm('Xóa bản đánh giá này?')) {
+                if (await window.showConfirm('Xóa bản đánh giá này?')) {
                     DataManager.deleteTrendReport(currentMemberId, r.id);
                     renderTrendReportsList();
                 }
@@ -1690,7 +1740,7 @@ function setupEventListeners() {
     // Delete Modal Record logic
     document.getElementById('btn-delete-record-modal').addEventListener('click', async (e) => {
         const id = e.target.dataset.id;
-        if (id && confirm("Bạn có chắc chắn muốn xóa hồ sơ khám bệnh này? Dữ liệu không thể khôi phục.")) {
+        if (id && await window.showConfirm("Bạn có chắc chắn muốn xóa hồ sơ khám bệnh này? Dữ liệu không thể khôi phục.")) {
             const record = currentRecords.find(r => r.id === id);
             if (record && record.originalImages) {
                 for (let imgId of record.originalImages) {
@@ -2592,10 +2642,10 @@ function setupEventListeners() {
         openModal('modal-reminder');
     });
 
-    document.getElementById('btn-delete-reminder')?.addEventListener('click', () => {
+    document.getElementById('btn-delete-reminder')?.addEventListener('click', async () => {
         const id = document.getElementById('reminder-id').value;
         if (!id) return;
-        if (confirm('Bạn có chắc chắn muốn xóa lịch hẹn này không?')) {
+        if (await window.showConfirm('Bạn có chắc chắn muốn xóa lịch hẹn này không?')) {
             DataManager.deleteReminder(id);
             closeModal('modal-reminder');
             reloadRecordsAndStats();
@@ -2604,8 +2654,8 @@ function setupEventListeners() {
         }
     });
 
-    document.getElementById('btn-delete-all-reminders')?.addEventListener('click', () => {
-        if (confirm('⚠️ Bạn có chắc chắn muốn XÓA TOÀN BỘ lịch hẹn của thành viên này? Hành động này không thể hoàn tác!')) {
+    document.getElementById('btn-delete-all-reminders')?.addEventListener('click', async () => {
+        if (await window.showConfirm('⚠️ Bạn có chắc chắn muốn XÓA TOÀN BỘ lịch hẹn của thành viên này? Hành động này không thể hoàn tác!')) {
             DataManager.deleteAllReminders(currentMemberId);
             reloadRecordsAndStats();
             checkReminders();
