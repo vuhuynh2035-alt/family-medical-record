@@ -222,7 +222,19 @@ const DataManager = {
     // ---- REMINDERS ----
     getReminders() {
         const stored = localStorage.getItem('family_reminders');
-        return stored ? JSON.parse(stored) : [];
+        if (!stored) return [];
+        let data = JSON.parse(stored);
+        let changed = false;
+        data.forEach(r => {
+            if (r.isPlan && r.type !== 'medication_plan') {
+                r.type = 'medication_plan';
+                changed = true;
+            }
+        });
+        if (changed) {
+            localStorage.setItem('family_reminders', JSON.stringify(data));
+        }
+        return data;
     },
     saveReminder(reminderData) {
         let reminders = this.getReminders();

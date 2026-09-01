@@ -742,7 +742,7 @@ const UI = {
         };
 
         reminders.forEach(rm => {
-            if (rm.type === 'medication_plan') {
+            if (rm.type === 'medication_plan' || rm.isPlan) {
                 medPlans.push(rm);
                 return; // Không xét completed/past/future cho Plan ở đây
             }
