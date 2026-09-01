@@ -622,10 +622,13 @@ Nhiệm vụ của bạn là phân tích và trả về ĐÚNG 1 ĐỐI TƯỢNG
       "contraindications": "Không dùng chung với rượu bia" // Chống chỉ định hoặc lưu ý quan trọng (nếu có)
     }
   ],
-  "followup": {
-    "date": "YYYY-MM-DD", // ngày hẹn tái khám, null nếu không có
-    "note": "Ghi chú hẹn (null nếu không có)"
-  }
+  "followups": [
+      {
+        "title": "Tên lịch hẹn (vd: Tái khám, Xét nghiệm máu, Nhắc nhở tiêm)",
+        "date": "YYYY-MM-DD", // ngày hẹn
+        "note": "Ghi chú hẹn (null nếu không có)"
+      }
+    ]
 }
 
 Chú ý:
