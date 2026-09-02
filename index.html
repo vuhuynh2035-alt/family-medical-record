@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=2.9.80">
+    <link rel="stylesheet" href="css/style.css?v=2.9.81">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.80"></script>
-    <script defer src="js/ai.js?v=2.9.80"></script>
-    <script defer src="js/components.js?v=2.9.80"></script>
-    <script defer src="js/help.js?v=2.9.80"></script>
-    <script defer src="js/speech.js?v=2.9.80"></script>
-    <script defer src="js/app.js?v=2.9.80"></script>
+    <script defer src="js/data.js?v=2.9.81"></script>
+    <script defer src="js/ai.js?v=2.9.81"></script>
+    <script defer src="js/components.js?v=2.9.81"></script>
+    <script defer src="js/help.js?v=2.9.81"></script>
+    <script defer src="js/speech.js?v=2.9.81"></script>
+    <script defer src="js/app.js?v=2.9.81"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -147,7 +147,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.80</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.81</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -412,6 +412,12 @@
                             <div class="form-group">
                                 <label style="font-size: 12px;">Giờ Trưa</label>
                                 <input type="time" id="medplan-time-noon" class="neumorphic-input">
+                            </div>
+                        </div>
+                        <div class="form-group-row" style="margin-bottom: 0;">
+                            <div class="form-group">
+                                <label style="font-size: 12px;">Giờ Chiều</label>
+                                <input type="time" id="medplan-time-afternoon" class="neumorphic-input">
                             </div>
                             <div class="form-group">
                                 <label style="font-size: 12px;">Giờ Tối</label>
@@ -693,7 +699,47 @@
                 
 
                 <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
-                
+                <h4 style="margin-bottom: 15px; color: var(--primary-blue); display: flex; align-items: center; gap: 5px;">
+                    <span class="material-symbols-rounded">pill</span> Cài đặt Giờ uống thuốc mặc định
+                </h4>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Thiết lập các mốc giờ uống thuốc cá nhân của bạn. AI sẽ ưu tiên sử dụng các mốc giờ này khi tự động lên lịch nhắc nhở.</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 13px;">Buổi Sáng</label>
+                        <input type="time" id="input-med-time-morning" class="neumorphic-input" style="padding: 10px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 13px;">Buổi Trưa</label>
+                        <input type="time" id="input-med-time-noon" class="neumorphic-input" style="padding: 10px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 13px;">Buổi Chiều</label>
+                        <input type="time" id="input-med-time-afternoon" class="neumorphic-input" style="padding: 10px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 13px;">Buổi Tối</label>
+                        <input type="time" id="input-med-time-evening" class="neumorphic-input" style="padding: 10px;">
+                    </div>
+                </div>
+
+                <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
+                <h4 style="margin-bottom: 15px; color: #e74c3c;"><span class="material-symbols-rounded" style="vertical-align: middle;">delete_forever</span> Khôi phục Cài đặt gốc</h4>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Xóa sạch toàn bộ hồ sơ y tế, thành viên và hình ảnh trên thiết bị này. Các cài đặt API Key sẽ được giữ lại. (Cần mã PIN để xác nhận).</p>
+                <button id="btn-wipe-data" class="neumorphic-btn" style="width: 100%; background: #fff1f0; color: #e74c3c; border: 1px solid #ffccc7; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; border-radius: 8px; cursor: pointer;" data-help-title="Xóa toàn bộ dữ liệu" data-help-desc="Xóa sạch mọi hồ sơ trên thiết bị và đưa ứng dụng về trạng thái nguyên bản lúc mới tải (Sẽ không thể khôi phục lại).">
+                    <span class="material-symbols-rounded">delete_forever</span> Xóa sạch Dữ liệu Y tế
+                </button>
+
+
+                <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
+                    Phiên bản <strong class="version-tag">v2.9.81</strong> (Tích hợp AI tạo Lịch nhắc thông minh)
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
+                <button id="btn-save-settings" class="primary-btn neumorphic-btn">Lưu cài đặt</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Member Modal -->
     <div id="modal-member" class="modal-overlay hidden" role="dialog" aria-modal="true">
