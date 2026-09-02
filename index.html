@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=2.9.85">
+    <link rel="stylesheet" href="css/style.css?v=2.9.86">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.85"></script>
-    <script defer src="js/ai.js?v=2.9.85"></script>
-    <script defer src="js/components.js?v=2.9.85"></script>
-    <script defer src="js/help.js?v=2.9.85"></script>
-    <script defer src="js/speech.js?v=2.9.85"></script>
-    <script defer src="js/app.js?v=2.9.85"></script>
+    <script defer src="js/data.js?v=2.9.86"></script>
+    <script defer src="js/ai.js?v=2.9.86"></script>
+    <script defer src="js/components.js?v=2.9.86"></script>
+    <script defer src="js/help.js?v=2.9.86"></script>
+    <script defer src="js/speech.js?v=2.9.86"></script>
+    <script defer src="js/app.js?v=2.9.86"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -147,7 +147,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.85</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.86</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -440,6 +440,7 @@
                 <button type="button" class="secondary-btn neumorphic-btn close-modal">Quay lại</button>
                 <div style="display: flex; gap: 10px;">
                     <button type="button" id="btn-delete-reminder" class="icon-btn neumorphic-btn hidden" style="color: #e11d48; border: 1px solid #e11d48; background: rgba(225, 29, 72, 0.05); border-radius: 8px; width: auto; padding: 0 15px; font-size: 14px; font-weight: bold;" title="Xóa lịch hẹn này">Xóa bỏ</button>
+                      <button type="button" id="btn-export-reminder-ics" class="icon-btn neumorphic-btn hidden" style="color: #2e7d32; border: 1px solid #c8e6c9; background: #e8f5e9; border-radius: 8px; width: auto; padding: 0 15px; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 5px;" title="Thêm vào Lịch điện thoại"><span class="material-symbols-rounded" style="font-size: 18px;">calendar_add_on</span> Lịch ĐT</button>
                     <button type="button" id="btn-save-reminder-action" class="primary-btn neumorphic-btn">Lưu hẹn</button>
                 </div>
             </div>
@@ -731,7 +732,7 @@
 
 
                 <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    Phiên bản <strong class="version-tag">v2.9.85</strong> (Tích hợp AI tạo Lịch nhắc thông minh)
+                    Phiên bản <strong class="version-tag">v2.9.86</strong> (Tích hợp AI tạo Lịch nhắc thông minh)
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
@@ -1380,6 +1381,9 @@
             </div>
             <div class="modal-footer" style="padding: 15px 20px; text-align: center; background: white; flex-shrink: 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);">
                 <button type="button" class="primary-btn neumorphic-btn close-modal" style="width: 100%; border-radius: 8px;">Đóng lại</button>
+                <button type="button" id="btn-export-medplan-ics" class="secondary-btn neumorphic-btn" style="width: 100%; border-radius: 8px; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600;">
+                    <span class="material-symbols-rounded">calendar_add_on</span> Thêm vào Lịch điện thoại
+                </button>
             </div>
         </div>
     </div>
