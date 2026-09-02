@@ -5077,7 +5077,7 @@ const AutoScrollService = {
         if(icon) icon.innerText = 'pause';
         if(text) text.innerText = 'Dừng cuộn';
         
-        const modalBody = document.querySelector('#modal-view-record .modal-body');
+        const modalBody = document.querySelector('#modal-view-record .modal-content');
         if (!modalBody) return;
         
         this.intervalId = setInterval(() => {
@@ -5106,7 +5106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         AutoScrollService.toggle();
     });
     
-    const modalBody = document.querySelector('#modal-view-record .modal-body');
+    const modalBody = document.querySelector('#modal-view-record .modal-content');
     if (modalBody) {
         modalBody.addEventListener('wheel', () => AutoScrollService.stop());
         modalBody.addEventListener('touchstart', () => AutoScrollService.stop());
