@@ -268,10 +268,11 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.49';
+const CURRENT_APP_VERSION = 'v2.9.50';
 const APP_CHANGELOG = {
-    'v2.9.49': '• Cập nhật thuật toán tính năng Đọc (Karaoke Mode) và sửa lỗi tự động cuộn.',
-    'v2.9.49': '• Cải tiến tính năng Đọc (TTS): Hỗ trợ chạy nền khi tắt màn hình, chọn đọc từ bất kỳ đâu (Karaoke mode), và cuộn tự động.',
+    'v2.9.50': '• Thêm tính năng tùy chọn Chế độ chạy nền (Google Audio) để khắc phục lỗi hệ điều hành chặn giọng đọc khi tắt màn hình.',
+    'v2.9.50': '• Cập nhật thuật toán tính năng Đọc (Karaoke Mode) và sửa lỗi tự động cuộn.',
+    'v2.9.50': '• Cải tiến tính năng Đọc (TTS): Hỗ trợ chạy nền khi tắt màn hình, chọn đọc từ bất kỳ đâu (Karaoke mode), và cuộn tự động.',
     'v2.9.47': '• Sửa lỗi bấm nút màu cam ở mục Chia sẻ không có tác dụng. Cấu trúc lại luồng xử lý Web Share API để tương thích hoàn toàn với trình duyệt.',
     'v2.9.47': '• Khắc phục triệt để lỗi không mở được bảng chia sẻ Zalo/Messenger trên một số trình duyệt (do trình duyệt yêu cầu thao tác chạm trực tiếp). Quy trình mới: Bấm lần 1 để chuẩn bị dữ liệu -> Bấm lần 2 để mở bảng chia sẻ.',
     'v2.9.47': '• Cải tiến tính năng Chia sẻ dữ liệu: Hỗ trợ mở trực tiếp bảng chia sẻ gốc của điện thoại (để chọn gửi qua Zalo, Messenger, Email...) thay vì chỉ tải file về máy. Cho phép import lại file sao lưu dưới định dạng .txt để tương thích tốt hơn với các nền tảng chat.',
@@ -4518,7 +4519,7 @@ const TTSService = {
         return t;
     },
 
-    splitIntoChunks(text, maxChunkLength = 250) {
+    splitIntoChunks(text, maxChunkLength = 180) {
         // Tách theo câu để không bị ngắt giữa từ ghép
         const sentences = text.match(/[^.?!;\n]+[.?!;\n]+/g) || [text];
         const chunks = [];
