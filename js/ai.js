@@ -610,7 +610,7 @@ Nhiệm vụ của bạn là phân tích và trả về ĐÚNG 1 ĐỐI TƯỢNG
     {
       "name": "Tên thuốc",
       "days": 5, // số ngày uống (số nguyên, mặc định 5 nếu không rõ)
-      "times": ["${tMorning}", "${tEvening}"], // mảng các giờ uống tự suy luận logic. Tham khảo giờ mặc định: Sáng=${tMorning}, Trưa=${tNoon}, Chiều=${tAfternoon}, Tối=${tEvening}.
+      "times": ["${tMorning}", "${tEvening}"], // mảng các giờ uống. Chỉ dùng 3 mốc mặc định: Sáng=${tMorning}, Trưa=${tNoon}, Tối=${tEvening}. Nếu bắt buộc phải có chiều thì tự thêm giờ.
       "usage": "Uống trước khi ăn", // Cách dùng (trước ăn/sau ăn/ngậm/thoa...)
       "purpose": "Giảm đau, hạ sốt", // Công dụng (ngắn gọn)
       "contraindications": "Không dùng chung với rượu bia" // Chống chỉ định hoặc lưu ý quan trọng (nếu có)

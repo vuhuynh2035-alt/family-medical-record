@@ -268,10 +268,10 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.78';
+const CURRENT_APP_VERSION = 'v2.9.79';
 const APP_CHANGELOG = {
     'v2.9.47': `• Sửa lỗi bấm nút màu cam ở mục Chia sẻ không có tác dụng. Cấu trúc lại luồng xử lý Web Share API để tương thích hoàn toàn với trình duyệt.\n• Khắc phục triệt để lỗi không mở được bảng chia sẻ Zalo/Messenger trên một số trình duyệt (do trình duyệt yêu cầu thao tác chạm trực tiếp). Quy trình mới: Bấm lần 1 để chuẩn bị dữ liệu -> Bấm lần 2 để mở bảng chia sẻ.\n• Cải tiến tính năng Chia sẻ dữ liệu: Hỗ trợ mở trực tiếp bảng chia sẻ gốc của điện thoại (để chọn gửi qua Zalo, Messenger, Email...) thay vì chỉ tải file về máy. Cho phép import lại file sao lưu dưới định dạng .txt để tương thích tốt hơn với các nền tảng chat.\n• Tối ưu hiển thị Lịch nhắc: Tự động gộp chung các chỉ định (siêu âm, xét nghiệm, tái khám...) của CÙNG MỘT bác sĩ vào chung 1 lịch hẹn cho gọn gàng. Chỉ tách riêng nếu các lịch hẹn đó thuộc về 2 bác sĩ / chuyên khoa khác nhau.\n• Sửa lỗi treo app (không hiện cảnh báo) khi điện thoại bị đầy bộ nhớ không thể lưu thêm ảnh (QuotaExceededError).\n• Nâng cấp AI Đọc hồ sơ: AI giờ đây đã biết tự động cộng trừ ngày tháng (vd: đọc "sau 3 tháng" sẽ tự tính ra ngày tái khám chính xác), đồng thời không còn bỏ sót lịch hẹn khi đọc nhiều đơn thuốc cùng lúc.\n• Tối ưu AI Đọc đơn thuốc: Ép buộc AI phải đọc và ghi chép tỉ mỉ từng loại thuốc, tuyệt đối không được tự ý tóm tắt đơn thuốc dài thành vài loại cơ bản.\n• Làm gọn giao diện: Tinh chỉnh lại bảng chỉ số xét nghiệm (ẩn chữ "Đỏ", thu nhỏ nút xóa thành dấu X) giúp màn hình gọn gàng, bớt rối mắt hơn trên điện thoại.\n• Sửa lỗi AI Nhắc lịch: Bắt buộc AI phải tách riêng từng lịch khám/xét nghiệm thành các mục độc lập, không được tự ý gộp chung lại làm mất chi tiết khi chúng trùng ngày.\n• Cải tiến AI (Smart Reminders): Khắc phục lỗi AI chỉ trích xuất được 1 lịch hẹn duy nhất và bỏ sót các lịch khác. Từ nay AI có thể đọc và đề xuất toàn bộ các lịch hẹn khám, xét nghiệm định kỳ có trong hồ sơ.\n• Dọn dẹp giao diện: Xóa bỏ nút Hướng dẫn (màu cam) khổng lồ choán chỗ ở góc phải bên dưới màn hình, vì nút Trợ giúp đã được chuyển lên thanh menu ở góc trên.\n• Gộp nút Hướng dẫn: Đơn giản hóa giao diện bằng cách gộp nút "Cẩm nang hướng dẫn" và "Trợ lý AI" vào chung 1 nút (dấu chấm hỏi). Khi bấm vào, Trợ lý AI sẽ hiện ra để bạn hỏi đáp trực tiếp, nếu muốn đọc cẩm nang, chỉ cần bấm nút "Cẩm nang" ngay góc trên của cửa sổ chat.\n• Cập nhật Giao diện: Tách đôi nút tạo lịch trên màn hình chính để thao tác nhanh hơn (Khám bệnh/Uống thuốc). Di chuyển nút Trợ lý AI (dấu ?) lên góc phải màn hình theo đúng thiết kế tiêu chuẩn.\n• Sửa lỗi (Bugfix): Khắc phục sự cố khi tạo hồ sơ bằng AI OCR (quét ảnh), hệ thống tự động sinh ra hàng loạt Lịch uống thuốc lẻ tẻ theo thiết kế cũ (bị trùng lặp với Kế hoạch nhắc thuốc thông minh).\n• Tối ưu giao diện Trợ lý AI: Thiết kế lại nút Trợ lý AI Hỏi đáp (trong Chế độ Hướng dẫn) thành biểu tượng dấu chấm hỏi nhỏ gọn, đặt ở góc trên cùng bên phải màn hình để không che khuất tầm nhìn và đồng bộ với giao diện chính.\n• Cải tiến thao tác tạo Lịch: Tách nút "Tạo lịch hẹn mới" thành 2 nút riêng biệt "+ Khám bệnh" và "+ Uống thuốc" đặt ngay bên ngoài màn hình danh sách, giúp thao tác nhanh hơn 1 bước và bố cục cân đối hơn.\n• Nâng cấp giao diện Xác nhận: Thay thế toàn bộ các thông báo xác nhận trắng đen (xóa, ghi đè dữ liệu, khôi phục) của trình duyệt bằng một giao diện Pop-up hiện đại, đẹp mắt và đồng bộ với thiết kế của ứng dụng.\n• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.\n• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).\n• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.\n• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.\n• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).\n• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.\n• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.\n• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.\n`,
-    'v2.9.78': '• Cải tiến tính năng Đọc (TTS): Hỗ trợ chạy nền khi tắt màn hình, chọn đọc từ bất kỳ đâu (Karaoke mode), và cuộn tự động.\n• Đã vá lỗi sự cố nút Tạm dừng / Tiếp tục và Tốc độ đọc trên thanh công cụ.\n• Khắc phục thuật toán Đọc Karaoke (chọn chữ để đọc) bị treo.',
+    'v2.9.79': '• Cải tiến tính năng Đọc (TTS): Hỗ trợ chạy nền khi tắt màn hình, chọn đọc từ bất kỳ đâu (Karaoke mode), và cuộn tự động.\n• Đã vá lỗi sự cố nút Tạm dừng / Tiếp tục và Tốc độ đọc trên thanh công cụ.\n• Khắc phục thuật toán Đọc Karaoke (chọn chữ để đọc) bị treo.',
     'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gần gũi và dễ hiểu hơn.',
     'v2.9.16': '• Tùy chỉnh Giờ uống thuốc: Bạn giờ đây có thể tự do thay đổi mốc giờ uống thuốc mặc định cho các buổi Sáng, Trưa, Chiều, Tối trong phần Cài đặt Hệ thống. AI sẽ tự động ưu tiên các khung giờ này khi lập kế hoạch.',
     'v2.9.15': '• Cải tiến Giao diện Lịch Uống Thuốc: Hiển thị danh sách các buổi trong ngày (Sáng/Trưa/Chiều/Tối) theo chiều dọc (dạng mở rộng accordion) để dễ đọc hơn.\n• Tra cứu nhanh thuốc: Nhấn vào tên thuốc để tìm kiếm ngay thông tin chi tiết trên Google.',
@@ -554,10 +554,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (settings.providerChat) document.getElementById('input-ai-provider-chat').value = settings.providerChat;
     else if (settings.activeProvider) document.getElementById('input-ai-provider-chat').value = settings.activeProvider;
     
-    document.getElementById('input-med-time-morning').value = settings.medTimeMorning || '08:00';
-    document.getElementById('input-med-time-noon').value = settings.medTimeNoon || '12:00';
-    document.getElementById('input-med-time-afternoon').value = settings.medTimeAfternoon || '14:00';
-    document.getElementById('input-med-time-evening').value = settings.medTimeEvening || '20:00';
+    
+    
+    
+    
 
     if (settings.geminiModel) {
         const select = document.getElementById('input-gemini-model');
@@ -956,10 +956,10 @@ function setupEventListeners() {
         
         const mutedMembers = Array.from(document.querySelectorAll('.chk-alarm-member:not(:checked)')).map(cb => cb.value);
 
-        const medTimeMorning = document.getElementById('input-med-time-morning').value || '08:00';
-        const medTimeNoon = document.getElementById('input-med-time-noon').value || '12:00';
-        const medTimeAfternoon = document.getElementById('input-med-time-afternoon').value || '14:00';
-        const medTimeEvening = document.getElementById('input-med-time-evening').value || '20:00';
+        
+        
+        
+        
 
         DataManager.saveSettings({
             geminiApiKey: geminiKey,
@@ -975,10 +975,10 @@ function setupEventListeners() {
             anthropicModel: anthropicModel,
             alarmSound: alarmSound,
             mutedMembers: mutedMembers,
-            medTimeMorning: medTimeMorning,
-            medTimeNoon: medTimeNoon,
-            medTimeAfternoon: medTimeAfternoon,
-            medTimeEvening: medTimeEvening
+            
+            
+            
+            
         });
 
         closeModal('modal-settings');
@@ -2752,10 +2752,10 @@ function setupEventListeners() {
         document.getElementById('medplan-id').value = '';
         
         const settings = DataManager.getSettings();
-        document.getElementById('medplan-time-morning').value = settings.medTimeMorning || '08:00';
-        document.getElementById('medplan-time-noon').value = settings.medTimeNoon || '12:00';
-        document.getElementById('medplan-time-afternoon').value = settings.medTimeAfternoon || '14:00';
-        document.getElementById('medplan-time-evening').value = settings.medTimeEvening || '20:00';
+        document.getElementById('medplan-time-morning').value = '08:00';
+        document.getElementById('medplan-time-noon').value = '12:00';
+        
+        document.getElementById('medplan-time-evening').value = '20:00';
 
         document.querySelectorAll('input[name="reminder_offsets"]').forEach(cb => cb.checked = false);
         const cb0 = document.querySelector('input[name="reminder_offsets"][value="0"]');
@@ -2863,7 +2863,7 @@ function setupEventListeners() {
                     <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
                         <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="morning"> Sáng</label>
                         <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="noon"> Trưa</label>
-                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="afternoon"> Chiều</label>
+                        
                         <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="evening"> Tối</label>
                     </div>
                 </div>
@@ -2911,7 +2911,6 @@ function setupEventListeners() {
             const timeMap = {
                 'morning': document.getElementById('medplan-time-morning').value,
                 'noon': document.getElementById('medplan-time-noon').value,
-                'afternoon': document.getElementById('medplan-time-afternoon').value,
                 'evening': document.getElementById('medplan-time-evening').value
             };
 
@@ -3489,10 +3488,10 @@ document.addEventListener('click', (e) => {
             document.getElementById('medplan-total-days').value = reminder.totalDays || 7;
             
             const settings = DataManager.getSettings();
-            let morningTime = settings.medTimeMorning || '08:00';
-            let noonTime = settings.medTimeNoon || '12:00';
-            let afternoonTime = settings.medTimeAfternoon || '14:00';
-            let eveningTime = settings.medTimeEvening || '20:00';
+            let morningTime = '08:00';
+            let noonTime = '12:00';
+            
+            let eveningTime = '20:00';
 
             // Phân loại các mốc thời gian có trong reminder.times vào các buổi
             if (reminder.times && Array.isArray(reminder.times)) {
@@ -3507,7 +3506,7 @@ document.addEventListener('click', (e) => {
 
             document.getElementById('medplan-time-morning').value = morningTime;
             document.getElementById('medplan-time-noon').value = noonTime;
-            document.getElementById('medplan-time-afternoon').value = afternoonTime;
+            
             document.getElementById('medplan-time-evening').value = eveningTime;
             
             const container = document.getElementById('medplan-items-container');
@@ -3516,12 +3515,11 @@ document.addEventListener('click', (e) => {
             if (reminder.medications && Array.isArray(reminder.medications)) {
                 reminder.medications.forEach(med => {
                     // Map back specific times to sessions
-                    let sessMorning = false, sessNoon = false, sessAfternoon = false, sessEvening = false;
+                    let sessMorning = false, sessNoon = false, sessEvening = false;
                     med.times.forEach(t => {
                         const hr = parseInt(t.split(':')[0]);
                         if (hr < 11) sessMorning = true;
                         else if (hr < 14) sessNoon = true;
-                        else if (hr < 18) sessAfternoon = true;
                         else sessEvening = true;
                     });
 
@@ -3545,7 +3543,7 @@ document.addEventListener('click', (e) => {
                                 <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
                                     <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="morning" ${sessMorning ? 'checked' : ''}> Sáng</label>
                                     <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="noon" ${sessNoon ? 'checked' : ''}> Trưa</label>
-                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="afternoon" ${sessAfternoon ? 'checked' : ''}> Chiều</label>
+                                    
                                     <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="evening" ${sessEvening ? 'checked' : ''}> Tối</label>
                                 </div>
                             </div>
