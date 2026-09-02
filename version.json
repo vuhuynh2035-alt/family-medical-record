@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.66",
+  "version": "v2.9.67",
   "updatedAt": "2026-09-02T02:00:00Z",
   "releaseNotes": "Cải tiến tính năng Đọc (TTS) độc lập từng phần nhỏ, chạy dưới nền và Karaoke mode"
 }
