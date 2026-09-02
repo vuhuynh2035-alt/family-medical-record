@@ -618,7 +618,7 @@ Nhiệm vụ của bạn là phân tích và trả về ĐÚNG 1 ĐỐI TƯỢNG
   ],
   "followups": [
       {
-        "title": "Tên lịch hẹn (vd: Tái khám, Xét nghiệm máu, Siêu âm, Nhắc nhở tiêm)",
+        "title": "Tên lịch hẹn (BẮT BUỘC KÈM TÊN CHUYÊN KHOA HOẶC PHÒNG KHÁM, vd: Tái khám Khoa Sản, Xét nghiệm máu Nhi Đồng... để tránh trùng lặp)",
         "date": "YYYY-MM-DD", // ngày hẹn. NẾU BÁC SĨ CHỈ GHI "sau 3 tháng" HAY "sau 1 tuần", HÃY TỰ TÍNH TOÁN RA NGÀY YYYY-MM-DD CHÍNH XÁC TỪ NGÀY KHÁM.
           "note": "Ghi chú hẹn chi tiết (BẮT BUỘC giữ lại ĐẦY ĐỦ các chỉ định xét nghiệm, siêu âm...)"
         }

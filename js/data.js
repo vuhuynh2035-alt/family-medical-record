@@ -275,7 +275,7 @@ const DataManager = {
         reminders.forEach(r => {
             // Khóa nhận diện trùng lặp: MemberID + Tiêu đề + Ngày + Giờ
             // Sử dụng r.date và r.time thay vì r.datetime vì datetime có thể undefined
-            const key = `${r.memberId}_${r.title}_${r.date || ''}_${r.time || ''}`;
+            const key = `${r.memberId}_${r.title}_${r.date || ''}_${r.time || ''}_${(r.note || '').substring(0, 15)}`;
             if (seen.has(key)) {
                 changed = true; // Phát hiện trùng lặp
             } else {
