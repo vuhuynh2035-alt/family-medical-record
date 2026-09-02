@@ -268,11 +268,11 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.51';
+const CURRENT_APP_VERSION = 'v2.9.52';
 const APP_CHANGELOG = {
-    'v2.9.51': '• Thêm tính năng tùy chọn Chế độ chạy nền (Google Audio) để khắc phục lỗi hệ điều hành chặn giọng đọc khi tắt màn hình.',
-    'v2.9.51': '• Cập nhật thuật toán tính năng Đọc (Karaoke Mode) và sửa lỗi tự động cuộn.',
-    'v2.9.51': '• Cải tiến tính năng Đọc (TTS): Hỗ trợ chạy nền khi tắt màn hình, chọn đọc từ bất kỳ đâu (Karaoke mode), và cuộn tự động.',
+    'v2.9.52': '• Thêm tính năng tùy chọn Chế độ chạy nền (Google Audio) để khắc phục lỗi hệ điều hành chặn giọng đọc khi tắt màn hình.',
+    'v2.9.52': '• Cập nhật thuật toán tính năng Đọc (Karaoke Mode) và sửa lỗi tự động cuộn.',
+    'v2.9.52': '• Cải tiến tính năng Đọc (TTS): Hỗ trợ chạy nền khi tắt màn hình, chọn đọc từ bất kỳ đâu (Karaoke mode), và cuộn tự động.',
     'v2.9.47': '• Sửa lỗi bấm nút màu cam ở mục Chia sẻ không có tác dụng. Cấu trúc lại luồng xử lý Web Share API để tương thích hoàn toàn với trình duyệt.',
     'v2.9.47': '• Khắc phục triệt để lỗi không mở được bảng chia sẻ Zalo/Messenger trên một số trình duyệt (do trình duyệt yêu cầu thao tác chạm trực tiếp). Quy trình mới: Bấm lần 1 để chuẩn bị dữ liệu -> Bấm lần 2 để mở bảng chia sẻ.',
     'v2.9.47': '• Cải tiến tính năng Chia sẻ dữ liệu: Hỗ trợ mở trực tiếp bảng chia sẻ gốc của điện thoại (để chọn gửi qua Zalo, Messenger, Email...) thay vì chỉ tải file về máy. Cho phép import lại file sao lưu dưới định dạng .txt để tương thích tốt hơn với các nền tảng chat.',
@@ -4705,6 +4705,11 @@ const TTSService = {
         this.setButtonState(true);
     },
 
+    pauseResume() {
+        if (this.isPaused) this.resume();
+        else this.pause();
+    },
+
     prepareHighlightNodes(fullCleanText) {
         // Karaoke highlight implementation
         // Wrap words in container with spans
@@ -4904,6 +4909,33 @@ const TTSService = {
         this.speed = speeds[idx];
         const btn = document.getElementById('btn-tts-speed');
         if (btn) btn.innerText = labels[idx];
+        if (this.audioFallback) this.audioFallback.playbackRate = this.speed;
+        if (typeof showToast !== 'undefined') showToast('Tốc độ đọc: ' + desc[idx]);
+        
+        // Cập nhật ngay nếu đang đọc bằng speechSynthesis
+        if (this.isPlaying && !this.isPaused && this.voiceProvider === 'system') {
+            const tempChunks = [...this.chunks];
+            const tempIdx = this.currentChunkIndex;
+            const tempBtn = this.activeBtnElement;
+            const tempType = this.currentType;
+            const tempContainer = this.activeContainerElement;
+            const titleEl = document.getElementById('tts-player-title');
+            const tempTitle = titleEl ? titleEl.title : 'Đang đọc';
+            
+            this.stop();
+            setTimeout(() => {
+                this.chunks = tempChunks;
+                this.currentChunkIndex = tempIdx;
+                this.isPlaying = true;
+                this.activeBtnElement = tempBtn;
+                this.currentType = tempType;
+                this.activeContainerElement = tempContainer;
+                this.showPlayerUI(tempTitle);
+                this.setButtonState(true);
+                this.setContainerHighlight(true);
+                this.playNextChunk();
+            }, 50);
+        }
     },
 
     showPlayerUI(title) {
