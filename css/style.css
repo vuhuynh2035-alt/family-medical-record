@@ -836,7 +836,8 @@ input::placeholder {
    giúp trải nghiệm mượt hơn mà vẫn hiển thị rõ ràng phản hồi của hệ thống. */
 #toast-container {
     position: fixed;
-    bottom: 20px;
+    top: 20px;
+    bottom: auto;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10020;
@@ -1597,23 +1598,25 @@ input::placeholder {
 
 .tts-player-bar {
     position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(15, 23, 42, 0.95);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    transform: none;
+    background: rgba(15, 23, 42, 0.98);
     color: white;
     padding: 10px 16px;
-    border-radius: 30px;
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
+    border-radius: 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(14px);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
     z-index: 10015;
-    min-width: 310px;
-    max-width: 92vw;
-    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-top: 1px solid rgba(56, 189, 248, 0.35);
+    box-sizing: border-box;
     animation: slideUpFade 0.3s ease-out;
 }
 
@@ -1682,8 +1685,8 @@ input::placeholder {
 }
 
 @keyframes slideUpFade {
-    from { transform: translate(-50%, 20px); opacity: 0; }
-    to { transform: translate(-50%, 0); opacity: 1; }
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 
