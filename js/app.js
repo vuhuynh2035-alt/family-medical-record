@@ -268,11 +268,11 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.50';
+const CURRENT_APP_VERSION = 'v2.9.51';
 const APP_CHANGELOG = {
-    'v2.9.50': '• Thêm tính năng tùy chọn Chế độ chạy nền (Google Audio) để khắc phục lỗi hệ điều hành chặn giọng đọc khi tắt màn hình.',
-    'v2.9.50': '• Cập nhật thuật toán tính năng Đọc (Karaoke Mode) và sửa lỗi tự động cuộn.',
-    'v2.9.50': '• Cải tiến tính năng Đọc (TTS): Hỗ trợ chạy nền khi tắt màn hình, chọn đọc từ bất kỳ đâu (Karaoke mode), và cuộn tự động.',
+    'v2.9.51': '• Thêm tính năng tùy chọn Chế độ chạy nền (Google Audio) để khắc phục lỗi hệ điều hành chặn giọng đọc khi tắt màn hình.',
+    'v2.9.51': '• Cập nhật thuật toán tính năng Đọc (Karaoke Mode) và sửa lỗi tự động cuộn.',
+    'v2.9.51': '• Cải tiến tính năng Đọc (TTS): Hỗ trợ chạy nền khi tắt màn hình, chọn đọc từ bất kỳ đâu (Karaoke mode), và cuộn tự động.',
     'v2.9.47': '• Sửa lỗi bấm nút màu cam ở mục Chia sẻ không có tác dụng. Cấu trúc lại luồng xử lý Web Share API để tương thích hoàn toàn với trình duyệt.',
     'v2.9.47': '• Khắc phục triệt để lỗi không mở được bảng chia sẻ Zalo/Messenger trên một số trình duyệt (do trình duyệt yêu cầu thao tác chạm trực tiếp). Quy trình mới: Bấm lần 1 để chuẩn bị dữ liệu -> Bấm lần 2 để mở bảng chia sẻ.',
     'v2.9.47': '• Cải tiến tính năng Chia sẻ dữ liệu: Hỗ trợ mở trực tiếp bảng chia sẻ gốc của điện thoại (để chọn gửi qua Zalo, Messenger, Email...) thay vì chỉ tải file về máy. Cho phép import lại file sao lưu dưới định dạng .txt để tương thích tốt hơn với các nền tảng chat.',
@@ -5049,6 +5049,69 @@ document.getElementById('btn-speak-vaccine-guide')?.addEventListener('click', ()
 document.getElementById('btn-tts-pause-resume')?.addEventListener('click', () => TTSService.pauseResume());
 document.getElementById('btn-tts-stop')?.addEventListener('click', () => TTSService.stop());
 document.getElementById('btn-tts-speed')?.addEventListener('click', () => TTSService.toggleSpeed());
+
+document.getElementById('btn-tts-mode')?.addEventListener('click', () => {
+    if (!window.TTSService) return;
+    const btn = document.getElementById('btn-tts-mode');
+    
+    if (TTSService.voiceProvider === 'system') {
+        TTSService.voiceProvider = 'google_translate';
+        localStorage.setItem('tts_voice_provider', 'google_translate');
+        document.getElementById('tts-mode-icon').innerText = 'screen_lock_portrait';
+        document.getElementById('tts-mode-text').innerText = 'Chạy nền';
+        btn.style.background = 'rgba(251, 191, 36, 0.2)'; // yellow bg
+        btn.style.color = '#fcd34d'; // yellow text
+        if (typeof showToast !== 'undefined') showToast('Đã BẬT chế độ đọc nền (có thể tắt màn hình)');
+    } else {
+        TTSService.voiceProvider = 'system';
+        localStorage.setItem('tts_voice_provider', 'system');
+        document.getElementById('tts-mode-icon').innerText = 'screen_lock_landscape';
+        document.getElementById('tts-mode-text').innerText = 'Màn hình sáng';
+        btn.style.background = 'rgba(255,255,255,0.2)';
+        btn.style.color = '#fff';
+        if (typeof showToast !== 'undefined') showToast('Đã chuyển về Giọng đọc tự nhiên (Màn hình sáng)');
+    }
+    
+    // Cập nhật ngay nếu đang đọc
+    if (TTSService.isPlaying && !TTSService.isPaused) {
+        const tempChunks = [...TTSService.chunks];
+        const tempIdx = TTSService.currentChunkIndex;
+        const tempBtn = TTSService.activeBtnElement;
+        const tempType = TTSService.currentType;
+        const tempContainer = TTSService.activeContainerElement;
+        
+        const titleEl = document.getElementById('tts-player-title');
+        const tempTitle = titleEl ? titleEl.title : 'Đang đọc';
+        
+        TTSService.stop();
+        setTimeout(() => {
+            TTSService.chunks = tempChunks;
+            TTSService.currentChunkIndex = tempIdx;
+            TTSService.isPlaying = true;
+            TTSService.activeBtnElement = tempBtn;
+            TTSService.currentType = tempType;
+            TTSService.activeContainerElement = tempContainer;
+            TTSService.showPlayerUI(tempTitle);
+            TTSService.setButtonState(true);
+            TTSService.setContainerHighlight(true);
+            TTSService.playNextChunk();
+        }, 100);
+    }
+});
+
+// Init state UI
+if (localStorage.getItem('tts_voice_provider') === 'google_translate') {
+    const icon = document.getElementById('tts-mode-icon');
+    const text = document.getElementById('tts-mode-text');
+    const btn = document.getElementById('btn-tts-mode');
+    if (icon) icon.innerText = 'screen_lock_portrait';
+    if (text) text.innerText = 'Chạy nền';
+    if (btn) {
+        btn.style.background = 'rgba(251, 191, 36, 0.2)';
+        btn.style.color = '#fcd34d';
+    }
+}
+
 
 // 6. Cài đặt Giọng đọc
 document.getElementById('btn-tts-settings')?.addEventListener('click', () => {
