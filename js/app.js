@@ -4055,6 +4055,10 @@ document.getElementById('btn-save-smart-reminders')?.addEventListener('click', (
     
     checkReminders();
     reloadRecordsAndStats();
+    
+    // Tự động chuyển sang Tab Lịch hẹn để người dùng thấy ngay kết quả
+    const tabReminders = document.querySelector('.tab-btn[data-target="tab-reminders"]');
+    if (tabReminders) tabReminders.click();
 });
 
 // Xử lý nút "Cẩm nang Vắc xin" trong Chi tiết Hồ sơ
