@@ -5044,7 +5044,6 @@ document.querySelectorAll('input[name="tts_voice_provider"]').forEach(radio => {
 });
 
 
-\n
 // ==================== AUTO SCROLL SERVICE ====================
 const AutoScrollService = {
     intervalId: null,
