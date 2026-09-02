@@ -4623,7 +4623,7 @@ const TTSService = {
         this.originalHTML = null;
     },
 
-    speak(text, title = 'Đang đọc nội dung...', btnTarget = null, type = null, containerTarget = null) {
+    speak(text, title = 'Đang đọc nội dung...', btnTarget = null, type = null, containerTarget = null, startChunkText = null) {
         if (typeof showToast !== 'undefined') {
             showToast("Bắt đầu đọc: " + (title || "").substring(0, 30) + "...");
         }
@@ -4671,6 +4671,14 @@ const TTSService = {
         this.showPlayerUI(title);
         this.setButtonState(true);
         this.setContainerHighlight(true);
+
+        if (startChunkText) {
+            const chunkLower = startChunkText.toLowerCase();
+            const chunkIndex = this.chunks.findIndex(c => chunkLower.includes(c.toLowerCase()) || c.toLowerCase().includes(chunkLower.substring(0, 20)));
+            if (chunkIndex !== -1) {
+                this.currentChunkIndex = chunkIndex;
+            }
+        }
 
         this.playNextChunk();
     },
@@ -5144,15 +5152,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // If not playing, or chunk not found, read from this specific block down to the end of its section
             const container = block.closest('.detail-section-card') || viewRecordContent;
-            
-            // Extract text from this block and all following siblings/elements inside the container
-            // A simple hack: get the full text of container, find the clicked string index, and substring it
             const fullText = container.innerText || '';
-            const idx = fullText.indexOf(clickedText);
             
-            if (idx !== -1 && window.TTSService) {
-                const textToRead = fullText.substring(idx);
-                TTSService.speak(textToRead, 'Đọc nội dung', container, 'karaoke', container);
+            if (fullText && window.TTSService) {
+                if(typeof showToast !== 'undefined') showToast("Bắt đầu đọc từ: " + clickedText.substring(0, 20) + "...");
+                TTSService.speak(fullText, 'Đọc nội dung', container, 'karaoke', container, clickedText);
             }
         });
     }
