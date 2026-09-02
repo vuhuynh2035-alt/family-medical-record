@@ -4624,6 +4624,9 @@ const TTSService = {
     },
 
     speak(text, title = 'Đang đọc nội dung...', btnTarget = null, type = null, containerTarget = null) {
+        if (typeof showToast !== 'undefined') {
+            showToast("Bắt đầu đọc: " + (title || "").substring(0, 30) + "...");
+        }
         if (this.isPlaying && this.activeBtnElement === (typeof btnTarget === 'string' ? document.querySelector(btnTarget) : btnTarget)) {
             // Pause logic if clicking the same button
             if (!this.isPaused) {
