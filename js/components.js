@@ -645,6 +645,40 @@ const UI = {
         // Reset deep chat state just in case
         document.getElementById('modal-deep-chat').classList.add('hidden');
         window.currentDeepChatHistory = [];
+
+        // Inject TTS buttons to all headings in markdown bodies so users can read section by section
+        setTimeout(() => {
+            document.querySelectorAll('#view-record-report-data .markdown-body h2, #view-record-report-data .markdown-body h3, #view-record-form-data .markdown-body h2, #view-record-form-data .markdown-body h3').forEach(heading => {
+                if(heading.querySelector('.tts-speak-btn')) return;
+                
+                const playBtn = document.createElement('button');
+                playBtn.className = 'icon-btn tts-speak-btn';
+                playBtn.style.cssText = 'font-size: 12px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; color: #8e44ad; background: rgba(142,68,173,0.1); border-radius: 12px; border: none; cursor: pointer;';
+                playBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">volume_up</span> Nghe phần này';
+                playBtn.title = 'Nghe phần này';
+                
+                playBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (window.TTSService && TTSService.isPlaying && TTSService.activeBtnElement === playBtn) {
+                        TTSService.stop();
+                        return;
+                    }
+                    
+                    let textToRead = heading.innerText.replace('Nghe phần này', '').trim() + '\\n';
+                    let nextEl = heading.nextElementSibling;
+                    const stopTags = ['H1', 'H2', 'H3'];
+                    while(nextEl && !stopTags.includes(nextEl.tagName)) {
+                        textToRead += nextEl.innerText + '\\n';
+                        nextEl = nextEl.nextElementSibling;
+                    }
+                    
+                    if (window.TTSService) {
+                        TTSService.speak(textToRead.trim(), heading.innerText.replace('volume_up', '').replace('Nghe phần này', '').trim(), playBtn, 'section', heading.closest('.markdown-body'));
+                    }
+                });
+                heading.appendChild(playBtn);
+            });
+        }, 50);
     },
 
     // ==================== 4. Render Statistics ====================

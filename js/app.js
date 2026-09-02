@@ -268,8 +268,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.47';
+const CURRENT_APP_VERSION = 'v2.9.48';
 const APP_CHANGELOG = {
+    'v2.9.48': '• Cải tiến tính năng Đọc (TTS): Hỗ trợ chạy nền khi tắt màn hình, chọn đọc từ bất kỳ đâu (Karaoke mode), và cuộn tự động.',
     'v2.9.47': '• Sửa lỗi bấm nút màu cam ở mục Chia sẻ không có tác dụng. Cấu trúc lại luồng xử lý Web Share API để tương thích hoàn toàn với trình duyệt.',
     'v2.9.47': '• Khắc phục triệt để lỗi không mở được bảng chia sẻ Zalo/Messenger trên một số trình duyệt (do trình duyệt yêu cầu thao tác chạm trực tiếp). Quy trình mới: Bấm lần 1 để chuẩn bị dữ liệu -> Bấm lần 2 để mở bảng chia sẻ.',
     'v2.9.47': '• Cải tiến tính năng Chia sẻ dữ liệu: Hỗ trợ mở trực tiếp bảng chia sẻ gốc của điện thoại (để chọn gửi qua Zalo, Messenger, Email...) thay vì chỉ tải file về máy. Cho phép import lại file sao lưu dưới định dạng .txt để tương thích tốt hơn với các nền tảng chat.',
@@ -2124,6 +2125,36 @@ function setupEventListeners() {
             const preview = document.getElementById('report-preview-mode');
             const editor = document.getElementById('report-edit-mode');
             preview.innerHTML = UI.renderMarkdown(reportMarkdown);
+            
+            // Inject TTS buttons to all headings so users can read section by section
+            preview.querySelectorAll('h2, h3').forEach(heading => {
+                const playBtn = document.createElement('button');
+                playBtn.className = 'icon-btn tts-speak-btn';
+                playBtn.style.cssText = 'font-size: 12px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; color: #8e44ad; background: rgba(142,68,173,0.1); border-radius: 12px; border: none; cursor: pointer;';
+                playBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">volume_up</span> Nghe phần này';
+                playBtn.title = 'Nghe phần này';
+                
+                playBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (window.TTSService && TTSService.isPlaying && TTSService.activeBtnElement === playBtn) {
+                        TTSService.stop();
+                        return;
+                    }
+                    
+                    let textToRead = heading.innerText.replace('Nghe phần này', '').trim() + '\n';
+                    let nextEl = heading.nextElementSibling;
+                    const stopTags = ['H1', 'H2', 'H3'];
+                    while(nextEl && !stopTags.includes(nextEl.tagName)) {
+                        textToRead += nextEl.innerText + '\n';
+                        nextEl = nextEl.nextElementSibling;
+                    }
+                    
+                    if (window.TTSService) {
+                        TTSService.speak(textToRead.trim(), heading.innerText.replace('volume_up', '').replace('Nghe phần này', '').trim(), playBtn, 'section', preview);
+                    }
+                });
+                heading.appendChild(playBtn);
+            });
             editor.value = reportMarkdown;
             preview.classList.remove('hidden');
             editor.classList.add('hidden');
@@ -4430,11 +4461,14 @@ const TTSService = {
     currentType: null,
     activeBtnElement: null,
     activeContainerElement: null,
-    speed: 0.9, // Tốc độ đọc từ tốn, ấm áp, rõ ràng cho người lớn tuổi
-    pitch: 1.05, // Cao độ giọng nữ êm dịu
+    speed: 0.9,
+    pitch: 1.05,
     audioFallback: null,
     currentUtterance: null,
     voiceProvider: localStorage.getItem('tts_voice_provider') || 'system',
+    silentAudio: null,
+    highlightNodes: [],
+    originalHTML: null,
 
     getVietnameseFemaleVoice() {
         if (!('speechSynthesis' in window)) return null;
@@ -4443,11 +4477,6 @@ const TTSService = {
             v.lang === 'vi-VN' || v.lang === 'vi_VN' || (v.lang && v.lang.toLowerCase().startsWith('vi'))
         );
         if (viVoices.length === 0) return null;
-
-        // Ưu tiên giọng nữ tiếng Việt êm dịu, tự nhiên:
-        // 1. Microsoft HoaiMy Online (Edge Natural)
-        // 2. Google Tiếng Việt (Chrome / Android)
-        // 3. Linh / Mai (iOS / macOS Enhanced)
         const femaleKeywords = ['hoaimy', 'linh', 'mai', 'female', 'tiếng việt', 'vietnam', 'vi-vn'];
         for (let kw of femaleKeywords) {
             const found = viVoices.find(v => (v.name || '').toLowerCase().includes(kw));
@@ -4459,9 +4488,15 @@ const TTSService = {
     cleanTextForSpeech(rawText) {
         if (!rawText) return '';
         let t = rawText
-            .replace(/<[^>]*>/g, ' ') // Xóa thẻ HTML
-            .replace(/[*#_`>~]/g, ' ') // Xóa ký tự markdown
-            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Giữ lại text trong markdown link
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/[*#_~`]/g, ' ')
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+            .replace(/\bvolume_up\b/gi, '') // FIX: ignore icon text
+            .replace(/Nghe phần này/gi, '')   // FIX: ignore button text
+            .replace(/Đọc tất cả/gi, '')
+            .replace(/\b(\d{1,2}):(\d{2})\b/g, '$1 giờ $2 phút') // FIX: time format
+            .replace(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/g, 'ngày $1 tháng $2 năm $3') // FIX: date format
+            .replace(/\b(\d{1,2})\/(\d{1,2})\b/g, 'ngày $1 tháng $2') // FIX: date format short
             .replace(/\bmg\b/gi, ' miligam ')
             .replace(/\bml\b/gi, ' mililit ')
             .replace(/\bkg\b/gi, ' kilogam ')
@@ -4471,7 +4506,7 @@ const TTSService = {
             .replace(/\bui\/l\b/gi, ' đơn vị trên lít ')
             .replace(/\bbpm\b/gi, ' nhịp một phút ')
             .replace(/\bHA\b/g, ' Huyết áp ')
-            .replace(/\bSpO2\b/gi, ' Độ bão hòa oxy SpO2 ')
+            .replace(/\bSpO2\b/gi, ' Độ bão hòa oxy ')
             .replace(/\blần\/ngày\b/gi, ' lần một ngày ')
             .replace(/\bviên\/ngày\b/gi, ' viên một ngày ')
             .replace(/\bĐ\/C\b/gi, ' Địa chỉ ')
@@ -4482,14 +4517,14 @@ const TTSService = {
         return t;
     },
 
-    splitIntoChunks(text, maxChunkLength = 100) {
-        // Tách văn bản thành các câu ngắn để không bao giờ bị đứng/treo trên điện thoại
-        const rawSentences = text.split(/([.,;!?\n]+)/);
+    splitIntoChunks(text, maxChunkLength = 250) {
+        // Tách theo câu để không bị ngắt giữa từ ghép
+        const sentences = text.match(/[^.?!;\n]+[.?!;\n]+/g) || [text];
         const chunks = [];
         let cur = '';
 
-        for (let i = 0; i < rawSentences.length; i++) {
-            const piece = (rawSentences[i] || '').trim();
+        for (let s of sentences) {
+            const piece = s.trim();
             if (!piece) continue;
             if ((cur + ' ' + piece).length <= maxChunkLength) {
                 cur += (cur ? ' ' : '') + piece;
@@ -4500,7 +4535,7 @@ const TTSService = {
         }
         if (cur) chunks.push(cur);
         
-        // Đảm bảo tuyệt đối không có chunk nào vượt quá maxChunkLength (nếu câu thiếu dấu câu)
+        // Cứu cánh nếu có 1 câu quá dài không có dấu chấm
         const finalChunks = [];
         for (let c of chunks) {
             if (c.length > maxChunkLength) {
@@ -4533,15 +4568,8 @@ const TTSService = {
         if (record.doctor) parts.push(`Bác sĩ phụ trách: ${record.doctor}.`);
         if (record.type) parts.push(`Phân loại: ${record.type}.`);
         if (record.disease) parts.push(`Chẩn đoán kết luận: ${record.disease}.`);
-
-        if (record.treatment) {
-            parts.push(`Chỉ định điều trị và đơn thuốc: ${record.treatment}.`);
-        }
-
-        if (record.medicationAnalysis) {
-            parts.push(`Phân tích đơn thuốc chuyên sâu: ${record.medicationAnalysis}.`);
-        }
-
+        if (record.treatment) parts.push(`Chỉ định điều trị và đơn thuốc: ${record.treatment}.`);
+        if (record.medicationAnalysis) parts.push(`Phân tích đơn thuốc chuyên sâu: ${record.medicationAnalysis}.`);
         if (record.note) parts.push(`Lời khuyên dặn dò của bác sĩ: ${record.note}.`);
         if (record.cost) parts.push(`Chi phí khám chữa bệnh: ${UI.formatCurrency ? UI.formatCurrency(record.cost) : record.cost + ' đồng'}.`);
 
@@ -4550,9 +4578,7 @@ const TTSService = {
         if (record.hr) vitals.push(`Nhịp tim: ${record.hr} nhịp một phút`);
         if (record.temp) vitals.push(`Thân nhiệt: ${record.temp} độ C`);
         if (record.spo2) vitals.push(`Độ bão hòa oxy máu: ${record.spo2} phần trăm`);
-        if (vitals.length > 0) {
-            parts.push(`Chỉ số sinh hiệu cơ thể: ${vitals.join(', ')}.`);
-        }
+        if (vitals.length > 0) parts.push(`Chỉ số sinh hiệu cơ thể: ${vitals.join(', ')}.`);
 
         if (record.symptoms) parts.push(`Triệu chứng ghi nhận: ${record.symptoms}.`);
         if (record.labs) parts.push(`Kết quả cận lâm sàng: ${record.labs}.`);
@@ -4567,27 +4593,58 @@ const TTSService = {
                 parts.push(`Các chỉ số xét nghiệm bình thường: ${normalFields.map(f => f.key + ' là ' + f.value).join(', ')}.`);
             }
         }
-
         if (record.comprehensiveReport) {
             parts.push(`Báo cáo nhận xét chuyên sâu từ trí tuệ nhân tạo: ${record.comprehensiveReport}.`);
         }
-
         return parts.join(' ');
     },
 
+    playSilentAudio() {
+        if (!this.silentAudio) {
+            // A short silent wav file
+            this.silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+            this.silentAudio.loop = true;
+        }
+        this.silentAudio.play().catch(e => console.log('Silent audio block', e));
+    },
+
+    stopSilentAudio() {
+        if (this.silentAudio) {
+            this.silentAudio.pause();
+            this.silentAudio.currentTime = 0;
+        }
+    },
+
+    restoreOriginalHTML() {
+        if (this.activeContainerElement && this.originalHTML) {
+            // Khôi phục lại HTML ban đầu sau khi tô sáng
+            this.activeContainerElement.innerHTML = this.originalHTML;
+        }
+        this.originalHTML = null;
+    },
+
     speak(text, title = 'Đang đọc nội dung...', btnTarget = null, type = null, containerTarget = null) {
+        if (this.isPlaying && this.activeBtnElement === (typeof btnTarget === 'string' ? document.querySelector(btnTarget) : btnTarget)) {
+            // Pause logic if clicking the same button
+            if (!this.isPaused) {
+                this.pause();
+            } else {
+                this.resume();
+            }
+            return;
+        }
+        
         this.stop();
 
-        // Mở khóa âm thanh cho trình duyệt di động
+        // Mở khóa âm thanh
         if ('speechSynthesis' in window) {
-            try {
-                window.speechSynthesis.resume();
-            } catch(e){}
+            try { window.speechSynthesis.resume(); } catch(e){}
         }
+        
+        this.playSilentAudio(); // Giữ cho hệ thống chạy ngầm khi tắt màn hình
 
         const clean = this.cleanTextForSpeech(text);
         if (!clean) {
-            showToast('Không có nội dung văn bản để đọc.', 'error');
             return;
         }
 
@@ -4598,19 +4655,14 @@ const TTSService = {
         this.isPlaying = true;
         this.isPaused = false;
         this.currentType = type;
-
-        // Resolve Button Element
-        if (typeof btnTarget === 'string') {
-            this.activeBtnElement = document.querySelector(btnTarget);
-        } else {
-            this.activeBtnElement = btnTarget;
-        }
-
-        // Resolve Container Element
-        if (typeof containerTarget === 'string') {
-            this.activeContainerElement = document.querySelector(containerTarget);
-        } else {
-            this.activeContainerElement = containerTarget;
+        
+        this.activeBtnElement = typeof btnTarget === 'string' ? document.querySelector(btnTarget) : btnTarget;
+        this.activeContainerElement = typeof containerTarget === 'string' ? document.querySelector(containerTarget) : containerTarget;
+        
+        // Chuẩn bị DOM cho hiệu ứng chữ phát sáng
+        if (this.activeContainerElement) {
+            this.originalHTML = this.activeContainerElement.innerHTML;
+            this.prepareHighlightNodes(clean);
         }
 
         this.showPlayerUI(title);
@@ -4619,18 +4671,71 @@ const TTSService = {
 
         this.playNextChunk();
     },
+    
+    pause() {
+        if (!this.isPlaying) return;
+        this.isPaused = true;
+        if ('speechSynthesis' in window) window.speechSynthesis.pause();
+        if (this.audioFallback) this.audioFallback.pause();
+        const pauseIcon = document.getElementById('tts-pause-icon');
+        if (pauseIcon) pauseIcon.innerText = 'play_arrow';
+        this.setButtonState(false);
+    },
+    
+    resume() {
+        if (!this.isPlaying) return;
+        this.isPaused = false;
+        if ('speechSynthesis' in window) window.speechSynthesis.resume();
+        if (this.audioFallback) this.audioFallback.play();
+        const pauseIcon = document.getElementById('tts-pause-icon');
+        if (pauseIcon) pauseIcon.innerText = 'pause';
+        this.setButtonState(true);
+    },
+
+    prepareHighlightNodes(fullCleanText) {
+        // Karaoke highlight implementation
+        // Wrap words in container with spans
+        if (!this.activeContainerElement) return;
+        
+        // We will do a simple block highlight since word-by-word modifies DOM too much and breaks layout
+        // Highlight the current chunk
+    },
+
+    highlightChunk(chunkText) {
+        if (!this.activeContainerElement) return;
+        // Simple approach: find the element containing the text and highlight it
+        // Scroll into view
+        const els = this.activeContainerElement.querySelectorAll('p, li, h1, h2, h3, h4, div');
+        let matched = null;
+        const chunkLower = chunkText.toLowerCase();
+        els.forEach(el => {
+            el.style.backgroundColor = '';
+            el.style.color = '';
+            el.style.transition = 'all 0.3s';
+            if (!matched && el.innerText && chunkLower.includes(el.innerText.trim().toLowerCase().substring(0, 20))) {
+                matched = el;
+            }
+        });
+        
+        if (matched) {
+            matched.style.backgroundColor = 'rgba(255, 235, 59, 0.4)';
+            matched.style.color = '#d35400';
+            matched.style.borderRadius = '4px';
+            matched.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    },
 
     playNextChunk() {
         if (!this.isPlaying || this.isPaused) return;
 
         if (this.currentChunkIndex >= this.chunks.length) {
             this.stop();
-            showToast('Đã đọc xong toàn bộ nội dung.', 'success');
             return;
         }
 
         const chunkText = this.chunks[this.currentChunkIndex];
         this.updatePlayerSubtitle(chunkText);
+        this.highlightChunk(chunkText);
 
         if (this.voiceProvider === 'google_translate') {
             this.playChunkWithAudioFallback(chunkText);
@@ -4640,7 +4745,7 @@ const TTSService = {
         const voice = this.getVietnameseFemaleVoice();
         const hasNativeVi = 'speechSynthesis' in window && (voice || !/Android/i.test(navigator.userAgent));
 
-        if (hasNativeVi && 'speechSynthesis' in window) {
+        if (hasNativeVi) {
             const utterance = new SpeechSynthesisUtterance(chunkText);
             utterance.lang = 'vi-VN';
             utterance.rate = this.speed;
@@ -4650,12 +4755,12 @@ const TTSService = {
             utterance.onend = () => {
                 if (this.isPlaying && !this.isPaused) {
                     this.currentChunkIndex++;
-                    setTimeout(() => this.playNextChunk(), 120);
+                    setTimeout(() => this.playNextChunk(), 50);
                 }
             };
 
             utterance.onerror = (e) => {
-                console.warn('SpeechSynthesis error, fallback to audio stream:', e);
+                console.warn('SpeechSynthesis error:', e);
                 this.playChunkWithAudioFallback(chunkText);
             };
 
@@ -4680,46 +4785,20 @@ const TTSService = {
         this.audioFallback.onended = () => {
             if (this.isPlaying && !this.isPaused) {
                 this.currentChunkIndex++;
-                setTimeout(() => this.playNextChunk(), 120);
+                setTimeout(() => this.playNextChunk(), 50);
             }
         };
 
         this.audioFallback.onerror = () => {
             this.currentChunkIndex++;
-            setTimeout(() => this.playNextChunk(), 120);
+            setTimeout(() => this.playNextChunk(), 50);
         };
-
-        this.audioFallback.play().catch(err => {
-            console.warn('Audio play fallback error:', err);
+        
+        this.audioFallback.play().catch(e => {
+            console.error('Audio play failed', e);
             this.currentChunkIndex++;
-            setTimeout(() => this.playNextChunk(), 150);
+            setTimeout(() => this.playNextChunk(), 50);
         });
-    },
-
-    pauseResume() {
-        if (!this.isPlaying) return;
-        const icon = document.getElementById('tts-pause-icon');
-        if (this.isPaused) {
-            this.isPaused = false;
-            if (icon) icon.innerText = 'pause';
-            if (this.audioFallback && !this.audioFallback.paused) {
-                this.audioFallback.play();
-            } else if ('speechSynthesis' in window) {
-                window.speechSynthesis.resume();
-            }
-            this.playNextChunk();
-            showToast('Tiếp tục đọc');
-        } else {
-            this.isPaused = true;
-            if (icon) icon.innerText = 'play_arrow';
-            if (this.audioFallback) {
-                this.audioFallback.pause();
-            }
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.pause();
-            }
-            showToast('Đã tạm dừng đọc');
-        }
     },
 
     stop() {
@@ -4730,6 +4809,8 @@ const TTSService = {
             this.audioFallback.pause();
             this.audioFallback.currentTime = 0;
         }
+        this.stopSilentAudio();
+        
         this.isPlaying = false;
         this.isPaused = false;
         this.currentType = null;
@@ -4738,6 +4819,15 @@ const TTSService = {
         this.hidePlayerUI();
         this.setButtonState(false);
         this.setContainerHighlight(false);
+        
+        if (this.activeContainerElement) {
+            const els = this.activeContainerElement.querySelectorAll('*');
+            els.forEach(el => {
+                el.style.backgroundColor = '';
+                el.style.color = '';
+            });
+        }
+        
         this.activeBtnElement = null;
         this.activeContainerElement = null;
     },
@@ -4752,14 +4842,16 @@ const TTSService = {
         this.speed = speeds[idx];
         const btn = document.getElementById('btn-tts-speed');
         if (btn) btn.innerText = labels[idx];
-        showToast(`Tốc độ đọc: ${labels[idx]} (${desc[idx]})`);
     },
 
     showPlayerUI(title) {
         const bar = document.getElementById('tts-player-bar');
         const titleEl = document.getElementById('tts-player-title');
         const pauseIcon = document.getElementById('tts-pause-icon');
-        if (titleEl) titleEl.innerText = title;
+        if (titleEl) {
+            titleEl.innerText = title;
+            titleEl.title = title;
+        }
         if (pauseIcon) pauseIcon.innerText = 'pause';
         if (bar) bar.classList.remove('hidden');
     },
@@ -4790,23 +4882,24 @@ const TTSService = {
         document.querySelectorAll('.tts-speak-btn').forEach(btn => {
             btn.classList.remove('speaking');
             const isAllBtn = btn.id === 'btn-speak-record';
-            btn.innerHTML = `
-                <span class="material-symbols-rounded" style="font-size: ${isAllBtn ? 16 : 14}px;">volume_up</span>
-                <span>${isAllBtn ? 'Đọc tất cả' : 'Đọc'}</span>
-            `;
+            
+            // Fix for dynamic smaller buttons not getting wiped completely
+            if (btn.classList.contains('icon-btn') || !isAllBtn && !btn.classList.contains('btn-speak-section')) {
+                btn.innerHTML = `<span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">volume_up</span> Nghe phần này`;
+            } else {
+                btn.innerHTML = `<span class="material-symbols-rounded" style="font-size: ${isAllBtn ? 16 : 14}px;">volume_up</span> <span>${isAllBtn ? 'Đọc tất cả' : 'Đọc'}</span>`;
+            }
         });
 
         if (isSpeaking && this.activeBtnElement) {
             this.activeBtnElement.classList.add('speaking');
             this.activeBtnElement.innerHTML = `
-                <div class="sound-wave-bars">
-                    <span class="bar b1"></span>
-                    <span class="bar b2"></span>
-                    <span class="bar b3"></span>
-                    <span class="bar b4"></span>
-                    <span class="bar b5"></span>
+                <div class="sound-wave-bars" style="display:inline-flex; align-items:center;">
+                    <span class="bar b1" style="height:10px; margin:0 1px; width:3px; background:currentColor; animation:soundWaveAnim 1s infinite;"></span>
+                    <span class="bar b2" style="height:14px; margin:0 1px; width:3px; background:currentColor; animation:soundWaveAnim 1.2s infinite;"></span>
+                    <span class="bar b3" style="height:10px; margin:0 1px; width:3px; background:currentColor; animation:soundWaveAnim 0.8s infinite;"></span>
                 </div>
-                <span>Dừng</span>
+                <span style="margin-left: 4px;">Dừng</span>
             `;
         }
     }
@@ -4914,3 +5007,102 @@ document.querySelectorAll('input[name="tts_voice_provider"]').forEach(radio => {
 });
 
 
+\n
+// ==================== AUTO SCROLL SERVICE ====================
+const AutoScrollService = {
+    intervalId: null,
+    isScrolling: false,
+    speed: 1, 
+    
+    toggle() {
+        if (this.isScrolling) this.stop();
+        else this.start();
+    },
+    
+    start() {
+        this.isScrolling = true;
+        const icon = document.getElementById('auto-scroll-icon');
+        const text = document.getElementById('auto-scroll-text');
+        if(icon) icon.innerText = 'pause';
+        if(text) text.innerText = 'Dừng cuộn';
+        
+        const modalBody = document.querySelector('#modal-view-record .modal-body');
+        if (!modalBody) return;
+        
+        this.intervalId = setInterval(() => {
+            modalBody.scrollTop += this.speed;
+            if (modalBody.scrollTop + modalBody.clientHeight >= modalBody.scrollHeight - 1) {
+                this.stop();
+            }
+        }, 30);
+    },
+    
+    stop() {
+        this.isScrolling = false;
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        const icon = document.getElementById('auto-scroll-icon');
+        const text = document.getElementById('auto-scroll-text');
+        if(icon) icon.innerText = 'arrow_downward';
+        if(text) text.innerText = 'Cuộn tự động';
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btn-auto-scroll')?.addEventListener('click', () => {
+        AutoScrollService.toggle();
+    });
+    
+    const modalBody = document.querySelector('#modal-view-record .modal-body');
+    if (modalBody) {
+        modalBody.addEventListener('wheel', () => AutoScrollService.stop());
+        modalBody.addEventListener('touchstart', () => AutoScrollService.stop());
+    }
+
+    // ==================== KARAOKE CLICK TO READ ====================
+    const viewRecordContent = document.getElementById('view-record-content');
+    if (viewRecordContent) {
+        viewRecordContent.addEventListener('click', (e) => {
+            if (e.target.closest('button') || e.target.closest('a')) return;
+            
+            const block = e.target.closest('p, li, h1, h2, h3, h4, th, td, div.markdown-body > div');
+            if (!block || !block.innerText.trim()) return;
+            
+            const clickedText = block.innerText.trim();
+            if (clickedText.length < 5) return; // ignore tiny clicks
+
+            // If TTS is currently playing, jump to chunk
+            if (window.TTSService && TTSService.isPlaying && TTSService.chunks.length > 0) {
+                const chunkLower = clickedText.toLowerCase();
+                const chunkIndex = TTSService.chunks.findIndex(c => chunkLower.includes(c.toLowerCase()) || c.toLowerCase().includes(chunkLower.substring(0, 20)));
+                
+                if (chunkIndex !== -1) {
+                    TTSService.currentChunkIndex = chunkIndex;
+                    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                    if (TTSService.audioFallback) {
+                        TTSService.audioFallback.pause();
+                        TTSService.audioFallback.currentTime = 0;
+                    }
+                    TTSService.playNextChunk(); 
+                    if(typeof showToast !== 'undefined') showToast("Đã chuyển vị trí đọc tới: " + clickedText.substring(0, 20) + "...");
+                    return;
+                }
+            }
+            
+            // If not playing, or chunk not found, read from this specific block down to the end of its section
+            const container = block.closest('.detail-section-card') || viewRecordContent;
+            
+            // Extract text from this block and all following siblings/elements inside the container
+            // A simple hack: get the full text of container, find the clicked string index, and substring it
+            const fullText = container.innerText || '';
+            const idx = fullText.indexOf(clickedText);
+            
+            if (idx !== -1 && window.TTSService) {
+                const textToRead = fullText.substring(idx);
+                TTSService.speak(textToRead, 'Đọc nội dung', container, 'karaoke', container);
+            }
+        });
+    }
+});
