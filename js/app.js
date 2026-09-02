@@ -4771,8 +4771,6 @@ const TTSService = {
         }
 
         const chunkText = this.chunks[this.currentChunkIndex];
-        this.updatePlayerSubtitle(chunkText);
-        this.highlightChunk(chunkText);
 
         if (this.voiceProvider === 'google_translate') {
             this.playChunkWithAudioFallback(chunkText);
@@ -4788,6 +4786,13 @@ const TTSService = {
             utterance.rate = this.speed;
             utterance.pitch = this.pitch;
             if (voice) utterance.voice = voice;
+
+            utterance.onstart = () => {
+                if (this.isPlaying && !this.isPaused) {
+                    this.updatePlayerSubtitle(chunkText);
+                    this.highlightChunk(chunkText);
+                }
+            };
 
             utterance.onend = () => {
                 if (this.isPlaying && !this.isPaused) {
@@ -4818,6 +4823,13 @@ const TTSService = {
         }
         this.audioFallback.src = url;
         this.audioFallback.playbackRate = this.speed;
+        
+        this.audioFallback.onplay = () => {
+            if (this.isPlaying && !this.isPaused) {
+                this.updatePlayerSubtitle(chunkText);
+                this.highlightChunk(chunkText);
+            }
+        };
 
         this.audioFallback.onended = () => {
             if (this.isPlaying && !this.isPaused) {
