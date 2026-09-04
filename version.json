@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.86",
-  "updatedAt": "2026-09-02T02:00:00Z",
-  "releaseNotes": "Cải tiến tính năng Đọc (TTS) độc lập từng phần nhỏ, chạy dưới nền và Karaoke mode"
+  "version": "v2.9.87",
+  "updatedAt": "2026-09-04T07:53:55.508Z",
+  "releaseNotes": "Nâng cấp tính năng Đồng bộ Lịch điện thoại (Báo thức) theo chuẩn quốc tế RFC 5545, hỗ trợ mở nhanh Google Calendar và hướng dẫn 3 bước cho iPhone/Android"
 }

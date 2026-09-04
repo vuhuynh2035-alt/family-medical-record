@@ -810,7 +810,7 @@ const UI = {
                     <span class="record-date" style="color: #3b82f6">${this.escapeHtml(this.formatDate(plan.startDate))} - ${this.escapeHtml(this.formatDate(plan.endDate))}</span>
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <span class="type-badge" style="background: #bfdbfe; color: #1d4ed8; margin: 0;">${plan.times.length} lần/ngày</span>
-                        ${showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-edit-reminder" data-id="${this.escapeHtml(plan.id)}" title="Sửa lịch uống thuốc" style="width: 28px; height: 28px; padding: 0;"><span class="material-symbols-rounded" style="font-size: 16px;">edit</span></button>`}
+                        ${showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-card-export-ics" data-id="${this.escapeHtml(plan.id)}" title="Thêm vào Lịch điện thoại (Báo thức)" style="width: 28px; height: 28px; padding: 0; color: #10b981;"><span class="material-symbols-rounded" style="font-size: 16px;">calendar_add_on</span></button><button class="icon-btn neumorphic-btn btn-edit-reminder" data-id="${this.escapeHtml(plan.id)}" title="Sửa lịch uống thuốc" style="width: 28px; height: 28px; padding: 0;"><span class="material-symbols-rounded" style="font-size: 16px;">edit</span></button>`}
                     </div>
                 </div>
                 <div class="record-body" style="grid-template-columns: 1fr;">
@@ -825,7 +825,7 @@ const UI = {
             `;
             
             el.addEventListener('click', (e) => {
-                if (e.target.closest('.btn-edit-reminder')) return;
+                if (e.target.closest('.btn-edit-reminder') || e.target.closest('.btn-card-export-ics')) return;
                 if (typeof window.openMedicationPlanModal === 'function') {
                     window.openMedicationPlanModal(plan);
                 }
@@ -890,7 +890,7 @@ const UI = {
                             <input type="checkbox" class="chk-complete-reminder" data-id="${this.escapeHtml(rm.id)}" aria-label="Hoàn thành lịch hẹn" ${rm.completed ? 'checked' : ''} style="width:16px;height:16px;"> Hoàn thành
                         </label>
                         ${!showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-go-member" data-id="${this.escapeHtml(rm.memberId)}" title="Xem hồ sơ"><span class="material-symbols-rounded">person</span></button>`}
-                        ${showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-edit-reminder" data-id="${this.escapeHtml(rm.id)}" title="Sửa lịch hẹn"><span class="material-symbols-rounded">edit</span></button>`}
+                        ${showMemberName ? '' : `<button class="icon-btn neumorphic-btn btn-card-export-ics" data-id="${this.escapeHtml(rm.id)}" title="Thêm vào Lịch điện thoại (Báo thức)" style="color: #10b981;"><span class="material-symbols-rounded">calendar_add_on</span></button><button class="icon-btn neumorphic-btn btn-edit-reminder" data-id="${this.escapeHtml(rm.id)}" title="Sửa lịch hẹn"><span class="material-symbols-rounded">edit</span></button>`}
                     </div>
                 `;
                 parentEl.appendChild(el);

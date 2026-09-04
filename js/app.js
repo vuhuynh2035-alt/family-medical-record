@@ -268,8 +268,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.86';
+const CURRENT_APP_VERSION = 'v2.9.87';
 const APP_CHANGELOG = {
+    'v2.9.87': '• Nâng cấp tính năng Thêm vào Lịch điện thoại (Báo thức): Chuẩn hóa tệp .ics theo chuẩn quốc tế RFC 5545, tự động kích hoạt báo thức chuẩn xác trên mọi thiết bị.\n• Mở nhanh trên Google Calendar: Cho phép thêm ngay lịch uống thuốc/khám bệnh vào Google Calendar chỉ với 1 chạm, không cần tải tệp thủ công.\n• Bổ sung hộp thoại hướng dẫn 3 bước chi tiết cho iPhone, Samsung và điện thoại Android.\n• Thêm biểu tượng Lịch nhanh trên từng thẻ lịch hẹn ở màn hình chính.',
     'v2.9.47': `• Sửa lỗi bấm nút màu cam ở mục Chia sẻ không có tác dụng. Cấu trúc lại luồng xử lý Web Share API để tương thích hoàn toàn với trình duyệt.\n• Khắc phục triệt để lỗi không mở được bảng chia sẻ Zalo/Messenger trên một số trình duyệt (do trình duyệt yêu cầu thao tác chạm trực tiếp). Quy trình mới: Bấm lần 1 để chuẩn bị dữ liệu -> Bấm lần 2 để mở bảng chia sẻ.\n• Cải tiến tính năng Chia sẻ dữ liệu: Hỗ trợ mở trực tiếp bảng chia sẻ gốc của điện thoại (để chọn gửi qua Zalo, Messenger, Email...) thay vì chỉ tải file về máy. Cho phép import lại file sao lưu dưới định dạng .txt để tương thích tốt hơn với các nền tảng chat.\n• Tối ưu hiển thị Lịch nhắc: Tự động gộp chung các chỉ định (siêu âm, xét nghiệm, tái khám...) của CÙNG MỘT bác sĩ vào chung 1 lịch hẹn cho gọn gàng. Chỉ tách riêng nếu các lịch hẹn đó thuộc về 2 bác sĩ / chuyên khoa khác nhau.\n• Sửa lỗi treo app (không hiện cảnh báo) khi điện thoại bị đầy bộ nhớ không thể lưu thêm ảnh (QuotaExceededError).\n• Nâng cấp AI Đọc hồ sơ: AI giờ đây đã biết tự động cộng trừ ngày tháng (vd: đọc "sau 3 tháng" sẽ tự tính ra ngày tái khám chính xác), đồng thời không còn bỏ sót lịch hẹn khi đọc nhiều đơn thuốc cùng lúc.\n• Tối ưu AI Đọc đơn thuốc: Ép buộc AI phải đọc và ghi chép tỉ mỉ từng loại thuốc, tuyệt đối không được tự ý tóm tắt đơn thuốc dài thành vài loại cơ bản.\n• Làm gọn giao diện: Tinh chỉnh lại bảng chỉ số xét nghiệm (ẩn chữ "Đỏ", thu nhỏ nút xóa thành dấu X) giúp màn hình gọn gàng, bớt rối mắt hơn trên điện thoại.\n• Sửa lỗi AI Nhắc lịch: Bắt buộc AI phải tách riêng từng lịch khám/xét nghiệm thành các mục độc lập, không được tự ý gộp chung lại làm mất chi tiết khi chúng trùng ngày.\n• Cải tiến AI (Smart Reminders): Khắc phục lỗi AI chỉ trích xuất được 1 lịch hẹn duy nhất và bỏ sót các lịch khác. Từ nay AI có thể đọc và đề xuất toàn bộ các lịch hẹn khám, xét nghiệm định kỳ có trong hồ sơ.\n• Dọn dẹp giao diện: Xóa bỏ nút Hướng dẫn (màu cam) khổng lồ choán chỗ ở góc phải bên dưới màn hình, vì nút Trợ giúp đã được chuyển lên thanh menu ở góc trên.\n• Gộp nút Hướng dẫn: Đơn giản hóa giao diện bằng cách gộp nút "Cẩm nang hướng dẫn" và "Trợ lý AI" vào chung 1 nút (dấu chấm hỏi). Khi bấm vào, Trợ lý AI sẽ hiện ra để bạn hỏi đáp trực tiếp, nếu muốn đọc cẩm nang, chỉ cần bấm nút "Cẩm nang" ngay góc trên của cửa sổ chat.\n• Cập nhật Giao diện: Tách đôi nút tạo lịch trên màn hình chính để thao tác nhanh hơn (Khám bệnh/Uống thuốc). Di chuyển nút Trợ lý AI (dấu ?) lên góc phải màn hình theo đúng thiết kế tiêu chuẩn.\n• Sửa lỗi (Bugfix): Khắc phục sự cố khi tạo hồ sơ bằng AI OCR (quét ảnh), hệ thống tự động sinh ra hàng loạt Lịch uống thuốc lẻ tẻ theo thiết kế cũ (bị trùng lặp với Kế hoạch nhắc thuốc thông minh).\n• Tối ưu giao diện Trợ lý AI: Thiết kế lại nút Trợ lý AI Hỏi đáp (trong Chế độ Hướng dẫn) thành biểu tượng dấu chấm hỏi nhỏ gọn, đặt ở góc trên cùng bên phải màn hình để không che khuất tầm nhìn và đồng bộ với giao diện chính.\n• Cải tiến thao tác tạo Lịch: Tách nút "Tạo lịch hẹn mới" thành 2 nút riêng biệt "+ Khám bệnh" và "+ Uống thuốc" đặt ngay bên ngoài màn hình danh sách, giúp thao tác nhanh hơn 1 bước và bố cục cân đối hơn.\n• Nâng cấp giao diện Xác nhận: Thay thế toàn bộ các thông báo xác nhận trắng đen (xóa, ghi đè dữ liệu, khôi phục) của trình duyệt bằng một giao diện Pop-up hiện đại, đẹp mắt và đồng bộ với thiết kế của ứng dụng.\n• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.\n• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).\n• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.\n• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.\n• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).\n• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.\n• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.\n• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.\n`,
     'v2.9.86': '• Cải tiến tính năng Đọc (TTS): Hỗ trợ chạy nền khi tắt màn hình, chọn đọc từ bất kỳ đâu (Karaoke mode), và cuộn tự động.\n• Đã vá lỗi sự cố nút Tạm dừng / Tiếp tục và Tốc độ đọc trên thanh công cụ.\n• Khắc phục thuật toán Đọc Karaoke (chọn chữ để đọc) bị treo.',
     'v2.9.17': '• Tối ưu Giao diện Lịch uống thuốc: Hiển thị tràn viền (full màn hình) giúp bạn dễ dàng đọc chi tiết hơn.\n• Tự động chọn giờ thông minh: Khi mở Lịch uống thuốc, hệ thống sẽ tự động phân tích thời gian thực và mở sẵn tab lịch uống thuốc tiếp theo trong ngày để bạn không cần tự tìm kiếm.\n• Đổi tên: Chuyển tên gọi từ "Kế hoạch uống thuốc" sang "Lịch uống thuốc" cho gần gũi và dễ hiểu hơn.',
@@ -5463,68 +5464,211 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- ICS EXPORT LOGIC ---
-window.exportToICS = function(planOrReminder) {
-    let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//FamilyMedicalRecord//VI\r\n";
+// --- ICS EXPORT & CALENDAR SYNC LOGIC ---
 
-    const formatDateICS = (dateStr, timeStr) => {
-        const d = new Date(`${dateStr}T${timeStr}:00`);
-        return d.toISOString().replace(/[-:]/g, '').split('.')[0] + "Z";
-    };
+function escapeICSText(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/\\/g, '\\\\')
+        .replace(/;/g, '\\;')
+        .replace(/,/g, '\\,')
+        .replace(/\r?\n/g, '\\n');
+}
 
-    if (planOrReminder.type === 'medication_plan') {
-        const title = planOrReminder.title || "Lịch Uống Thuốc";
-        
-        planOrReminder.times.forEach(t => {
-            const dtStart = formatDateICS(planOrReminder.startDate, t);
-            // End time is 15 minutes after start
-            const dEnd = new Date(new Date(`${planOrReminder.startDate}T${t}:00`).getTime() + 15 * 60000);
-            const dtEnd = dEnd.toISOString().replace(/[-:]/g, '').split('.')[0] + "Z";
+function formatDateICSLocal(dateStr, timeStr) {
+    const cleanDate = (dateStr || '').replace(/-/g, '');
+    const cleanTime = (timeStr || '08:00').replace(/:/g, '') + '00';
+    return cleanDate + 'T' + cleanTime;
+}
+
+function formatEndDateICSLocal(dateStr, timeStr, durationMinutes = 15) {
+    const d = new Date(`${dateStr}T${timeStr}:00`);
+    const dEnd = new Date(d.getTime() + durationMinutes * 60000);
+    const y = dEnd.getFullYear();
+    const m = String(dEnd.getMonth() + 1).padStart(2, '0');
+    const day = String(dEnd.getDate()).padStart(2, '0');
+    const h = String(dEnd.getHours()).padStart(2, '0');
+    const min = String(dEnd.getMinutes()).padStart(2, '0');
+    const s = String(dEnd.getSeconds()).padStart(2, '0');
+    return '' + y + m + day + 'T' + h + min + s;
+}
+
+function buildRFC5545ICS(item) {
+    const nowUTCStamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//FamilyMedicalRecord//VI\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nX-WR-CALNAME:Lịch Y Tế Gia Đình\r\nX-WR-TIMEZONE:Asia/Ho_Chi_Minh\r\n';
+    const googleLinks = [];
+    const rawTitle = item.title || (item.type === 'medication_plan' ? 'Lịch Uống Thuốc' : 'Lịch Hẹn Y Tế');
+    const cleanTitle = rawTitle.replace(/[\\/:*?"<>|]/g, '_');
+    const fileName = cleanTitle + '.ics';
+
+    if (item.type === 'medication_plan') {
+        const times = (item.times && item.times.length > 0) ? item.times : ['08:00', '12:00', '20:00'];
+        const totalDays = parseInt(item.totalDays) || 5;
+
+        times.forEach((t, idx) => {
+            const dtStart = formatDateICSLocal(item.startDate, t);
+            const dtEnd = formatEndDateICSLocal(item.startDate, t, 15);
+            const medsForTime = (item.medications || []).filter(m => m.times && m.times.includes(t));
             
-            // Build descriptions
-            const medsForTime = planOrReminder.medications.filter(m => m.times && m.times.includes(t));
-            let desc = "Cần uống:\\n";
-            medsForTime.forEach(m => desc += `- ${m.name} (${m.usage})\\n`);
+            let plainLines = [`Cần uống thuốc (${t}):`];
+            if (medsForTime.length > 0) {
+                medsForTime.forEach(m => {
+                    plainLines.push('• ' + m.name + (m.usage ? ' - ' + m.usage : ''));
+                });
+            } else {
+                plainLines.push('• Uống thuốc theo chỉ định bác sĩ');
+            }
+            const plainDesc = plainLines.join('\n');
+            const summary = rawTitle + ' (' + t + ')';
+            const uid = `medplan-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}@familyhealth`;
+
+            ics += 'BEGIN:VEVENT\r\n';
+            ics += 'UID:' + uid + '\r\n';
+            ics += 'DTSTAMP:' + nowUTCStamp + '\r\n';
+            ics += 'DTSTART:' + dtStart + '\r\n';
+            ics += 'DTEND:' + dtEnd + '\r\n';
+            ics += 'RRULE:FREQ=DAILY;COUNT=' + totalDays + '\r\n';
+            ics += 'SUMMARY:' + escapeICSText(summary) + '\r\n';
+            ics += 'DESCRIPTION:' + escapeICSText(plainDesc) + '\r\n';
+            ics += 'STATUS:CONFIRMED\r\n';
+            ics += 'TRANSP:OPAQUE\r\n';
+            ics += 'BEGIN:VALARM\r\n';
+            ics += 'ACTION:DISPLAY\r\n';
+            ics += 'DESCRIPTION:' + escapeICSText(summary) + '\r\n';
+            ics += 'TRIGGER:-PT0M\r\n';
+            ics += 'END:VALARM\r\n';
+            ics += 'END:VEVENT\r\n';
+
+            const gUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+                + '&text=' + encodeURIComponent(summary)
+                + '&dates=' + dtStart + '/' + dtEnd
+                + '&details=' + encodeURIComponent(plainDesc)
+                + '&recur=' + encodeURIComponent('RRULE:FREQ=DAILY;COUNT=' + totalDays);
             
-            icsContent += "BEGIN:VEVENT\r\n";
-            icsContent += `DTSTART:${dtStart}\r\n`;
-            icsContent += `DTEND:${dtEnd}\r\n`;
-            icsContent += `RRULE:FREQ=DAILY;COUNT=${planOrReminder.totalDays}\r\n`;
-            icsContent += `SUMMARY:${title} (${t})\r\n`;
-            icsContent += `DESCRIPTION:${desc}\r\n`;
-            icsContent += "BEGIN:VALARM\r\nTRIGGER:-PT0M\r\nACTION:DISPLAY\r\nDESCRIPTION:Reminder\r\nEND:VALARM\r\n";
-            icsContent += "END:VEVENT\r\n";
+            let label = t;
+            const hour = parseInt(t.split(':')[0]);
+            if (hour >= 5 && hour < 11) label = 'Cữ Sáng (' + t + ')';
+            else if (hour >= 11 && hour < 14) label = 'Cữ Trưa (' + t + ')';
+            else if (hour >= 14 && hour < 18) label = 'Cữ Chiều (' + t + ')';
+            else label = 'Cữ Tối (' + t + ')';
+
+            googleLinks.push({ label: label, url: gUrl, time: t });
         });
     } else {
-        const dtStart = formatDateICS(planOrReminder.date, planOrReminder.time || "08:00");
-        const dEnd = new Date(new Date(`${planOrReminder.date}T${planOrReminder.time || "08:00"}:00`).getTime() + 60 * 60000);
-        const dtEnd = dEnd.toISOString().replace(/[-:]/g, '').split('.')[0] + "Z";
-        
-        icsContent += "BEGIN:VEVENT\r\n";
-        icsContent += `DTSTART:${dtStart}\r\n`;
-        icsContent += `DTEND:${dtEnd}\r\n`;
-        icsContent += `SUMMARY:${planOrReminder.title}\r\n`;
-        icsContent += `DESCRIPTION:${planOrReminder.note || ''}\r\n`;
-        // Alarm offsets
-        const offsets = planOrReminder.selected_offsets || ["0"];
-        offsets.forEach(msStr => {
-            const min = parseInt(msStr) / 60000;
-            icsContent += `BEGIN:VALARM\r\nTRIGGER:-PT${min}M\r\nACTION:DISPLAY\r\nDESCRIPTION:Reminder\r\nEND:VALARM\r\n`;
-        });
-        icsContent += "END:VEVENT\r\n";
+        const time = item.time || '08:00';
+        const date = item.date || new Date().toISOString().split('T')[0];
+        const dtStart = formatDateICSLocal(date, time);
+        const dtEnd = formatEndDateICSLocal(date, time, 60);
+        const summary = rawTitle;
+        const plainDesc = item.note || 'Lịch hẹn từ Hồ sơ Y tế Gia đình';
+        const uid = `reminder-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@familyhealth`;
+
+        ics += 'BEGIN:VEVENT\r\n';
+        ics += 'UID:' + uid + '\r\n';
+        ics += 'DTSTAMP:' + nowUTCStamp + '\r\n';
+        ics += 'DTSTART:' + dtStart + '\r\n';
+        ics += 'DTEND:' + dtEnd + '\r\n';
+        ics += 'SUMMARY:' + escapeICSText(summary) + '\r\n';
+        ics += 'DESCRIPTION:' + escapeICSText(plainDesc) + '\r\n';
+        ics += 'STATUS:CONFIRMED\r\n';
+        ics += 'TRANSP:OPAQUE\r\n';
+        ics += 'BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:' + escapeICSText(summary) + '\r\nTRIGGER:-PT0M\r\nEND:VALARM\r\n';
+        ics += 'BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:' + escapeICSText(summary) + '\r\nTRIGGER:-PT2H\r\nEND:VALARM\r\n';
+        ics += 'BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:' + escapeICSText(summary) + '\r\nTRIGGER:-P1D\r\nEND:VALARM\r\n';
+        ics += 'END:VEVENT\r\n';
+
+        const gUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+            + '&text=' + encodeURIComponent(summary)
+            + '&dates=' + dtStart + '/' + dtEnd
+            + '&details=' + encodeURIComponent(plainDesc);
+
+        googleLinks.push({ label: summary + ' (' + time + ' ngày ' + UI.formatDate(date) + ')', url: gUrl, time: time });
     }
 
-    icsContent += "END:VCALENDAR\r\n";
-
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = (planOrReminder.title || 'lich_hen') + '.ics';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+    ics += 'END:VCALENDAR\r\n';
+    return { icsContent: ics, fileName: fileName, googleLinks: googleLinks };
 }
+
+function showCalendarSyncGuideModal(planOrReminder, fileName, googleLinks) {
+    const filenameEl = document.getElementById('sync-guide-filename');
+    if (filenameEl) filenameEl.innerText = fileName;
+
+    const linksContainer = document.getElementById('sync-guide-google-links');
+    if (linksContainer) {
+        linksContainer.innerHTML = '';
+        if (googleLinks && googleLinks.length > 0) {
+            googleLinks.forEach(item => {
+                const btn = document.createElement('a');
+                btn.href = item.url;
+                btn.target = '_blank';
+                btn.rel = 'noopener noreferrer';
+                btn.className = 'primary-btn neumorphic-btn';
+                btn.style.cssText = 'text-decoration: none; display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border-radius: 10px; font-weight: 600; font-size: 13.5px; box-shadow: 0 2px 6px rgba(37,99,235,0.25);';
+                btn.innerHTML = `
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-rounded" style="font-size: 20px;">event</span>
+                        <span>${UI.escapeHtml(item.label)}</span>
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 12px; background: rgba(255,255,255,0.25); padding: 3px 8px; border-radius: 6px;">
+                        Mở Google Lịch <span class="material-symbols-rounded" style="font-size: 14px;">arrow_forward</span>
+                    </span>
+                `;
+                linksContainer.appendChild(btn);
+            });
+            document.getElementById('sync-guide-google-section')?.classList.remove('hidden');
+        } else {
+            document.getElementById('sync-guide-google-section')?.classList.add('hidden');
+        }
+    }
+
+    openModal('modal-calendar-sync-guide');
+}
+
+window.exportToICS = async function(planOrReminder) {
+    if (!planOrReminder) return;
+
+    const res = buildRFC5545ICS(planOrReminder);
+    window._lastGeneratedICS = {
+        content: res.icsContent,
+        fileName: res.fileName
+    };
+
+    const blob = new Blob([res.icsContent], { type: 'text/calendar;charset=utf-8' });
+
+    // 1. Thử gọi Web Share API trên mobile để mở thẳng bảng chọn Lịch của hệ điều hành
+    let shared = false;
+    try {
+        if (navigator.canShare) {
+            const file = new File([blob], res.fileName, { type: 'text/calendar' });
+            if (navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: planOrReminder.title || 'Lịch nhắc hẹn',
+                    text: 'Thêm vào ứng dụng Lịch trên điện thoại'
+                });
+                shared = true;
+            }
+        }
+    } catch (e) {
+        // Người dùng hủy bảng chia sẻ hoặc trình duyệt không hỗ trợ chia sẻ tệp
+    }
+
+    // 2. Luôn kích hoạt tải tệp .ics về máy để dự phòng
+    try {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = res.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+    } catch (err) {
+        console.error('Download ICS error:', err);
+    }
+
+    // 3. Mở ngay hộp thoại hướng dẫn trực quan để người dùng biết cách lưu hoặc mở trực tiếp Google Calendar
+    showCalendarSyncGuideModal(planOrReminder, res.fileName, res.googleLinks);
+};
 
 // Bind button clicks
 document.getElementById('btn-export-medplan-ics')?.addEventListener('click', () => {
@@ -5534,7 +5678,6 @@ document.getElementById('btn-export-medplan-ics')?.addEventListener('click', () 
         const plan = DataManager.getReminders().find(r => r.id === planId);
         if (plan) {
             window.exportToICS(plan);
-            showToast('Đã tạo lịch ĐT thành công! Vui lòng lưu vào Lịch.');
         }
     }
 });
@@ -5545,7 +5688,34 @@ document.getElementById('btn-export-reminder-ics')?.addEventListener('click', ()
         const rm = DataManager.getReminders().find(r => r.id === id);
         if (rm) {
             window.exportToICS(rm);
-            showToast('Đã tạo lịch ĐT thành công! Vui lòng lưu vào Lịch.');
         }
+    }
+});
+
+// Nút đồng bộ lịch nhanh ngay trên thẻ Lịch hẹn ở màn hình chính
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-card-export-ics');
+    if (btn) {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const reminder = DataManager.getReminders().find(r => r.id === id);
+        if (reminder) {
+            window.exportToICS(reminder);
+        }
+    }
+});
+
+// Nút tải lại tệp .ics trong modal hướng dẫn
+document.getElementById('btn-redownload-ics')?.addEventListener('click', () => {
+    if (window._lastGeneratedICS) {
+        const blob = new Blob([window._lastGeneratedICS.content], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = window._lastGeneratedICS.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+        showToast('Đang tải lại tệp ' + window._lastGeneratedICS.fileName);
     }
 });
