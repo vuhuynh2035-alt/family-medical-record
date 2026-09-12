@@ -1,5 +1,5 @@
-const SW_VERSION = 'v2.9.87';
-const BUILD_TIME = '2026-08-31_23:56';
+const SW_VERSION = 'v2.9.88';
+const BUILD_TIME = '2026-09-05_15:10';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
@@ -14,6 +14,23 @@ self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+});
+
+// Xử lý khi người dùng chạm vào thông báo hệ thống
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow('./');
+      }
+    })
+  );
 });
 
 self.addEventListener('fetch', (e) => {

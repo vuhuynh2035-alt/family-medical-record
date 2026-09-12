@@ -268,8 +268,9 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.87';
+const CURRENT_APP_VERSION = 'v2.9.88';
 const APP_CHANGELOG = {
+    'v2.9.88': '• Khắc phục triệt để lỗi không nhận được chuông thông báo lịch uống thuốc: Kết nối lại toàn bộ luồng kích hoạt chuông báo, sửa lỗi sai lệch ID thành phần giao diện và lỗi lệch múi giờ (UTC so với Giờ Việt Nam).\n• Hệ thống âm thanh đa tầng: Tích hợp âm thanh chuông báo dự phòng (Web Audio API Synthesizer) tự động kích hoạt ngay cả khi thiết bị mất mạng hoặc trình duyệt hạn chế âm thanh ngoài.\n• Thông báo đẩy hệ thống (Web System Notifications): Tự động đẩy thông báo ra màn hình khóa / khay thông báo thiết bị khi đến giờ uống thuốc.\n• Quản lý cữ thuốc thông minh: Cho phép bấm "Đã uống", "Nhắc lại sau 30 phút", "Bỏ qua" hoặc mở xem chi tiết đơn thuốc trực tiếp từ màn hình báo thức.\n• Hỗ trợ kiểm tra quyền thông báo và nút Thử chuông & báo thức mẫu ngay trong Cài đặt Hệ thống.',
     'v2.9.87': '• Nâng cấp tính năng Thêm vào Lịch điện thoại (Báo thức): Chuẩn hóa tệp .ics theo chuẩn quốc tế RFC 5545, tự động kích hoạt báo thức chuẩn xác trên mọi thiết bị.\n• Mở nhanh trên Google Calendar: Cho phép thêm ngay lịch uống thuốc/khám bệnh vào Google Calendar chỉ với 1 chạm, không cần tải tệp thủ công.\n• Bổ sung hộp thoại hướng dẫn 3 bước chi tiết cho iPhone, Samsung và điện thoại Android.\n• Thêm biểu tượng Lịch nhanh trên từng thẻ lịch hẹn ở màn hình chính.',
     'v2.9.47': `• Sửa lỗi bấm nút màu cam ở mục Chia sẻ không có tác dụng. Cấu trúc lại luồng xử lý Web Share API để tương thích hoàn toàn với trình duyệt.\n• Khắc phục triệt để lỗi không mở được bảng chia sẻ Zalo/Messenger trên một số trình duyệt (do trình duyệt yêu cầu thao tác chạm trực tiếp). Quy trình mới: Bấm lần 1 để chuẩn bị dữ liệu -> Bấm lần 2 để mở bảng chia sẻ.\n• Cải tiến tính năng Chia sẻ dữ liệu: Hỗ trợ mở trực tiếp bảng chia sẻ gốc của điện thoại (để chọn gửi qua Zalo, Messenger, Email...) thay vì chỉ tải file về máy. Cho phép import lại file sao lưu dưới định dạng .txt để tương thích tốt hơn với các nền tảng chat.\n• Tối ưu hiển thị Lịch nhắc: Tự động gộp chung các chỉ định (siêu âm, xét nghiệm, tái khám...) của CÙNG MỘT bác sĩ vào chung 1 lịch hẹn cho gọn gàng. Chỉ tách riêng nếu các lịch hẹn đó thuộc về 2 bác sĩ / chuyên khoa khác nhau.\n• Sửa lỗi treo app (không hiện cảnh báo) khi điện thoại bị đầy bộ nhớ không thể lưu thêm ảnh (QuotaExceededError).\n• Nâng cấp AI Đọc hồ sơ: AI giờ đây đã biết tự động cộng trừ ngày tháng (vd: đọc "sau 3 tháng" sẽ tự tính ra ngày tái khám chính xác), đồng thời không còn bỏ sót lịch hẹn khi đọc nhiều đơn thuốc cùng lúc.\n• Tối ưu AI Đọc đơn thuốc: Ép buộc AI phải đọc và ghi chép tỉ mỉ từng loại thuốc, tuyệt đối không được tự ý tóm tắt đơn thuốc dài thành vài loại cơ bản.\n• Làm gọn giao diện: Tinh chỉnh lại bảng chỉ số xét nghiệm (ẩn chữ "Đỏ", thu nhỏ nút xóa thành dấu X) giúp màn hình gọn gàng, bớt rối mắt hơn trên điện thoại.\n• Sửa lỗi AI Nhắc lịch: Bắt buộc AI phải tách riêng từng lịch khám/xét nghiệm thành các mục độc lập, không được tự ý gộp chung lại làm mất chi tiết khi chúng trùng ngày.\n• Cải tiến AI (Smart Reminders): Khắc phục lỗi AI chỉ trích xuất được 1 lịch hẹn duy nhất và bỏ sót các lịch khác. Từ nay AI có thể đọc và đề xuất toàn bộ các lịch hẹn khám, xét nghiệm định kỳ có trong hồ sơ.\n• Dọn dẹp giao diện: Xóa bỏ nút Hướng dẫn (màu cam) khổng lồ choán chỗ ở góc phải bên dưới màn hình, vì nút Trợ giúp đã được chuyển lên thanh menu ở góc trên.\n• Gộp nút Hướng dẫn: Đơn giản hóa giao diện bằng cách gộp nút "Cẩm nang hướng dẫn" và "Trợ lý AI" vào chung 1 nút (dấu chấm hỏi). Khi bấm vào, Trợ lý AI sẽ hiện ra để bạn hỏi đáp trực tiếp, nếu muốn đọc cẩm nang, chỉ cần bấm nút "Cẩm nang" ngay góc trên của cửa sổ chat.\n• Cập nhật Giao diện: Tách đôi nút tạo lịch trên màn hình chính để thao tác nhanh hơn (Khám bệnh/Uống thuốc). Di chuyển nút Trợ lý AI (dấu ?) lên góc phải màn hình theo đúng thiết kế tiêu chuẩn.\n• Sửa lỗi (Bugfix): Khắc phục sự cố khi tạo hồ sơ bằng AI OCR (quét ảnh), hệ thống tự động sinh ra hàng loạt Lịch uống thuốc lẻ tẻ theo thiết kế cũ (bị trùng lặp với Kế hoạch nhắc thuốc thông minh).\n• Tối ưu giao diện Trợ lý AI: Thiết kế lại nút Trợ lý AI Hỏi đáp (trong Chế độ Hướng dẫn) thành biểu tượng dấu chấm hỏi nhỏ gọn, đặt ở góc trên cùng bên phải màn hình để không che khuất tầm nhìn và đồng bộ với giao diện chính.\n• Cải tiến thao tác tạo Lịch: Tách nút "Tạo lịch hẹn mới" thành 2 nút riêng biệt "+ Khám bệnh" và "+ Uống thuốc" đặt ngay bên ngoài màn hình danh sách, giúp thao tác nhanh hơn 1 bước và bố cục cân đối hơn.\n• Nâng cấp giao diện Xác nhận: Thay thế toàn bộ các thông báo xác nhận trắng đen (xóa, ghi đè dữ liệu, khôi phục) của trình duyệt bằng một giao diện Pop-up hiện đại, đẹp mắt và đồng bộ với thiết kế của ứng dụng.\n• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.\n• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).\n• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.\n• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.\n• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).\n• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.\n• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.\n• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.\n`,
     'v2.9.86': '• Cải tiến tính năng Đọc (TTS): Hỗ trợ chạy nền khi tắt màn hình, chọn đọc từ bất kỳ đâu (Karaoke mode), và cuộn tự động.\n• Đã vá lỗi sự cố nút Tạm dừng / Tiếp tục và Tốc độ đọc trên thanh công cụ.\n• Khắc phục thuật toán Đọc Karaoke (chọn chữ để đọc) bị treo.',
@@ -667,6 +668,43 @@ function loadSystemNotifications() {
     }
 }
 
+
+function updateNotificationPermissionBanner() {
+    const banner = document.getElementById('notification-permission-banner');
+    if (!banner) return;
+    if (!('Notification' in window)) {
+        banner.style.display = 'block';
+        banner.style.background = '#fef3c7';
+        banner.style.color = '#92400e';
+        banner.style.border = '1px solid #fcd34d';
+        banner.innerHTML = '⚠️ Trình duyệt này không hỗ trợ Web Notification.';
+        return;
+    }
+    if (Notification.permission === 'granted') {
+        banner.style.display = 'block';
+        banner.style.background = '#dcfce7';
+        banner.style.color = '#15803d';
+        banner.style.border = '1px solid #86efac';
+        banner.innerHTML = '✅ <strong>Thông báo thiết bị:</strong> Đã được cấp quyền hoạt động.';
+    } else if (Notification.permission === 'denied') {
+        banner.style.display = 'block';
+        banner.style.background = '#fee2e2';
+        banner.style.color = '#b91c1c';
+        banner.style.border = '1px solid #fca5a5';
+        banner.innerHTML = '❌ <strong>Thông báo đang bị chặn:</strong> Nhấn vào biểu tượng ổ khóa 🔒 trên thanh địa chỉ, chọn <em>Bật thông báo</em> để nhận được chuông.';
+    } else {
+        banner.style.display = 'block';
+        banner.style.background = '#eff6ff';
+        banner.style.color = '#1e40af';
+        banner.style.border = '1px solid #bfdbfe';
+        banner.innerHTML = '🔔 Chưa bật thông báo: <button type="button" id="btn-banner-request-notif" style="margin-left: 8px; padding: 4px 8px; font-size: 12px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Bật thông báo ngay</button>';
+        document.getElementById('btn-banner-request-notif')?.addEventListener('click', async () => {
+            await Notification.requestPermission();
+            updateNotificationPermissionBanner();
+        });
+    }
+}
+
 function initDashboard() {
     const members = DataManager.getMembers();
     UI.renderMembersList(members);
@@ -755,6 +793,7 @@ function setupEventListeners() {
             }
         }
         
+        updateNotificationPermissionBanner();
         openModal('modal-settings');
     });
     
@@ -905,6 +944,24 @@ function setupEventListeners() {
         }
     });
     
+    // Nút thử chuông và giao diện báo thức mẫu
+    document.getElementById('btn-test-alarm-modal')?.addEventListener('click', () => {
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const testRm = {
+            id: 'test-med-alarm',
+            title: '💊 Lịch uống thuốc (Mẫu thử)',
+            isPlan: true,
+            type: 'medication_plan',
+            triggerTimeStr: timeStr,
+            timeKey: `test_${timeStr}`,
+            medications: [
+                { name: 'Thuốc mẫu (Ví dụ: Panadol Extra)', dosage: '1 viên', usage: 'Uống sau bữa ăn no' }
+            ]
+        };
+        triggerAlarm(testRm);
+    });
+
     document.getElementById('btn-test-alarm')?.addEventListener('click', (e) => {
         const btn = e.currentTarget;
         if (currentAlarmAudio && !currentAlarmAudio.paused) {
@@ -2884,6 +2941,9 @@ function setupEventListeners() {
     });
 
     document.getElementById('btn-save-reminder-action')?.addEventListener('click', () => {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission().catch(() => {});
+        }
         if (currentReminderTab === 'normal') {
             if (!document.getElementById('reminder-title').value || !document.getElementById('reminder-date').value || !document.getElementById('reminder-time').value) {
                 alert('Vui lòng nhập đầy đủ Tiêu đề, Ngày và Giờ hẹn.');
@@ -3095,6 +3155,9 @@ function openModal(modalId) {
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.add('hidden');
+    if (modalId === 'modal-alarm') {
+        stopLoudBell();
+    }
     if (typeof TTSService !== 'undefined' && TTSService.isPlaying) {
         TTSService.stop();
     }
@@ -3298,6 +3361,63 @@ function getOffsetMs(val, unit) {
 // --- ALARM LOGIC ---
 let currentAlarmAudio = null;
 let vibrationInterval = null;
+let syntheticBeepInterval = null;
+let isAudioUnlocked = false;
+
+// Mở khóa AudioContext ngay khi người dùng tương tác lần đầu
+function unlockAudio() {
+    if (isAudioUnlocked) return;
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+            if (!window._alarmAudioCtx) window._alarmAudioCtx = new AudioCtx();
+            if (window._alarmAudioCtx.state === 'suspended') {
+                window._alarmAudioCtx.resume();
+            }
+            isAudioUnlocked = true;
+        }
+    } catch(e) {}
+}
+document.addEventListener('click', unlockAudio, { passive: true });
+document.addEventListener('touchstart', unlockAudio, { passive: true });
+
+// Chuông cảnh báo âm thanh dự phòng bằng Web Audio API
+function playSynthesizedBeep() {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!window._alarmAudioCtx || window._alarmAudioCtx.state === 'closed') {
+            window._alarmAudioCtx = new AudioCtx();
+        }
+        const ctx = window._alarmAudioCtx;
+        if (ctx.state === 'suspended') {
+            ctx.resume();
+        }
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(1200, now + 0.15);
+        osc.frequency.setValueAtTime(880, now + 0.3);
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.45);
+    } catch (e) {
+        console.warn('Synthetic beep error:', e);
+    }
+}
+
+function startSynthesizedAlarm() {
+    if (syntheticBeepInterval) clearInterval(syntheticBeepInterval);
+    playSynthesizedBeep();
+    syntheticBeepInterval = setInterval(() => {
+        playSynthesizedBeep();
+    }, 1200);
+}
 
 function playLoudBell(soundUrl = null) {
     try {
@@ -3307,28 +3427,35 @@ function playLoudBell(soundUrl = null) {
         }
         if (vibrationInterval) {
             clearInterval(vibrationInterval);
+            vibrationInterval = null;
+        }
+        if (syntheticBeepInterval) {
+            clearInterval(syntheticBeepInterval);
+            syntheticBeepInterval = null;
         }
         
         const settings = DataManager.getSettings();
-        const url = soundUrl || settings.alarmSound || 'assets/alarm.mp3';
+        const url = soundUrl || settings.alarmSound || DEFAULT_ALARM_SOUND_URL;
         
         currentAlarmAudio = new Audio(url);
         currentAlarmAudio.volume = 1.0;
         currentAlarmAudio.loop = true; // Lặp liên tục
         const playPromise = currentAlarmAudio.play();
         if (playPromise !== undefined) {
-            playPromise.catch(e => console.log("Trình duyệt chặn tự động phát âm thanh.", e));
+            playPromise.catch(e => {
+                console.warn("Trình duyệt chặn file âm thanh ngoài hoặc lỗi mạng, chuyển sang chuông dự phòng Web Audio:", e);
+                startSynthesizedAlarm();
+            });
         }
         if (navigator.vibrate) {
-            // Rung ngay lập tức
             navigator.vibrate([1000, 500, 1000, 500]);
-            // Lặp lại việc rung mỗi 3 giây
             vibrationInterval = setInterval(() => {
                 navigator.vibrate([1000, 500, 1000, 500]);
             }, 3000);
         }
     } catch (err) {
         console.error("Alarm error:", err);
+        startSynthesizedAlarm();
     }
 }
 
@@ -3339,6 +3466,10 @@ function stopLoudBell() {
             currentAlarmAudio.currentTime = 0;
             currentAlarmAudio = null;
         }
+        if (syntheticBeepInterval) {
+            clearInterval(syntheticBeepInterval);
+            syntheticBeepInterval = null;
+        }
         if (vibrationInterval) {
             clearInterval(vibrationInterval);
             vibrationInterval = null;
@@ -3346,68 +3477,201 @@ function stopLoudBell() {
         if (navigator.vibrate) {
             navigator.vibrate(0);
         }
+        const btnTest = document.getElementById('btn-test-alarm');
+        if (btnTest) {
+            btnTest.innerHTML = '<span class="material-symbols-rounded" style="font-size: 16px;">play_arrow</span> Nghe thử chuông';
+        }
     } catch (err) {}
 }
 
-function showAlarmModal(title, message, isMedication = false, reminderId = null, medTimeKey = null) {
+function sendSystemNotification(title, options = {}) {
+    try {
+        if (!('Notification' in window)) return;
+        if (Notification.permission !== 'granted') return;
+        
+        const notifOptions = {
+            icon: './favicon.png',
+            badge: './favicon.png',
+            vibrate: [500, 200, 500, 200, 500],
+            requireInteraction: true,
+            ...options
+        };
+        
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(reg => {
+                reg.showNotification(title, notifOptions);
+            }).catch(() => {
+                new Notification(title, notifOptions);
+            });
+        } else {
+            new Notification(title, notifOptions);
+        }
+    } catch (e) {
+        console.warn('System notification error:', e);
+    }
+}
+
+function showAlarmModal(title, timeStr, noteStr, isMedication = false, reminderId = null, medTimeKey = null, rm = null) {
     const modal = document.getElementById('modal-alarm');
     if (!modal) return;
     
-    document.getElementById('alarm-title').innerText = title;
-    document.getElementById('alarm-message').innerText = message;
+    const elTitle = document.getElementById('alarm-title');
+    const elTime = document.getElementById('alarm-time');
+    const elNoteContainer = document.getElementById('alarm-note-container');
+    const elNote = document.getElementById('alarm-note');
+    const normalActions = document.getElementById('alarm-normal-actions');
+    const medActions = document.getElementById('alarm-medplan-actions');
     
-    const doseActions = document.getElementById('alarm-dose-actions');
-    const defaultBtn = document.getElementById('btn-stop-alarm');
+    if (elTitle) elTitle.innerText = title;
+    if (elTime) elTime.innerText = timeStr || '';
+    
+    if (noteStr && elNoteContainer && elNote) {
+        elNoteContainer.style.display = 'block';
+        elNote.innerText = noteStr;
+    } else if (elNoteContainer) {
+        elNoteContainer.style.display = 'none';
+    }
     
     if (isMedication && reminderId && medTimeKey) {
-        doseActions.classList.remove('hidden');
-        defaultBtn.classList.add('hidden');
+        if (normalActions) normalActions.classList.add('hidden');
+        if (medActions) medActions.classList.remove('hidden');
         
-        document.getElementById('btn-dose-taken').onclick = () => {
-            const reminders = DataManager.getReminders();
-            const rm = reminders.find(r => r.id === reminderId);
-            if (rm) {
-                if (!rm.dose_status) rm.dose_status = {};
-                rm.dose_status[medTimeKey] = 'taken';
-                DataManager.saveReminder(rm);
-                reloadRecordsAndStats();
-            }
-            stopLoudBell();
-            closeModal('modal-alarm');
-        };
+        const btnTaken = document.getElementById('btn-med-taken');
+        if (btnTaken) {
+            btnTaken.onclick = () => {
+                const reminders = DataManager.getReminders();
+                const target = reminders.find(r => r.id === reminderId);
+                if (target) {
+                    if (!target.dose_status) target.dose_status = {};
+                    target.dose_status[medTimeKey] = 'taken';
+                    DataManager.saveReminder(target);
+                    reloadRecordsAndStats();
+                }
+                stopLoudBell();
+                closeModal('modal-alarm');
+                if (typeof showToast === 'function') showToast('Đã ghi nhận uống thuốc thành công!');
+            };
+        }
         
-        document.getElementById('btn-dose-snooze').onclick = () => {
-            const reminders = DataManager.getReminders();
-            const rm = reminders.find(r => r.id === reminderId);
-            if (rm) {
-                if (!rm.snoozed_doses) rm.snoozed_doses = {};
-                // Snooze 30 minutes
-                rm.snoozed_doses[medTimeKey] = Date.now() + 30 * 60 * 1000;
-                DataManager.saveReminder(rm);
-            }
-            stopLoudBell();
-            closeModal('modal-alarm');
-        };
+        const btnSnooze = document.getElementById('btn-med-snooze');
+        if (btnSnooze) {
+            btnSnooze.onclick = () => {
+                const reminders = DataManager.getReminders();
+                const target = reminders.find(r => r.id === reminderId);
+                if (target) {
+                    if (!target.snoozed_doses) target.snoozed_doses = {};
+                    // Nhắc lại sau 30 phút
+                    target.snoozed_doses[medTimeKey] = Date.now() + 30 * 60 * 1000;
+                    DataManager.saveReminder(target);
+                }
+                stopLoudBell();
+                closeModal('modal-alarm');
+                if (typeof showToast === 'function') showToast('Sẽ nhắc lại cữ thuốc này sau 30 phút.');
+            };
+        }
         
-        document.getElementById('btn-dose-skip').onclick = () => {
-            if (!confirm('Bạn có chắc chắn muốn bỏ qua cữ thuốc này? Sẽ không nhắc lại nữa.')) return;
-            const reminders = DataManager.getReminders();
-            const rm = reminders.find(r => r.id === reminderId);
-            if (rm) {
-                if (!rm.dose_status) rm.dose_status = {};
-                rm.dose_status[medTimeKey] = 'skipped';
-                DataManager.saveReminder(rm);
-                reloadRecordsAndStats();
-            }
-            stopLoudBell();
-            closeModal('modal-alarm');
-        };
+        const btnSkip = document.getElementById('btn-med-skip');
+        if (btnSkip) {
+            btnSkip.onclick = () => {
+                if (!confirm('Bạn có chắc chắn muốn bỏ qua cữ thuốc này? Sẽ không nhắc lại nữa.')) return;
+                const reminders = DataManager.getReminders();
+                const target = reminders.find(r => r.id === reminderId);
+                if (target) {
+                    if (!target.dose_status) target.dose_status = {};
+                    target.dose_status[medTimeKey] = 'skipped';
+                    DataManager.saveReminder(target);
+                    reloadRecordsAndStats();
+                }
+                stopLoudBell();
+                closeModal('modal-alarm');
+                if (typeof showToast === 'function') showToast('Đã bỏ qua cữ thuốc.');
+            };
+        }
+
+        // Nút mở xem chi tiết đơn thuốc
+        let btnViewPlan = document.getElementById('btn-alarm-view-plan');
+        if (!btnViewPlan) {
+            btnViewPlan = document.createElement('button');
+            btnViewPlan.id = 'btn-alarm-view-plan';
+            btnViewPlan.className = 'secondary-btn neumorphic-btn';
+            btnViewPlan.style.width = '100%';
+            btnViewPlan.style.marginTop = '6px';
+            btnViewPlan.style.padding = '10px';
+            btnViewPlan.style.fontSize = '14px';
+            btnViewPlan.innerHTML = '<span class="material-symbols-rounded" style="font-size:18px; vertical-align: middle; margin-right: 4px;">medication</span> Xem chi tiết đơn thuốc';
+            if (medActions) medActions.appendChild(btnViewPlan);
+        }
+        if (btnViewPlan) {
+            btnViewPlan.style.display = 'block';
+            btnViewPlan.onclick = () => {
+                stopLoudBell();
+                closeModal('modal-alarm');
+                const reminders = DataManager.getReminders();
+                const plan = rm || reminders.find(r => r.id === reminderId);
+                if (plan && typeof window.openMedicationPlanModal === 'function') {
+                    window.openMedicationPlanModal(plan);
+                }
+            };
+        }
     } else {
-        doseActions.classList.add('hidden');
-        defaultBtn.classList.remove('hidden');
+        if (normalActions) normalActions.classList.remove('hidden');
+        if (medActions) medActions.classList.add('hidden');
+        const btnViewPlan = document.getElementById('btn-alarm-view-plan');
+        if (btnViewPlan) btnViewPlan.style.display = 'none';
     }
     
     modal.classList.remove('hidden');
+}
+
+function triggerAlarm(rm) {
+    if (!rm) return;
+    
+    // Kích hoạt chuông báo lớn và rung
+    playLoudBell();
+    
+    const isMedication = (rm.type === 'medication_plan' || rm.isPlan);
+    let title = '';
+    let timeStr = '';
+    let noteStr = '';
+    
+    const member = DataManager.getMember(rm.memberId);
+    const memberName = member ? ` - ${member.name}` : '';
+    
+    if (isMedication) {
+        title = `💊 Đến Giờ Uống Thuốc${memberName}!`;
+        timeStr = rm.triggerTimeStr ? `Cữ uống lúc: ${rm.triggerTimeStr}` : '';
+        
+        let medsAtTime = [];
+        if (rm.medications && Array.isArray(rm.medications)) {
+            if (rm.triggerTimeStr) {
+                medsAtTime = rm.medications.filter(m => m.times && m.times.includes(rm.triggerTimeStr));
+            }
+            if (medsAtTime.length === 0) medsAtTime = rm.medications;
+        }
+        
+        if (medsAtTime.length > 0) {
+            noteStr = medsAtTime.map(m => {
+                let txt = `• ${m.name}`;
+                if (m.dosage) txt += ` (${m.dosage})`;
+                if (m.usage) txt += ` - ${m.usage}`;
+                return txt;
+            }).join('\n');
+        } else {
+            noteStr = 'Vui lòng kiểm tra và uống thuốc đúng chỉ dẫn của bác sĩ.';
+        }
+    } else {
+        title = `🔔 Nhắc Nhở Lịch Hẹn${memberName}!`;
+        timeStr = rm.datetime ? new Date(rm.datetime).toLocaleString('vi-VN') : '';
+        noteStr = rm.title || rm.note || 'Đã đến thời gian nhắc hẹn của bạn.';
+    }
+    
+    showAlarmModal(title, timeStr, noteStr, isMedication, rm.id, rm.timeKey, rm);
+    
+    sendSystemNotification(title, {
+        body: `${timeStr}\n${noteStr}`.trim(),
+        tag: isMedication ? `med-${rm.id}-${rm.timeKey || 'now'}` : `alarm-${rm.id}`,
+        renotify: true
+    });
 }
 
 // --- END ALARM LOGIC ---
@@ -3428,34 +3692,37 @@ function checkReminders() {
     });
     if (toDeleteIds.length > 0) {
         toDeleteIds.forEach(id => DataManager.deleteReminder(id));
-        // Need to fetch fresh data after deletion
         return checkReminders();
     }
 
     const settings = DataManager.getSettings();
     const mutedMembers = settings.mutedMembers || [];
-    let alarmTriggered = null;
+    const alarmsToTrigger = [];
     let modified = false;
 
+    // Lấy ngày địa phương (Local Date) theo giờ máy người dùng (YYYY-MM-DD)
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${m}-${d}`;
+
     allReminders.forEach(rm => {
-        if (rm.completed) return; // Skip checking alarms for completed reminders
+        if (rm.completed) return; // Bỏ qua lịch đã hoàn thành
 
         if (rm.type === 'medication_plan') {
-            const todayStr = now.toISOString().split('T')[0];
-            const start = new Date(rm.startDate);
-            const end = new Date(rm.endDate);
-            const todayDate = new Date(todayStr);
+            const start = rm.startDate;
+            const end = rm.endDate;
 
-            if (todayDate >= start && todayDate <= end) {
+            if (todayStr >= start && todayStr <= end) {
                 if (!rm.notified_times) rm.notified_times = {};
                 if (!rm.dose_status) rm.dose_status = {};
                 if (!rm.snoozed_doses) rm.snoozed_doses = {};
 
-                rm.times.forEach(t => {
+                (rm.times || []).forEach(t => {
                     const timeKey = `${todayStr}_${t}`;
                     const triggerTime = new Date(`${todayStr}T${t}:00`);
                     
-                    if (rm.dose_status[timeKey]) return; // Đã xong hoặc bỏ qua
+                    if (rm.dose_status[timeKey]) return; // Đã uống hoặc bỏ qua
 
                     let shouldRing = false;
 
@@ -3463,7 +3730,7 @@ function checkReminders() {
                         if (now - triggerTime < 2 * 60 * 60 * 1000) {
                             shouldRing = true;
                         } else {
-                            // Expired
+                            // Quá 2 tiếng coi như hết hạn cữ này để tránh dồn chuông
                             rm.notified_times[timeKey] = true;
                             modified = true;
                         }
@@ -3475,10 +3742,12 @@ function checkReminders() {
                         rm.notified_times[timeKey] = true;
                         delete rm.snoozed_doses[timeKey];
                         if (!mutedMembers.includes(rm.memberId)) {
-                            alarmTriggered = rm;
-                            alarmTriggered.isPlan = true;
-                            alarmTriggered.triggerTimeStr = t;
-                            alarmTriggered.timeKey = timeKey;
+                            alarmsToTrigger.push({
+                                ...rm,
+                                isPlan: true,
+                                triggerTimeStr: t,
+                                timeKey: timeKey
+                            });
                         }
                         modified = true;
                     }
@@ -3504,7 +3773,7 @@ function checkReminders() {
                     const triggerTime = new Date(rmDate.getTime() - offset.ms);
                     if (now >= triggerTime && !rm.notified_offsets[offset.id]) {
                         if (!mutedMembers.includes(rm.memberId)) {
-                            alarmTriggered = rm;
+                            alarmsToTrigger.push(rm);
                         }
                         rm.notified_offsets[offset.id] = true;
                         modified = true;
@@ -3520,7 +3789,15 @@ function checkReminders() {
 
     const notifBadge = document.getElementById('notification-badge');
     if (notifBadge) {
-        if (alarmTriggered) notifBadge.classList.remove('hidden');
+        if (alarmsToTrigger.length > 0) notifBadge.classList.remove('hidden');
+    }
+
+    if (alarmsToTrigger.length > 0) {
+        const alarmModal = document.getElementById('modal-alarm');
+        const isModalOpen = alarmModal && !alarmModal.classList.contains('hidden');
+        if (!isModalOpen) {
+            triggerAlarm(alarmsToTrigger[0]);
+        }
     }
 }
 

@@ -1028,26 +1028,81 @@ input::placeholder {
     }
 }
 
-/* Giảm bề ngang header trên điện thoại bằng cách chia icon thành 2 hàng */
-@media (max-width: 450px) {
+/* Tối ưu header trên điện thoại: không ghim cố định để dễ cuộn xem nội dung, và xếp icon thành 2 hàng đôi (2x2) */
+@media (max-width: 600px) {
+    .glass-header {
+        position: relative !important;
+        top: auto !important;
+        padding: 10px 14px !important;
+    }
+
     .header-content {
-        align-items: flex-start;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
+
+    .logo {
+        gap: 10px !important;
+        align-items: center;
+    }
+
+    .logo-icon {
+        width: 34px !important;
+        height: 34px !important;
+        flex-shrink: 0;
+    }
+
+    .logo-text-group {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0 !important;
+    }
+
+    .logo h1 {
+        font-size: 20px !important;
+        line-height: 1.2;
+    }
+
+    .version-tag {
+        font-size: 11px !important;
+        opacity: 0.85;
+    }
+
+    /* Bố trí các icon thành 2 hàng đôi (2x2 grid) cố định không bị co méo */
     .header-actions {
-        width: 105px; /* Vừa đủ 2 icon (45px x 2) + gap 10px */
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 10px;
+        display: grid !important;
+        grid-template-columns: repeat(2, 38px) !important;
+        grid-template-rows: repeat(2, 38px) !important;
+        gap: 8px !important;
+        width: auto !important;
+        flex-shrink: 0 !important;
+        justify-content: end;
+        align-items: center;
     }
 
-    /* Hàng trên: Cài đặt & Đóng */
-    #btn-settings { order: 1; }
-    #btn-exit-app { order: 2; }
+    .header-btn {
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
+        padding: 0 !important;
+    }
 
-    /* Hàng dưới: Chuông & Hướng dẫn */
+    .header-btn .material-symbols-rounded {
+        font-size: 20px !important;
+    }
+
+    /* Sắp xếp vị trí 2 hàng đôi:
+       Hàng trên: Trợ giúp AI (1), Cài đặt (2)
+       Hàng dưới: Chuông thông báo (3), Nút thoát (4) */
+    #btn-ai-help-chat { order: 1; }
+    #btn-settings { order: 2; }
     #btn-notifications { order: 3; }
-    #btn-help { order: 4; }
-    #btn-install-app { order: 5; }
+    #btn-exit-app { order: 4; }
+    #btn-help { order: 5; }
+    #btn-install-app { order: 6; }
 }
 
 /* AI Chatbot Styles */

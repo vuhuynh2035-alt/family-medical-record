@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.87",
-  "updatedAt": "2026-09-04T07:53:55.508Z",
-  "releaseNotes": "Nâng cấp tính năng Đồng bộ Lịch điện thoại (Báo thức) theo chuẩn quốc tế RFC 5545, hỗ trợ mở nhanh Google Calendar và hướng dẫn 3 bước cho iPhone/Android"
+  "version": "v2.9.88",
+  "updatedAt": "2026-09-05T08:10:00.000Z",
+  "releaseNotes": "Khắc phục triệt để lỗi không nhận được chuông nhắc lịch uống thuốc, tích hợp chuông báo dự phòng Web Audio và Web Notification hệ thống"
 }
