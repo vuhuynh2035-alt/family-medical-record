@@ -964,9 +964,9 @@ function setupEventListeners() {
 
     document.getElementById('btn-test-alarm')?.addEventListener('click', (e) => {
         const btn = e.currentTarget;
-        if (currentAlarmAudio && !currentAlarmAudio.paused) {
+        if (isAlarmRinging) {
             stopLoudBell();
-            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 16px;">play_arrow</span> Nghe thử';
+            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 16px;">play_arrow</span> Nghe thử chuông';
         } else {
             const soundUrl = document.getElementById('input-alarm-sound').value;
             playLoudBell(soundUrl);
@@ -2868,9 +2868,28 @@ function setupEventListeners() {
     });
 
     // Bắt sự kiện tắt chuông báo thức
-    document.getElementById('btn-stop-alarm').addEventListener('click', () => {
+    document.getElementById('btn-stop-alarm')?.addEventListener('click', () => {
         stopLoudBell();
         document.getElementById('modal-alarm').classList.add('hidden');
+    });
+    document.getElementById('btn-alarm-close-top')?.addEventListener('click', () => {
+        stopLoudBell();
+        document.getElementById('modal-alarm').classList.add('hidden');
+    });
+    document.getElementById('btn-med-silence')?.addEventListener('click', () => {
+        stopLoudBell();
+        document.getElementById('modal-alarm').classList.add('hidden');
+        if (typeof showToast === 'function') showToast('Đã tắt chuông nhắc thuốc.');
+    });
+    // Bấm phím Escape để tắt chuông nhanh
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const alarmModal = document.getElementById('modal-alarm');
+            if (alarmModal && !alarmModal.classList.contains('hidden')) {
+                stopLoudBell();
+                alarmModal.classList.add('hidden');
+            }
+        }
     });
 
     
@@ -3345,7 +3364,7 @@ function applyFilters() {
 }
 
 // --- REMINDERS LOGIC ---
-const DEFAULT_ALARM_SOUND_URL = 'https://actions.google.com/sounds/v1/alarms/mechanical_clock_ring.ogg';
+const DEFAULT_ALARM_SOUND_URL = 'synth:digital_loud';
 
 function getOffsetMs(val, unit) {
     if (!val || !unit) return 0;
@@ -3359,9 +3378,12 @@ function getOffsetMs(val, unit) {
 }
 
 // --- ALARM LOGIC ---
+let isAlarmRinging = false;
+window.isAlarmRinging = false;
 let currentAlarmAudio = null;
 let vibrationInterval = null;
 let syntheticBeepInterval = null;
+let activeOscillators = [];
 let isAudioUnlocked = false;
 
 // Mở khóa AudioContext ngay khi người dùng tương tác lần đầu
@@ -3381,8 +3403,12 @@ function unlockAudio() {
 document.addEventListener('click', unlockAudio, { passive: true });
 document.addEventListener('touchstart', unlockAudio, { passive: true });
 
-// Chuông cảnh báo âm thanh dự phòng bằng Web Audio API
-function playSynthesizedBeep() {
+/**
+ * Bộ tạo âm thanh cảnh báo âm lượng lớn trực tiếp qua Web Audio API (Loud Alarm Synthesizer Engine).
+ * Tần số 2.5kHz - 3.5kHz tối ưu thính giác con người và loa ngoài điện thoại.
+ * Tích hợp DynamicsCompressorNode đẩy âm lượng cực đại, không vỡ tiếng, hoạt động 100% offline.
+ */
+function playSynthesizedAlarmBurst(soundKey = 'synth:digital_loud') {
     try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
@@ -3393,95 +3419,191 @@ function playSynthesizedBeep() {
         if (ctx.state === 'suspended') {
             ctx.resume();
         }
+
+        const compressor = ctx.createDynamicsCompressor();
+        compressor.threshold.setValueAtTime(-14, ctx.currentTime);
+        compressor.knee.setValueAtTime(25, ctx.currentTime);
+        compressor.ratio.setValueAtTime(12, ctx.currentTime);
+        compressor.attack.setValueAtTime(0.003, ctx.currentTime);
+        compressor.release.setValueAtTime(0.2, ctx.currentTime);
+        compressor.connect(ctx.destination);
+
         const now = ctx.currentTime;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(880, now);
-        osc.frequency.setValueAtTime(1200, now + 0.15);
-        osc.frequency.setValueAtTime(880, now + 0.3);
-        gain.gain.setValueAtTime(0.5, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.45);
+
+        if (soundKey === 'synth:siren_urgent') {
+            // Còi cấp cứu / Khẩn cấp: quét dải tần nhanh 1400Hz - 2200Hz
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(1400, now);
+            osc.frequency.linearRampToValueAtTime(2200, now + 0.25);
+            osc.frequency.linearRampToValueAtTime(1400, now + 0.5);
+            gain.gain.setValueAtTime(0.95, now);
+            gain.gain.setValueAtTime(0.95, now + 0.48);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+
+            osc.connect(gain);
+            gain.connect(compressor);
+            osc.start(now);
+            osc.stop(now + 0.5);
+            activeOscillators.push(osc);
+            osc.onended = () => { activeOscillators = activeOscillators.filter(o => o !== osc); };
+        } else if (soundKey === 'synth:chime_bell') {
+            // Chuông ngân vang: hòa âm kép 1560Hz + 2080Hz
+            [1560, 2080].forEach(freq => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(0.9, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                osc.connect(gain);
+                gain.connect(compressor);
+                osc.start(now);
+                osc.stop(now + 0.6);
+                activeOscillators.push(osc);
+                osc.onended = () => { activeOscillators = activeOscillators.filter(o => o !== osc); };
+            });
+        } else {
+            // Mặc định: 'synth:digital_loud' - 4 tiếng bíp dồn dập chuẩn thiết bị y tế / đồng hồ báo thức điện tử
+            // Nhịp: 4 tiếng tít ngắn (0.08s tít + 0.04s nghỉ) cực kỳ đanh, to, xuyên thấu tạp âm
+            const beeps = [0, 0.12, 0.24, 0.36];
+            beeps.forEach(offset => {
+                const startT = now + offset;
+                const endT = startT + 0.08;
+
+                // Sóng vuông 2800 Hz (độ nhạy thính giác cao nhất)
+                const osc1 = ctx.createOscillator();
+                osc1.type = 'square';
+                osc1.frequency.setValueAtTime(2800, startT);
+
+                // Sóng răng cưa 3500 Hz (tạo độ dày âm và hài âm chói tai báo thức)
+                const osc2 = ctx.createOscillator();
+                osc2.type = 'sawtooth';
+                osc2.frequency.setValueAtTime(3500, startT);
+
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.95, startT);
+                gain.gain.setValueAtTime(0.95, endT - 0.01);
+                gain.gain.linearRampToValueAtTime(0.01, endT);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(compressor);
+
+                osc1.start(startT);
+                osc1.stop(endT);
+                osc2.start(startT);
+                osc2.stop(endT);
+
+                activeOscillators.push(osc1, osc2);
+                osc1.onended = () => { activeOscillators = activeOscillators.filter(o => o !== osc1 && o !== osc2); };
+            });
+        }
     } catch (e) {
-        console.warn('Synthetic beep error:', e);
+        console.warn('Synthesized alarm burst error:', e);
     }
 }
 
-function startSynthesizedAlarm() {
+function startSynthesizedAlarm(soundKey = 'synth:digital_loud') {
     if (syntheticBeepInterval) clearInterval(syntheticBeepInterval);
-    playSynthesizedBeep();
+    playSynthesizedAlarmBurst(soundKey);
+    const intervalMs = soundKey === 'synth:siren_urgent' ? 600 : (soundKey === 'synth:chime_bell' ? 900 : 1000);
     syntheticBeepInterval = setInterval(() => {
-        playSynthesizedBeep();
-    }, 1200);
+        if (!isAlarmRinging) return;
+        playSynthesizedAlarmBurst(soundKey);
+    }, intervalMs);
 }
 
 function playLoudBell(soundUrl = null) {
     try {
-        if (currentAlarmAudio) {
-            currentAlarmAudio.pause();
-            currentAlarmAudio.currentTime = 0;
-        }
-        if (vibrationInterval) {
-            clearInterval(vibrationInterval);
-            vibrationInterval = null;
-        }
-        if (syntheticBeepInterval) {
-            clearInterval(syntheticBeepInterval);
-            syntheticBeepInterval = null;
-        }
+        stopLoudBell();
+        isAlarmRinging = true;
+        window.isAlarmRinging = true;
+
+        unlockAudio();
         
         const settings = DataManager.getSettings();
         const url = soundUrl || settings.alarmSound || DEFAULT_ALARM_SOUND_URL;
         
-        currentAlarmAudio = new Audio(url);
-        currentAlarmAudio.volume = 1.0;
-        currentAlarmAudio.loop = true; // Lặp liên tục
-        const playPromise = currentAlarmAudio.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(e => {
-                console.warn("Trình duyệt chặn file âm thanh ngoài hoặc lỗi mạng, chuyển sang chuông dự phòng Web Audio:", e);
-                startSynthesizedAlarm();
-            });
+        if (typeof url === 'string' && url.startsWith('synth:')) {
+            startSynthesizedAlarm(url);
+        } else {
+            // Tải file âm thanh online (Google Actions hoặc URL riêng)
+            currentAlarmAudio = new Audio(url);
+            currentAlarmAudio.volume = 1.0;
+            currentAlarmAudio.loop = true;
+            const playPromise = currentAlarmAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(e => {
+                    // Nếu người dùng đã bấm tắt chuông thì dừng ngay, KHÔNG nhảy sang chuông dự phòng!
+                    if (!isAlarmRinging) return;
+                    console.warn("Trình duyệt chặn file âm thanh ngoài hoặc lỗi mạng, chuyển sang chuông dự phòng Web Audio:", e);
+                    startSynthesizedAlarm('synth:digital_loud');
+                });
+            }
         }
+
+        // Rung mạnh theo nhịp báo thức
         if (navigator.vibrate) {
-            navigator.vibrate([1000, 500, 1000, 500]);
+            navigator.vibrate([800, 300, 800, 300, 800, 500]);
             vibrationInterval = setInterval(() => {
-                navigator.vibrate([1000, 500, 1000, 500]);
-            }, 3000);
+                if (!isAlarmRinging) return;
+                navigator.vibrate([800, 300, 800, 300, 800, 500]);
+            }, 2700);
         }
     } catch (err) {
         console.error("Alarm error:", err);
-        startSynthesizedAlarm();
+        if (isAlarmRinging) {
+            startSynthesizedAlarm('synth:digital_loud');
+        }
     }
 }
 
 function stopLoudBell() {
+    isAlarmRinging = false;
+    window.isAlarmRinging = false;
     try {
+        // 1. Dừng triệt để HTMLAudioElement (tránh lỗi ngắt ngang play promise)
         if (currentAlarmAudio) {
             currentAlarmAudio.pause();
             currentAlarmAudio.currentTime = 0;
+            currentAlarmAudio.removeAttribute('src');
+            currentAlarmAudio.load();
             currentAlarmAudio = null;
         }
+        // 2. Dừng lặp chuông điện tử
         if (syntheticBeepInterval) {
             clearInterval(syntheticBeepInterval);
             syntheticBeepInterval = null;
         }
+        // 3. Cắt ngay toàn bộ các sóng âm thanh Web Audio đang vang
+        if (activeOscillators && activeOscillators.length > 0) {
+            activeOscillators.forEach(osc => {
+                try { osc.stop(); osc.disconnect(); } catch (e) {}
+            });
+            activeOscillators = [];
+        }
+        // 4. Tạm ngưng AudioContext để bảo đảm im bặt 100% trong 0ms
+        if (window._alarmAudioCtx && window._alarmAudioCtx.state === 'running') {
+            try { window._alarmAudioCtx.suspend(); } catch (e) {}
+        }
+        // 5. Tắt rung
         if (vibrationInterval) {
             clearInterval(vibrationInterval);
             vibrationInterval = null;
         }
         if (navigator.vibrate) {
-            navigator.vibrate(0);
+            try { navigator.vibrate(0); } catch (e) {}
         }
+        // 6. Đổi nhãn nút nghe thử
         const btnTest = document.getElementById('btn-test-alarm');
         if (btnTest) {
             btnTest.innerHTML = '<span class="material-symbols-rounded" style="font-size: 16px;">play_arrow</span> Nghe thử chuông';
         }
-    } catch (err) {}
+    } catch (err) {
+        console.warn('Lỗi khi tắt chuông:', err);
+    }
 }
 
 function sendSystemNotification(title, options = {}) {
@@ -3531,10 +3653,37 @@ function showAlarmModal(title, timeStr, noteStr, isMedication = false, reminderI
     } else if (elNoteContainer) {
         elNoteContainer.style.display = 'none';
     }
+
+    // Nút đóng góc trên modal
+    const btnCloseTop = document.getElementById('btn-alarm-close-top');
+    if (btnCloseTop) {
+        btnCloseTop.onclick = () => {
+            stopLoudBell();
+            closeModal('modal-alarm');
+        };
+    }
+
+    // Click ra ngoài overlay nền tối để tắt chuông
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            stopLoudBell();
+            closeModal('modal-alarm');
+        }
+    };
     
     if (isMedication && reminderId && medTimeKey) {
         if (normalActions) normalActions.classList.add('hidden');
         if (medActions) medActions.classList.remove('hidden');
+
+        // Nút tắt chuông ngay (dành riêng cho đơn thuốc)
+        const btnSilence = document.getElementById('btn-med-silence');
+        if (btnSilence) {
+            btnSilence.onclick = () => {
+                stopLoudBell();
+                closeModal('modal-alarm');
+                if (typeof showToast === 'function') showToast('Đã tắt chuông nhắc thuốc.');
+            };
+        }
         
         const btnTaken = document.getElementById('btn-med-taken');
         if (btnTaken) {
@@ -3560,20 +3709,25 @@ function showAlarmModal(title, timeStr, noteStr, isMedication = false, reminderI
                 const target = reminders.find(r => r.id === reminderId);
                 if (target) {
                     if (!target.snoozed_doses) target.snoozed_doses = {};
-                    // Nhắc lại sau 30 phút
-                    target.snoozed_doses[medTimeKey] = Date.now() + 30 * 60 * 1000;
+                    // Nhắc lại sau 15 phút
+                    target.snoozed_doses[medTimeKey] = Date.now() + 15 * 60 * 1000;
                     DataManager.saveReminder(target);
                 }
                 stopLoudBell();
                 closeModal('modal-alarm');
-                if (typeof showToast === 'function') showToast('Sẽ nhắc lại cữ thuốc này sau 30 phút.');
+                if (typeof showToast === 'function') showToast('Sẽ nhắc lại cữ thuốc này sau 15 phút.');
             };
         }
         
         const btnSkip = document.getElementById('btn-med-skip');
         if (btnSkip) {
             btnSkip.onclick = () => {
-                if (!confirm('Bạn có chắc chắn muốn bỏ qua cữ thuốc này? Sẽ không nhắc lại nữa.')) return;
+                // TẮT CHUÔNG NGAY trước khi hiện dialog xác nhận để người dùng không bị ồn
+                stopLoudBell();
+                if (!confirm('Bạn có chắc chắn muốn bỏ qua cữ thuốc này? Sẽ không nhắc lại nữa.')) {
+                    closeModal('modal-alarm');
+                    return;
+                }
                 const reminders = DataManager.getReminders();
                 const target = reminders.find(r => r.id === reminderId);
                 if (target) {
@@ -3582,7 +3736,6 @@ function showAlarmModal(title, timeStr, noteStr, isMedication = false, reminderI
                     DataManager.saveReminder(target);
                     reloadRecordsAndStats();
                 }
-                stopLoudBell();
                 closeModal('modal-alarm');
                 if (typeof showToast === 'function') showToast('Đã bỏ qua cữ thuốc.');
             };
@@ -3618,6 +3771,14 @@ function showAlarmModal(title, timeStr, noteStr, isMedication = false, reminderI
         if (medActions) medActions.classList.add('hidden');
         const btnViewPlan = document.getElementById('btn-alarm-view-plan');
         if (btnViewPlan) btnViewPlan.style.display = 'none';
+
+        const btnStopNormal = document.getElementById('btn-stop-alarm');
+        if (btnStopNormal) {
+            btnStopNormal.onclick = () => {
+                stopLoudBell();
+                closeModal('modal-alarm');
+            };
+        }
     }
     
     modal.classList.remove('hidden');
@@ -3634,7 +3795,7 @@ function triggerAlarm(rm) {
     let timeStr = '';
     let noteStr = '';
     
-    const member = DataManager.getMember(rm.memberId);
+    const member = (DataManager.getMemberById && rm.memberId) ? DataManager.getMemberById(rm.memberId) : null;
     const memberName = member ? ` - ${member.name}` : '';
     
     if (isMedication) {
@@ -3700,6 +3861,11 @@ function checkReminders() {
     const alarmsToTrigger = [];
     let modified = false;
 
+    // Giới hạn thời gian trễ tối đa (Grace Period) để phát chuông: 15 phút.
+    // Nếu mở ứng dụng khi đã quá thời gian nhắc hẹn > 15 phút:
+    // Sẽ chỉ đánh dấu là đã qua để không reo chuông giật mình và không hiện thông báo phiền phức.
+    const MAX_ALARM_GRACE_MS = 15 * 60 * 1000;
+
     // Lấy ngày địa phương (Local Date) theo giờ máy người dùng (YYYY-MM-DD)
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -3727,15 +3893,24 @@ function checkReminders() {
                     let shouldRing = false;
 
                     if (!rm.notified_times[timeKey] && now >= triggerTime) {
-                        if (now - triggerTime < 2 * 60 * 60 * 1000) {
+                        const elapsedMs = now.getTime() - triggerTime.getTime();
+                        if (elapsedMs <= MAX_ALARM_GRACE_MS) {
+                            // Đúng giờ hẹn (hoặc trễ dưới 15 phút) -> Kích hoạt chuông
                             shouldRing = true;
                         } else {
-                            // Quá 2 tiếng coi như hết hạn cữ này để tránh dồn chuông
+                            // Đã quá thời gian nhắc hẹn trên 15 phút -> Đánh dấu đã qua, không reo chuông giật mình
                             rm.notified_times[timeKey] = true;
                             modified = true;
                         }
                     } else if (rm.snoozed_doses[timeKey] && now.getTime() >= rm.snoozed_doses[timeKey]) {
-                        shouldRing = true;
+                        const elapsedSnoozeMs = now.getTime() - rm.snoozed_doses[timeKey];
+                        if (elapsedSnoozeMs <= MAX_ALARM_GRACE_MS) {
+                            shouldRing = true;
+                        } else {
+                            // Quá thời gian báo lại > 15 phút -> Hủy mốc snooze, không reo
+                            delete rm.snoozed_doses[timeKey];
+                            modified = true;
+                        }
                     }
 
                     if (shouldRing) {
@@ -3772,11 +3947,16 @@ function checkReminders() {
                 if (offset.ms > 0 || offset.id === '0') {
                     const triggerTime = new Date(rmDate.getTime() - offset.ms);
                     if (now >= triggerTime && !rm.notified_offsets[offset.id]) {
-                        if (!mutedMembers.includes(rm.memberId)) {
-                            alarmsToTrigger.push(rm);
-                        }
+                        const elapsedMs = now.getTime() - triggerTime.getTime();
                         rm.notified_offsets[offset.id] = true;
                         modified = true;
+
+                        // Chỉ phát chuông nếu thời gian nhắc hẹn còn trong vòng 15 phút
+                        if (elapsedMs <= MAX_ALARM_GRACE_MS) {
+                            if (!mutedMembers.includes(rm.memberId)) {
+                                alarmsToTrigger.push(rm);
+                            }
+                        }
                     }
                 }
             });

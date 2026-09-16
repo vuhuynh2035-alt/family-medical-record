@@ -83,6 +83,7 @@ const DataManager = {
             lastBackupAt: null,
             firstRunAt: null,
             backupReminderSnoozeUntil: null,
+            alarmSound: 'synth:digital_loud', // Kiểu chuông to rõ mặc định
             mutedMembers: [] // Mảng chứa ID của các thành viên KHÔNG đổ chuông/thông báo trên máy này
         };
         const stored = localStorage.getItem('family_settings');

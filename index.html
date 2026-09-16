@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=2.9.88">
+    <link rel="stylesheet" href="css/style.css?v=2.9.89">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
@@ -45,12 +45,12 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.88"></script>
-    <script defer src="js/ai.js?v=2.9.88"></script>
-    <script defer src="js/components.js?v=2.9.88"></script>
-    <script defer src="js/help.js?v=2.9.88"></script>
-    <script defer src="js/speech.js?v=2.9.88"></script>
-    <script defer src="js/app.js?v=2.9.88"></script>
+    <script defer src="js/data.js?v=2.9.89"></script>
+    <script defer src="js/ai.js?v=2.9.89"></script>
+    <script defer src="js/components.js?v=2.9.89"></script>
+    <script defer src="js/help.js?v=2.9.89"></script>
+    <script defer src="js/speech.js?v=2.9.89"></script>
+    <script defer src="js/app.js?v=2.9.89"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
@@ -147,7 +147,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.88</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.89</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -449,28 +449,36 @@
     
     <!-- Alarm Modal -->
     <div id="modal-alarm" class="modal-overlay hidden" role="dialog" aria-modal="true" style="z-index: 10000; background: rgba(0,0,0,0.8);">
-        <div class="modal-content neumorphic-modal" style="text-align: center; border: 2px solid var(--primary-blue); box-shadow: 0 0 30px rgba(41, 128, 185, 0.5);">
-            <div class="modal-header" style="justify-content: center; background: rgba(41, 128, 185, 0.1); border-radius: 16px 16px 0 0;">
-                <h3 style="color: var(--primary-blue); display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0; font-size: 24px;">
-                    <span class="material-symbols-rounded" style="font-size: 32px; animation: ring 1s infinite;">notifications_active</span>
+        <div class="modal-content neumorphic-modal" style="text-align: center; border: 2px solid var(--primary-blue); box-shadow: 0 0 30px rgba(41, 128, 185, 0.5); max-width: 440px; width: 92%;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; background: rgba(41, 128, 185, 0.1); border-radius: 16px 16px 0 0; padding: 12px 18px;">
+                <h3 style="color: var(--primary-blue); display: flex; align-items: center; gap: 10px; margin: 0; font-size: 20px;">
+                    <span class="material-symbols-rounded" style="font-size: 28px; color: #e74c3c; animation: ring 1s infinite;">notifications_active</span>
                     ĐẾN HẠN NHẮC NHỞ!
                 </h3>
+                <button type="button" id="btn-alarm-close-top" class="icon-btn neumorphic-btn" style="border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Tắt chuông và đóng">
+                    <span class="material-symbols-rounded" style="font-size: 20px;">close</span>
+                </button>
             </div>
-            <div class="modal-body" style="padding: 30px 20px;">
-                <h2 id="alarm-title" style="margin-bottom: 15px; color: var(--text-dark);">Uống Thuốc</h2>
-                <p id="alarm-time" style="font-size: 18px; color: var(--primary-blue); font-weight: bold; margin-bottom: 15px;">14:30 - 25/10/2023</p>
-                <div id="alarm-note-container" style="background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none;">
-                    <p id="alarm-note" style="margin: 0; color: var(--text-muted); font-size: 15px;"></p>
+            <div class="modal-body" style="padding: 24px 20px;">
+                <h2 id="alarm-title" style="margin-bottom: 10px; color: var(--text-dark); font-size: 20px;">Uống Thuốc</h2>
+                <p id="alarm-time" style="font-size: 16px; color: var(--primary-blue); font-weight: bold; margin-bottom: 15px;">14:30 - 25/10/2023</p>
+                <div id="alarm-note-container" style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.06); display: none; text-align: left;">
+                    <p id="alarm-note" style="margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.5;"></p>
                 </div>
             </div>
-            <div class="modal-footer" style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="modal-footer" style="display: flex; flex-direction: column; gap: 10px; padding: 0 20px 20px 20px;">
                 <div id="alarm-normal-actions" style="width: 100%;">
-                    <button id="btn-stop-alarm" class="primary-btn neumorphic-btn" style="padding: 15px; font-size: 16px; width: 100%;">ĐÃ HIỂU & TẮT CHUÔNG</button>
+                    <button id="btn-stop-alarm" class="primary-btn neumorphic-btn" style="padding: 14px; font-size: 16px; width: 100%; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <span class="material-symbols-rounded">volume_off</span> ĐÃ HIỂU & TẮT CHUÔNG
+                    </button>
                 </div>
-                <div id="alarm-medplan-actions" class="hidden" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
-                    <button id="btn-med-taken" class="primary-btn neumorphic-btn" style="padding: 12px; font-size: 15px; width: 100%; background: #10b981;">Đã uống (Hoàn thành)</button>
-                    <button id="btn-med-snooze" class="secondary-btn neumorphic-btn" style="padding: 12px; font-size: 15px; width: 100%;">Nhắc lại sau 30 phút</button>
-                    <button id="btn-med-skip" class="danger-btn neumorphic-btn" style="padding: 12px; font-size: 15px; width: 100%;">Bỏ qua (Không uống)</button>
+                <div id="alarm-medplan-actions" class="hidden" style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+                    <button id="btn-med-silence" type="button" class="danger-btn neumorphic-btn" style="padding: 12px; font-size: 15px; width: 100%; background: #ef4444; color: white; border: none; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <span class="material-symbols-rounded" style="font-size: 20px;">volume_off</span> Tắt chuông ngay
+                    </button>
+                    <button id="btn-med-taken" type="button" class="primary-btn neumorphic-btn" style="padding: 12px; font-size: 15px; width: 100%; background: #10b981; color: white; border: none; font-weight: 600;">✓ Đã uống thuốc (Hoàn thành)</button>
+                    <button id="btn-med-snooze" type="button" class="secondary-btn neumorphic-btn" style="padding: 11px; font-size: 14px; width: 100%;">⏰ Nhắc lại sau 15 phút</button>
+                    <button id="btn-med-skip" type="button" class="secondary-btn neumorphic-btn" style="padding: 11px; font-size: 14px; width: 100%; color: #ef4444;">Bỏ qua (Không uống)</button>
                 </div>
             </div>
         </div>
@@ -567,11 +575,14 @@
                 <div class="form-group">
                     <label>Kiểu chuông báo</label>
                     <select id="input-alarm-sound" class="neumorphic-input">
-                        <option value="https://actions.google.com/sounds/v1/alarms/mechanical_clock_ring.ogg">Đồng hồ cơ (Mặc định)</option>
-                        <option value="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">Đồng hồ điện tử</option>
-                        <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Chuông cảnh báo (Digital)</option>
-                        <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Kèn báo thức</option>
-                        <option value="https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg">Phi thuyền không gian</option>
+                        <option value="synth:digital_loud">🔔 Chuông điện tử dồn dập (Siêu to - Mặc định)</option>
+                        <option value="synth:siren_urgent">🚨 Còi cấp cứu / Khẩn cấp (To rõ)</option>
+                        <option value="synth:chime_bell">⏰ Chuông ngân vang liên tục (To rõ)</option>
+                        <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Chuông cảnh báo Online (Digital)</option>
+                        <option value="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">Đồng hồ điện tử Online (Google)</option>
+                        <option value="https://actions.google.com/sounds/v1/alarms/mechanical_clock_ring.ogg">Đồng hồ cơ Online (Google)</option>
+                        <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Kèn báo thức Online (Google)</option>
+                        <option value="https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg">Phi thuyền không gian Online</option>
                     </select>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">

@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.88",
-  "updatedAt": "2026-09-05T08:10:00.000Z",
-  "releaseNotes": "Khắc phục triệt để lỗi không nhận được chuông nhắc lịch uống thuốc, tích hợp chuông báo dự phòng Web Audio và Web Notification hệ thống"
+  "version": "v2.9.89",
+  "updatedAt": "2026-09-16T08:00:00.000Z",
+  "releaseNotes": "Nâng cấp chuông báo thức: âm lượng lớn to rõ, tắt chuông tức thì (nút tắt ngay, nút đóng X, bấm nền, phím Esc), chống reo chuông giật mình khi mở app nếu đã quá hạn nhắc hẹn"
 }
