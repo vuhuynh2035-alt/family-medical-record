@@ -2128,66 +2128,119 @@ function setupEventListeners() {
     });
 
     // AI OCR Handling
-    document.getElementById('btn-select-ocr-img').addEventListener('click', (e) => {
-        e.preventDefault();
-        document.getElementById('record-image-input').click();
-    });
+    async function processSelectedFiles(files) {
+        if (!files || files.length === 0) return;
+        const btnScan = document.getElementById('btn-scan-analyze');
+        const originalScanText = btnScan.innerHTML;
 
-    document.getElementById('record-image-input').addEventListener('change', async (e) => {
-        if (e.target.files && e.target.files.length > 0) {
-            const btnScan = document.getElementById('btn-scan-analyze');
-            const originalScanText = btnScan.innerHTML;
-            const files = e.target.files;
+        btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải...`;
+        btnScan.disabled = true;
 
-            btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải...`;
-            btnScan.disabled = true;
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                try {
-                    if (file.type === 'application/pdf') {
-                        btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang đọc PDF...`;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            try {
+                if (file.type === 'application/pdf' || (file.name && file.name.toLowerCase().endsWith('.pdf'))) {
+                    btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang đọc PDF...`;
+                    await new Promise(r => setTimeout(r, 50));
+                    
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    
+                    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                        btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Tách trang ${pageNum}/${pdf.numPages}...`;
                         await new Promise(r => setTimeout(r, 50));
                         
-                        const arrayBuffer = await file.arrayBuffer();
-                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        const page = await pdf.getPage(pageNum);
+                        const viewport = page.getViewport({ scale: 1.5 });
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
                         
-                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                            btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Tách trang ${pageNum}/${pdf.numPages}...`;
-                            await new Promise(r => setTimeout(r, 50));
-                            
-                            const page = await pdf.getPage(pageNum);
-                            const viewport = page.getViewport({ scale: 1.5 });
-                            const canvas = document.createElement('canvas');
-                            const context = canvas.getContext('2d');
-                            canvas.height = viewport.height;
-                            canvas.width = viewport.width;
-                            
-                            await page.render({ canvasContext: context, viewport: viewport }).promise;
-                            
-                            const base64 = canvas.toDataURL('image/jpeg', 0.8);
-                            addImageToPreview(base64);
-                        }
-                    } else {
-                        btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải ảnh ${i + 1}/${files.length}...`;
-                        await new Promise(r => setTimeout(r, 50));
-                        const base64 = await DataManager.fileToBase64(file);
-                        if (base64) {
-                            addImageToPreview(base64);
-                        }
+                        await page.render({ canvasContext: context, viewport: viewport }).promise;
+                        
+                        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+                        addImageToPreview(base64);
                     }
-                } catch (err) {
-                    console.error("Lỗi khi tải file:", err);
-                    alert("Có lỗi khi xử lý file " + file.name + ": " + err.message);
+                } else {
+                    btnScan.innerHTML = `<span class="material-symbols-rounded" style="vertical-align: middle;">hourglass_empty</span> Đang tải ảnh ${i + 1}/${files.length}...`;
+                    await new Promise(r => setTimeout(r, 50));
+                    const base64 = await DataManager.fileToBase64(file);
+                    if (base64) {
+                        addImageToPreview(base64);
+                    }
                 }
+            } catch (err) {
+                console.error("Lỗi khi tải file:", err);
+                alert("Có lỗi khi xử lý file " + file.name + ": " + err.message);
             }
-
-            e.target.value = '';
-            setTimeout(() => {
-                btnScan.innerHTML = originalScanText;
-            }, 500);
         }
+
+        setTimeout(() => {
+            btnScan.innerHTML = originalScanText;
+        }, 500);
+    }
+
+    // Nút 1: Thư viện ảnh (Thư viện / Album / Cuộn camera)
+    document.getElementById('btn-select-gallery')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('record-gallery-input')?.click();
     });
+
+    // Nút 2: Chụp ảnh trực tiếp bằng Camera
+    document.getElementById('btn-select-camera')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('record-camera-input')?.click();
+    });
+
+    // Nút 3: Tệp PDF tài liệu
+    document.getElementById('btn-select-pdf')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('record-pdf-input')?.click();
+    });
+
+    // Tương thích ngược với nút cũ nếu có
+    document.getElementById('btn-select-ocr-img')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const galleryInput = document.getElementById('record-gallery-input');
+        if (galleryInput) galleryInput.click();
+        else document.getElementById('record-image-input')?.click();
+    });
+
+    // Bắt sự kiện chọn file từ bất kỳ input nào
+    ['record-gallery-input', 'record-camera-input', 'record-pdf-input', 'record-image-input'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', async (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                await processSelectedFiles(e.target.files);
+                e.target.value = '';
+            }
+        });
+    });
+
+    // Hỗ trợ kéo thả ảnh / file PDF trực tiếp vào khung Quét AI
+    const ocrDropArea = document.querySelector('.ai-ocr-section');
+    if (ocrDropArea) {
+        ocrDropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            ocrDropArea.style.borderColor = 'var(--primary-blue)';
+            ocrDropArea.style.background = 'rgba(59, 130, 246, 0.05)';
+        });
+        ['dragleave', 'dragend'].forEach(type => {
+            ocrDropArea.addEventListener(type, (e) => {
+                e.preventDefault();
+                ocrDropArea.style.borderColor = '';
+                ocrDropArea.style.background = '';
+            });
+        });
+        ocrDropArea.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            ocrDropArea.style.borderColor = '';
+            ocrDropArea.style.background = '';
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                await processSelectedFiles(e.dataTransfer.files);
+            }
+        });
+    }
 
     // Điền form & Tạo báo cáo đánh giá (1 nút duy nhất, gộp từ 2 nút cũ "Điền form" và
     // "Kết luận"). Bấm 1 lần sẽ chạy đồng thời 2 lệnh gọi AI độc lập trên cùng bộ ảnh đã chọn:

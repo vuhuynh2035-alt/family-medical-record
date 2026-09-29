@@ -147,7 +147,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.90</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.91</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -747,7 +747,7 @@
 
 
                 <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    Phiên bản <strong class="version-tag">v2.9.90</strong> (Tự động hủy lịch nhắc RFC 5545 & Giọng đọc Google iOS)
+                    Phiên bản <strong class="version-tag">v2.9.91</strong> (Hỗ trợ Thư viện ảnh, Chụp trực tiếp & PDF)
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
@@ -856,12 +856,25 @@
                     <p>Tải lên hình ảnh phiếu kết quả/đơn thuốc để AI tự động điền thông tin và tạo báo cáo đánh giá.</p>
                     <p class="help-text" style="margin-top: -8px; margin-bottom: 12px;">Lưu ý: AI có thể đọc sai hoặc thiếu sót, đặc biệt với ảnh mờ/chụp nghiêng. Vui lòng kiểm tra và chỉnh sửa lại thông tin trước khi lưu — đây là công cụ hỗ trợ, không thay thế chẩn đoán của bác sĩ.</p>
                     <div class="ocr-actions">
+                        <!-- Các input chọn tệp chuyên biệt giúp mọi thiết bị (iPhone/Android/PC) mở đúng thư viện -->
+                        <input type="file" id="record-gallery-input" accept="image/*" multiple hidden>
+                        <input type="file" id="record-camera-input" accept="image/*" capture="environment" hidden>
+                        <input type="file" id="record-pdf-input" accept="application/pdf,.pdf" multiple hidden>
                         <input type="file" id="record-image-input" accept="image/*,application/pdf" multiple hidden>
-                        <button id="btn-select-ocr-img" class="secondary-btn neumorphic-btn" data-help-title="Chọn tệp" data-help-desc="Tải lên ảnh hoặc file PDF chứa kết quả khám bệnh">
-                            <span class="material-symbols-rounded">folder_open</span> Chọn tệp (Ảnh/PDF)
-                        </button>
-                        <button id="btn-scan-analyze" class="primary-btn neumorphic-btn magic-btn" style="background: linear-gradient(135deg, #27ae60, #2ecc71);" disabled data-help-title="Xử lý thông tin" data-help-desc="AI sẽ tự động đọc, điền form và tạo báo cáo">
-                            <span class="material-symbols-rounded">auto_awesome</span> Xử lý thông tin
+
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; flex: 1;">
+                            <button type="button" id="btn-select-gallery" class="secondary-btn neumorphic-btn" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;" data-help-title="Thư viện ảnh" data-help-desc="Chọn các hình ảnh đơn thuốc, kết quả xét nghiệm đã lưu trong máy">
+                                <span class="material-symbols-rounded" style="color: #2563eb; font-size: 20px;">photo_library</span> Thư viện ảnh
+                            </button>
+                            <button type="button" id="btn-select-camera" class="secondary-btn neumorphic-btn" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;" data-help-title="Chụp ảnh mới" data-help-desc="Mở máy ảnh chụp trực tiếp đơn thuốc hoặc phiếu khám">
+                                <span class="material-symbols-rounded" style="color: #10b981; font-size: 20px;">photo_camera</span> Chụp ảnh
+                            </button>
+                            <button type="button" id="btn-select-pdf" class="secondary-btn neumorphic-btn" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;" data-help-title="Chọn tệp PDF" data-help-desc="Chọn tệp PDF kết quả khám bệnh hoặc xét nghiệm">
+                                <span class="material-symbols-rounded" style="color: #e11d48; font-size: 20px;">picture_as_pdf</span> Tệp PDF
+                            </button>
+                        </div>
+                        <button type="button" id="btn-scan-analyze" class="primary-btn neumorphic-btn magic-btn" style="background: linear-gradient(135deg, #27ae60, #2ecc71); font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" disabled data-help-title="Xử lý thông tin" data-help-desc="AI sẽ tự động đọc, điền form và tạo báo cáo">
+                            <span class="material-symbols-rounded" style="font-size: 20px;">auto_awesome</span> Xử lý thông tin
                         </button>
                     </div>
                     <div id="ocr-preview-container" style="display: none; margin-top: 15px; gap: 10px; overflow-x: auto; padding-bottom: 10px; white-space: nowrap;">

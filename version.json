@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.90",
-  "updatedAt": "2026-09-29T08:35:00.000Z",
-  "releaseNotes": "Nâng cấp giọng đọc tự nhiên Google mượt mà cho iPhone, đồng bộ hủy lịch điện thoại tự động 1 chạm (RFC 5545 CANCEL), sửa lỗi tạo lịch uống thuốc bằng tay"
+  "version": "v2.9.91",
+  "updatedAt": "2026-09-29T08:50:00.000Z",
+  "releaseNotes": "Tách riêng nút Thư viện ảnh (chọn ảnh đã lưu trong máy), Chụp ảnh trực tiếp và Tệp PDF; hỗ trợ kéo thả ảnh/tài liệu tiện lợi"
 }
