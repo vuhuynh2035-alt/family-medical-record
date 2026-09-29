@@ -1,5 +1,5 @@
-const SW_VERSION = 'v2.9.89';
-const BUILD_TIME = '2026-09-16_14:15';
+const SW_VERSION = 'v2.9.90';
+const BUILD_TIME = '2026-09-29_15:35';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();

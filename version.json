@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.89",
-  "updatedAt": "2026-09-16T08:00:00.000Z",
-  "releaseNotes": "Nâng cấp chuông báo thức: âm lượng lớn to rõ, tắt chuông tức thì (nút tắt ngay, nút đóng X, bấm nền, phím Esc), chống reo chuông giật mình khi mở app nếu đã quá hạn nhắc hẹn"
+  "version": "v2.9.90",
+  "updatedAt": "2026-09-29T08:35:00.000Z",
+  "releaseNotes": "Nâng cấp giọng đọc tự nhiên Google mượt mà cho iPhone, đồng bộ hủy lịch điện thoại tự động 1 chạm (RFC 5545 CANCEL), sửa lỗi tạo lịch uống thuốc bằng tay"
 }

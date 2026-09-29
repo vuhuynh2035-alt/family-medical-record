@@ -243,14 +243,21 @@ const DataManager = {
             const index = reminders.findIndex(r => r.id === reminderData.id);
             if (index > -1) {
                 reminders[index] = { ...reminders[index], ...reminderData };
+            } else {
+                reminders.push(reminderData);
             }
         } else {
             reminderData.id = this.generateId();
             reminderData.notified = false; // Mặc định chưa thông báo
             reminders.push(reminderData);
         }
+        // Đảm bảo có datetime để sắp xếp chuẩn xác
+        if (!reminderData.datetime && reminderData.startDate) {
+            const firstTime = (reminderData.times && reminderData.times[0]) || '08:00';
+            reminderData.datetime = `${reminderData.startDate}T${firstTime}:00`;
+        }
         // Sắp xếp theo ngày giờ tăng dần (gần nhất lên trên)
-        reminders.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+        reminders.sort((a, b) => new Date(a.datetime || 0) - new Date(b.datetime || 0));
         localStorage.setItem('family_reminders', JSON.stringify(reminders));
         return reminderData;
     },

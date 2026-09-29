@@ -147,7 +147,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.89</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.90</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -747,7 +747,7 @@
 
 
                 <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    Phiên bản <strong class="version-tag">v2.9.88</strong> (Tích hợp AI tạo Lịch nhắc thông minh)
+                    Phiên bản <strong class="version-tag">v2.9.90</strong> (Tự động hủy lịch nhắc RFC 5545 & Giọng đọc Google iOS)
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
@@ -1172,31 +1172,57 @@
     
     <!-- Modal TTS Settings -->
     <div id="modal-tts-settings" class="modal-overlay hidden" role="dialog" aria-modal="true">
-        <div class="modal-content neumorphic-panel" style="max-width: 400px; max-height: 85vh; overflow-y: auto;">
+        <div class="modal-content neumorphic-panel" style="max-width: 440px; max-height: 85vh; overflow-y: auto;">
             <div class="modal-header">
                 <h2>Cài đặt Giọng đọc</h2>
                 <button type="button" class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
             </div>
             <div class="modal-body" style="padding: 15px 20px;">
                 <div class="form-group">
-                    <label style="font-weight: 700; color: var(--primary-blue);">Chế độ đọc</label>
+                    <label style="font-weight: 700; color: var(--primary-blue); font-size: 14px;">Chọn Nguồn Giọng đọc</label>
                     <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
-                        <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; padding: 10px; background: rgba(0,0,0,0.02); border-radius: 8px;">
-                            <input type="radio" name="tts_voice_provider" value="system" style="margin-top: 4px;" checked>
-                            <div>
-                                <div style="font-weight: 600;">Giọng Tự Nhiên (iOS / Hệ thống)</div>
-                                <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Hoạt động ổn định trên mọi thiết bị. Có thể bấm nút "Giữ màn hình" trên thanh điều khiển để không bị tắt màn hình khi đọc.</div>
+                        <!-- Lựa chọn 1: Giọng Google Tự Nhiên (Khuyên dùng cho iPhone) -->
+                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 12px; background: rgba(59, 130, 246, 0.06); border: 1.5px solid rgba(59, 130, 246, 0.25); border-radius: 10px;">
+                            <input type="radio" name="tts_voice_provider" value="google_translate" style="margin-top: 4px;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 700; color: #1e40af;">Giọng Tự Nhiên Google (Khuyên dùng cho iPhone)</span>
+                                </div>
+                                <div style="font-size: 12px; color: #475569; margin-top: 3px; line-height: 1.4;">
+                                    Giọng đọc tiếng Việt truyền cảm, mượt mà và tự nhiên, khắc phục triệt để giọng đọc rè hoặc khô khan trên iPhone.
+                                </div>
+                                <button type="button" id="btn-test-google-voice" class="secondary-btn neumorphic-btn" style="font-size: 11.5px; padding: 4px 10px; margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; color: #2563eb; background: white; border-radius: 14px;">
+                                    <span class="material-symbols-rounded" style="font-size: 14px;">play_arrow</span> Nghe thử giọng này
+                                </button>
+                            </div>
+                        </label>
+
+                        <!-- Lựa chọn 2: Giọng Hệ thống Thiết bị (iOS / Siri / Android) -->
+                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 12px; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.08); border-radius: 10px;">
+                            <input type="radio" name="tts_voice_provider" value="system" style="margin-top: 4px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 700; color: var(--text-color);">Giọng Hệ thống Máy (iOS / Siri / Android)</div>
+                                <div style="font-size: 12px; color: #64748b; margin-top: 3px; line-height: 1.4;">
+                                    Sử dụng bộ tổng hợp giọng nói cài sẵn của thiết bị (hoạt động tốt khi ngoại tuyến).
+                                </div>
                             </div>
                         </label>
                     </div>
                 </div>
                 
-                <div class="form-group" style="margin-top: 20px;">
-                    <label style="font-weight: 700; color: var(--primary-blue);">Tùy chỉnh giọng (chỉ áp dụng cho Giọng Tự Nhiên)</label>
-                    <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">Nếu điện thoại của bạn có cài nhiều giọng đọc, bạn có thể chỉ định chính xác giọng muốn dùng.</p>
-                    <select id="tts-system-voice-select" class="neumorphic-input" style="width: 100%; font-size: 14px;">
-                        <option value="">-- Để máy tự động chọn giọng tốt nhất --</option>
-                    </select>
+                <div id="tts-system-voice-options" class="form-group" style="margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 10px; border: 1px solid rgba(0,0,0,0.05);">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 6px; display: block;">Danh sách giọng nói trên máy:</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="tts-system-voice-select" class="neumorphic-input" style="flex: 1; font-size: 13px;">
+                            <option value="">-- Để máy tự động chọn giọng tốt nhất --</option>
+                        </select>
+                        <button type="button" id="btn-test-system-voice" class="secondary-btn neumorphic-btn" title="Nghe thử giọng đang chọn" style="padding: 6px 10px; font-size: 12px; white-space: nowrap; display: flex; align-items: center; gap: 4px;">
+                            <span class="material-symbols-rounded" style="font-size: 15px;">play_arrow</span> Thử
+                        </button>
+                    </div>
+                    <div style="margin-top: 10px; padding: 8px 10px; background: #fef3c7; border-radius: 6px; font-size: 11.5px; color: #92400e; line-height: 1.4;">
+                        💡 <strong>Mẹo iPhone:</strong> Nếu muốn dùng giọng Apple hay hơn, vào <em>Cài đặt iPhone &gt; Trợ năng &gt; Đọc nội dung &gt; Giọng nói &gt; Tiếng Việt</em> và bấm tải về giọng <strong>Linh (Nâng cao)</strong> hoặc <strong>Siri</strong>.
+                    </div>
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: flex-end; padding: 15px 20px; border-top: 1px solid rgba(0,0,0,0.05);">
@@ -1398,6 +1424,9 @@
                 <button type="button" class="primary-btn neumorphic-btn close-modal" style="width: 100%; border-radius: 8px;">Đóng lại</button>
                 <button type="button" id="btn-export-medplan-ics" class="secondary-btn neumorphic-btn" style="width: 100%; border-radius: 8px; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600;">
                     <span class="material-symbols-rounded">calendar_add_on</span> Thêm vào Lịch điện thoại
+                </button>
+                <button type="button" id="btn-delete-medplan-modal" class="secondary-btn neumorphic-btn" style="width: 100%; border-radius: 8px; background: rgba(239, 68, 68, 0.08); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600;">
+                    <span class="material-symbols-rounded">delete</span> Xóa lịch uống thuốc này
                 </button>
             </div>
         </div>

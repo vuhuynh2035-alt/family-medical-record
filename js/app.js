@@ -2815,10 +2815,12 @@ function setupEventListeners() {
         document.getElementById('medplan-id').value = '';
         
         const settings = DataManager.getSettings();
-        document.getElementById('medplan-time-morning').value = '08:00';
-        document.getElementById('medplan-time-noon').value = '12:00';
-        
-        document.getElementById('medplan-time-evening').value = '20:00';
+        document.getElementById('medplan-time-morning').value = settings.medTimeMorning || '08:00';
+        document.getElementById('medplan-time-noon').value = settings.medTimeNoon || '12:00';
+        if (document.getElementById('medplan-time-afternoon')) {
+            document.getElementById('medplan-time-afternoon').value = settings.medTimeAfternoon || '14:00';
+        }
+        document.getElementById('medplan-time-evening').value = settings.medTimeEvening || '20:00';
 
         document.querySelectorAll('input[name="reminder_offsets"]').forEach(cb => cb.checked = false);
         const cb0 = document.querySelector('input[name="reminder_offsets"][value="0"]');
@@ -2832,8 +2834,14 @@ function setupEventListeners() {
         
         const tabNormal = document.getElementById('tab-reminder-normal');
         const tabMedplan = document.getElementById('tab-reminder-medplan');
-        if (type === 'normal' && tabNormal) tabNormal.click();
-        else if (type === 'medplan' && tabMedplan) tabMedplan.click();
+        if (type === 'normal' && tabNormal) {
+            tabNormal.click();
+        } else if (type === 'medplan' && tabMedplan) {
+            tabMedplan.click();
+            // Tự động thêm 1 ô nhập thuốc để người dùng điền ngay
+            const btnAddMed = document.getElementById('btn-add-med-item');
+            if (btnAddMed) btnAddMed.click();
+        }
         
         openModal('modal-reminder');
     }
@@ -2841,15 +2849,64 @@ function setupEventListeners() {
     document.getElementById('btn-add-reminder-appointment')?.addEventListener('click', () => initNewReminder('normal'));
     document.getElementById('btn-add-reminder-medication')?.addEventListener('click', () => initNewReminder('medplan'));
 
-    document.getElementById('btn-delete-reminder')?.addEventListener('click', async () => {
-        const id = document.getElementById('reminder-id').value;
+    // Hàm xóa lịch thông minh: Xóa trong App và tự động hỏi xóa trên Lịch điện thoại
+    window.deleteReminderWithCalendarOption = async function(id) {
         if (!id) return;
-        if (await window.showConfirm('Bạn có chắc chắn muốn xóa lịch hẹn này không?')) {
+        const reminder = DataManager.getReminders().find(r => r.id === id);
+        if (!reminder) return;
+
+        const isPlan = reminder.isPlan || reminder.type === 'medication_plan';
+        const title = reminder.title || (isPlan ? 'Lịch uống thuốc' : 'Lịch hẹn');
+
+        if (await window.showConfirm(`Bạn có chắc chắn muốn xóa "${title}" không?`)) {
+            const reminderBackup = JSON.parse(JSON.stringify(reminder));
             DataManager.deleteReminder(id);
             closeModal('modal-reminder');
+            closeModal('modal-medication-plan-details');
             reloadRecordsAndStats();
             checkReminders();
-            showToast('Đã xóa lịch hẹn thành công!', 'success');
+            showToast('Đã xóa lịch khỏi ứng dụng thành công!', 'success');
+
+            // Đề xuất tự động xóa trên Lịch điện thoại (iPhone / Android)
+            setTimeout(async () => {
+                if (await window.showConfirm(`Bạn có muốn tự động XÓA lịch này khỏi ứng dụng Lịch trên điện thoại (iPhone/Android) không?`)) {
+                    if (typeof window.exportCancelICS === 'function') {
+                        window.exportCancelICS(reminderBackup);
+                    }
+                }
+            }, 350);
+        }
+    };
+
+    document.getElementById('btn-delete-reminder')?.addEventListener('click', async () => {
+        const id = document.getElementById('reminder-id').value || document.getElementById('medplan-id').value;
+        if (!id) return;
+        window.deleteReminderWithCalendarOption(id);
+    });
+
+    document.getElementById('btn-delete-medplan-modal')?.addEventListener('click', () => {
+        const modal = document.getElementById('modal-medication-plan-details');
+        const planId = modal ? modal.dataset.planId : null;
+        if (planId) {
+            window.deleteReminderWithCalendarOption(planId);
+        }
+    });
+
+    // Bắt sự kiện xóa lịch trực tiếp trên thẻ Lịch hẹn hoặc Lịch uống thuốc
+    document.addEventListener('click', (e) => {
+        const btnPlan = e.target.closest('.btn-delete-plan');
+        if (btnPlan) {
+            e.stopPropagation();
+            const id = btnPlan.dataset.id;
+            if (id) window.deleteReminderWithCalendarOption(id);
+            return;
+        }
+        const btnRm = e.target.closest('.btn-delete-reminder-card');
+        if (btnRm) {
+            e.stopPropagation();
+            const id = btnRm.dataset.id;
+            if (id) window.deleteReminderWithCalendarOption(id);
+            return;
         }
     });
 
@@ -2947,7 +3004,7 @@ function setupEventListeners() {
                     <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
                         <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="morning"> Sáng</label>
                         <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="noon"> Trưa</label>
-                        
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="afternoon"> Chiều</label>
                         <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="med-time-chk" value="evening"> Tối</label>
                     </div>
                 </div>
@@ -2996,9 +3053,10 @@ function setupEventListeners() {
             let isValid = true;
             
             const timeMap = {
-                'morning': document.getElementById('medplan-time-morning').value,
-                'noon': document.getElementById('medplan-time-noon').value,
-                'evening': document.getElementById('medplan-time-evening').value
+                'morning': document.getElementById('medplan-time-morning')?.value || '08:00',
+                'noon': document.getElementById('medplan-time-noon')?.value || '12:00',
+                'afternoon': document.getElementById('medplan-time-afternoon')?.value || '14:00',
+                'evening': document.getElementById('medplan-time-evening')?.value || '20:00'
             };
 
             items.forEach(item => {
@@ -3026,6 +3084,9 @@ function setupEventListeners() {
             endD.setDate(startD.getDate() + totalDays - 1);
             const medplanId = document.getElementById('medplan-id').value || DataManager.generateId();
             const existingPlan = DataManager.getReminders().find(r => r.id === medplanId);
+            const sortedTimes = Array.from(allTimes).sort();
+            const firstTime = sortedTimes[0] || '08:00';
+
             DataManager.saveReminder({
                 id: medplanId,
                 memberId: currentMemberId,
@@ -3035,7 +3096,8 @@ function setupEventListeners() {
                 startDate: startDate,
                 endDate: endD.toISOString().split('T')[0],
                 totalDays: totalDays,
-                times: Array.from(allTimes).sort(),
+                times: sortedTimes,
+                datetime: `${startDate}T${firstTime}:00`,
                 medications: medications,
                 notified_times: (existingPlan && existingPlan.notified_times) ? existingPlan.notified_times : {}
             });
@@ -5075,10 +5137,10 @@ const TTSService = {
     activeBtnElement: null,
     activeContainerElement: null,
     speed: 0.9,
-    pitch: 1.05,
+    pitch: 1.0,
     audioFallback: null,
     currentUtterance: null,
-    voiceProvider: 'system',
+    voiceProvider: localStorage.getItem('tts_voice_provider') || (/iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'google_translate' : 'system'),
     silentAudio: null,
     highlightNodes: [],
     originalHTML: null,
@@ -5099,10 +5161,10 @@ const TTSService = {
         );
         if (viVoices.length === 0) return null;
         
-        // Ưu tiên giọng Premium/Enhanced (iOS/Android chất lượng cao)
+        // Ưu tiên giọng Premium/Enhanced/Siri (iOS/Android chất lượng cao)
         const premiumVoice = viVoices.find(v => {
             const name = (v.name || '').toLowerCase();
-            return name.includes('premium') || name.includes('enhanced') || name.includes('cao cấp');
+            return name.includes('premium') || name.includes('enhanced') || name.includes('cao cấp') || name.includes('siri');
         });
         if (premiumVoice) return premiumVoice;
 
@@ -5438,7 +5500,11 @@ const TTSService = {
 
         const chunkText = this.chunks[this.currentChunkIndex];
 
-        
+        // Nếu dùng giọng Google Tự Nhiên (êm dịu, chuẩn studio, giải quyết triệt để lỗi giọng rè trên iPhone)
+        if (this.voiceProvider === 'google_translate') {
+            this.playChunkWithAudioFallback(chunkText);
+            return;
+        }
 
         const voice = this.getVietnameseFemaleVoice();
         const hasNativeVi = 'speechSynthesis' in window && (voice || !/Android/i.test(navigator.userAgent));
@@ -5479,6 +5545,7 @@ const TTSService = {
     },
 
     playChunkWithAudioFallback(chunkText) {
+        const expectedPlaybackId = this.currentPlaybackId;
         if (!this.isPlaying || this.isPaused) return;
         const encoded = encodeURIComponent(chunkText);
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encoded}`;
@@ -5507,13 +5574,17 @@ const TTSService = {
 
         this.audioFallback.onerror = () => {
             this.currentChunkIndex++;
-            setTimeout(() => this.playNextChunk(), 50);
+            setTimeout(() => {
+                if (this.currentPlaybackId === expectedPlaybackId) this.playNextChunk();
+            }, 50);
         };
         
         this.audioFallback.play().catch(e => {
             console.error('Audio play failed', e);
             this.currentChunkIndex++;
-            setTimeout(() => this.playNextChunk(), 50);
+            setTimeout(() => {
+                if (this.currentPlaybackId === expectedPlaybackId) this.playNextChunk();
+            }, 50);
         });
     },
 
@@ -5562,8 +5633,8 @@ const TTSService = {
         if (this.audioFallback) this.audioFallback.playbackRate = this.speed;
         if (typeof showToast !== 'undefined') showToast('Tốc độ đọc: ' + desc[idx]);
         
-        // Cập nhật ngay nếu đang đọc bằng speechSynthesis
-        if (this.isPlaying && !this.isPaused && this.voiceProvider === 'system') {
+        // Cập nhật ngay nếu đang đọc
+        if (this.isPlaying && !this.isPaused) {
             const tempChunks = [...this.chunks];
             const tempIdx = this.currentChunkIndex;
             const tempBtn = this.activeBtnElement;
@@ -5770,19 +5841,13 @@ document.getElementById('btn-tts-mode')?.addEventListener('click', async () => {
     }
 });
 
-// Init state UI
-// Đã bỏ google_translate, reset localStorage nếu còn bị kẹt
-if (localStorage.getItem('tts_voice_provider') === 'google_translate') {
-    localStorage.removeItem('tts_voice_provider');
-}
-
-
 // 6. Cài đặt Giọng đọc
 document.getElementById('btn-tts-settings')?.addEventListener('click', () => {
     const provider = TTSService.voiceProvider;
     const radio = document.querySelector(`input[name="tts_voice_provider"][value="${provider}"]`);
     if (radio) radio.checked = true;
-    document.getElementById('modal-tts-settings').classList.remove('hidden');
+    populateVoiceSelector();
+    openModal('modal-tts-settings');
 });
 
 function populateVoiceSelector() {
@@ -5809,6 +5874,7 @@ if ('speechSynthesis' in window) {
 
 document.getElementById('tts-system-voice-select')?.addEventListener('change', (e) => {
     localStorage.setItem('tts_preferred_voice', e.target.value);
+    showToast('Đã lưu giọng đọc ưu tiên.');
 });
 
 document.querySelectorAll('input[name="tts_voice_provider"]').forEach(radio => {
@@ -5816,9 +5882,38 @@ document.querySelectorAll('input[name="tts_voice_provider"]').forEach(radio => {
         const val = e.target.value;
         TTSService.voiceProvider = val;
         localStorage.setItem('tts_voice_provider', val);
-        showToast('Đã lưu cài đặt giọng đọc.');
-        setTimeout(() => document.getElementById('modal-tts-settings').classList.add('hidden'), 500);
+        showToast('Đã lưu nguồn giọng đọc: ' + (val === 'google_translate' ? 'Google Tự Nhiên' : 'Hệ Thống Thiết Bị'));
     });
+});
+
+// Nghe thử giọng Google Tự Nhiên
+document.getElementById('btn-test-google-voice')?.addEventListener('click', () => {
+    const sampleText = 'Xin chào, đây là giọng đọc tự nhiên chuẩn tiếng Việt của Google trên ứng dụng Hồ sơ Sức khỏe.';
+    if (TTSService.audioFallback) {
+        TTSService.audioFallback.pause();
+    }
+    const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(sampleText)}`);
+    audio.playbackRate = TTSService.speed || 0.9;
+    audio.play().catch(err => {
+        showToast('Không thể phát âm thanh: ' + err.message, 'error');
+    });
+});
+
+// Nghe thử giọng Hệ thống Máy
+document.getElementById('btn-test-system-voice')?.addEventListener('click', () => {
+    const sampleText = 'Xin chào, đây là giọng đọc hệ thống của thiết bị.';
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(sampleText);
+        utterance.lang = 'vi-VN';
+        utterance.rate = TTSService.speed || 0.9;
+        utterance.pitch = TTSService.pitch || 1.0;
+        const voice = TTSService.getVietnameseFemaleVoice();
+        if (voice) utterance.voice = voice;
+        window.speechSynthesis.speak(utterance);
+    } else {
+        showToast('Thiết bị không hỗ trợ giọng đọc hệ thống.', 'error');
+    }
 });
 
 
@@ -5977,7 +6072,7 @@ function buildRFC5545ICS(item) {
             }
             const plainDesc = plainLines.join('\n');
             const summary = rawTitle + ' (' + t + ')';
-            const uid = `medplan-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}@familyhealth`;
+            const uid = `medplan_${item.id}_${idx}@familyhealth.app`;
 
             ics += 'BEGIN:VEVENT\r\n';
             ics += 'UID:' + uid + '\r\n';
@@ -6018,7 +6113,7 @@ function buildRFC5545ICS(item) {
         const dtEnd = formatEndDateICSLocal(date, time, 60);
         const summary = rawTitle;
         const plainDesc = item.note || 'Lịch hẹn từ Hồ sơ Y tế Gia đình';
-        const uid = `reminder-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@familyhealth`;
+        const uid = `reminder_${item.id}@familyhealth.app`;
 
         ics += 'BEGIN:VEVENT\r\n';
         ics += 'UID:' + uid + '\r\n';
@@ -6044,6 +6139,61 @@ function buildRFC5545ICS(item) {
 
     ics += 'END:VCALENDAR\r\n';
     return { icsContent: ics, fileName: fileName, googleLinks: googleLinks };
+}
+
+function buildCancelRFC5545ICS(item) {
+    const nowUTCStamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//FamilyMedicalRecord//VI\r\nCALSCALE:GREGORIAN\r\nMETHOD:CANCEL\r\nX-WR-CALNAME:Lịch Y Tế Gia Đình\r\nX-WR-TIMEZONE:Asia/Ho_Chi_Minh\r\n';
+    const rawTitle = item.title || (item.type === 'medication_plan' ? 'Lịch Uống Thuốc' : 'Lịch Hẹn Y Tế');
+    const cleanTitle = ('Huy_' + rawTitle).replace(/[\\/:*?"<>|]/g, '_');
+    const fileName = cleanTitle + '.ics';
+
+    if (item.type === 'medication_plan') {
+        const times = (item.times && item.times.length > 0) ? item.times : ['08:00', '12:00', '20:00'];
+        const totalDays = parseInt(item.totalDays) || 5;
+
+        times.forEach((t, idx) => {
+            const dtStart = formatDateICSLocal(item.startDate, t);
+            const dtEnd = formatEndDateICSLocal(item.startDate, t, 15);
+            const summary = rawTitle + ' (' + t + ')';
+            const uid = `medplan_${item.id}_${idx}@familyhealth.app`;
+
+            ics += 'BEGIN:VEVENT\r\n';
+            ics += 'UID:' + uid + '\r\n';
+            ics += 'DTSTAMP:' + nowUTCStamp + '\r\n';
+            ics += 'DTSTART:' + dtStart + '\r\n';
+            ics += 'DTEND:' + dtEnd + '\r\n';
+            ics += 'RRULE:FREQ=DAILY;COUNT=' + totalDays + '\r\n';
+            ics += 'SUMMARY:Đã hủy - ' + escapeICSText(summary) + '\r\n';
+            ics += 'DESCRIPTION:Lịch đã được xóa khỏi ứng dụng Hồ sơ Sức khỏe.\r\n';
+            ics += 'STATUS:CANCELLED\r\n';
+            ics += 'SEQUENCE:1\r\n';
+            ics += 'TRANSP:TRANSPARENT\r\n';
+            ics += 'END:VEVENT\r\n';
+        });
+    } else {
+        const time = item.time || '08:00';
+        const date = item.date || new Date().toISOString().split('T')[0];
+        const dtStart = formatDateICSLocal(date, time);
+        const dtEnd = formatEndDateICSLocal(date, time, 60);
+        const summary = rawTitle;
+        const uid = `reminder_${item.id}@familyhealth.app`;
+
+        ics += 'BEGIN:VEVENT\r\n';
+        ics += 'UID:' + uid + '\r\n';
+        ics += 'DTSTAMP:' + nowUTCStamp + '\r\n';
+        ics += 'DTSTART:' + dtStart + '\r\n';
+        ics += 'DTEND:' + dtEnd + '\r\n';
+        ics += 'SUMMARY:Đã hủy - ' + escapeICSText(summary) + '\r\n';
+        ics += 'DESCRIPTION:Lịch đã được xóa khỏi ứng dụng Hồ sơ Sức khỏe.\r\n';
+        ics += 'STATUS:CANCELLED\r\n';
+        ics += 'SEQUENCE:1\r\n';
+        ics += 'TRANSP:TRANSPARENT\r\n';
+        ics += 'END:VEVENT\r\n';
+    }
+
+    ics += 'END:VCALENDAR\r\n';
+    return { icsContent: ics, fileName: fileName };
 }
 
 function showCalendarSyncGuideModal(planOrReminder, fileName, googleLinks) {
@@ -6176,3 +6326,42 @@ document.getElementById('btn-redownload-ics')?.addEventListener('click', () => {
         showToast('Đang tải lại tệp ' + window._lastGeneratedICS.fileName);
     }
 });
+
+window.exportCancelICS = async function(planOrReminder) {
+    if (!planOrReminder) return;
+
+    const res = buildCancelRFC5545ICS(planOrReminder);
+    const blob = new Blob([res.icsContent], { type: 'text/calendar;charset=utf-8' });
+
+    let shared = false;
+    try {
+        if (navigator.canShare) {
+            const file = new File([blob], res.fileName, { type: 'text/calendar' });
+            if (navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'Hủy lịch ' + (planOrReminder.title || ''),
+                    text: 'Mở tệp để xóa sự kiện này khỏi ứng dụng Lịch điện thoại'
+                });
+                shared = true;
+            }
+        }
+    } catch (e) {
+        // Share rejected or cancelled
+    }
+
+    if (!shared) {
+        try {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = res.fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+            showToast('Đã tải tệp hủy lịch ' + res.fileName + '. Mở tệp để hoàn tất xóa trên Lịch điện thoại.', 'info');
+        } catch (err) {
+            console.error('Download Cancel ICS error:', err);
+        }
+    }
+};
