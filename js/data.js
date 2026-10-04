@@ -399,34 +399,38 @@ const DataManager = {
     },
 
     async importData(jsonData) {
+        let data;
         try {
-            const data = JSON.parse(jsonData);
-            
-            const keysToRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('family_')) {
-                    keysToRemove.push(key);
-                }
-            }
-            keysToRemove.forEach(k => localStorage.removeItem(k));
-
-            if (data.localStorage) {
-                for (const key in data.localStorage) {
-                    localStorage.setItem(key, data.localStorage[key]);
-                }
-            }
-
-            if (data.indexedDB && data.indexedDB.images) {
-                await ImageStore.importImages(data.indexedDB.images);
-            }
-
-            return true;
+            data = JSON.parse(jsonData);
         } catch (e) {
             console.error("Lỗi khi nạp dữ liệu:", e);
-            alert("File không hợp lệ hoặc bị lỗi.");
-            return false;
+            throw new Error("File không hợp lệ hoặc bị lỗi.");
         }
+
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+            throw new Error("File không hợp lệ hoặc bị lỗi.");
+        }
+
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('family_')) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+
+        if (data.localStorage) {
+            for (const key in data.localStorage) {
+                localStorage.setItem(key, data.localStorage[key]);
+            }
+        }
+
+        if (data.indexedDB && data.indexedDB.images) {
+            await ImageStore.importImages(data.indexedDB.images);
+        }
+
+        return true;
     },
 
     // ---- WIPE ALL DATA (KEEP SETTINGS) ----
@@ -436,9 +440,11 @@ const DataManager = {
         if (settings) {
             localStorage.setItem('family_settings', settings);
         }
-        // IndexedDB is managed by ImageStore, we can clear it by deleting the database or clearing the store.
-        // For simplicity, we just delete the database entirely and it will be recreated on next reload.
-        indexedDB.deleteDatabase("FamilyMedicalDB");
+        if (typeof ImageStore !== 'undefined' && ImageStore.db) {
+            try { ImageStore.db.close(); } catch (e) {}
+            ImageStore.db = null;
+        }
+        indexedDB.deleteDatabase(ImageStore.dbName);
     }
 };
 

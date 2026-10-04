@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.91",
-  "updatedAt": "2026-09-29T08:50:00.000Z",
-  "releaseNotes": "Tách riêng nút Thư viện ảnh (chọn ảnh đã lưu trong máy), Chụp ảnh trực tiếp và Tệp PDF; hỗ trợ kéo thả ảnh/tài liệu tiện lợi"
+  "version": "v2.9.92",
+  "updatedAt": "2026-10-04T05:19:00.000Z",
+  "releaseNotes": "Sửa Xóa sạch dữ liệu / Quên PIN không xóa ảnh, khôi phục file lỗi vẫn báo thành công, bắt buộc nhập ngày sinh khi lưu thành viên"
 }

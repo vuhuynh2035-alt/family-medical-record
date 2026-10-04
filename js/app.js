@@ -180,7 +180,11 @@ function setupPinLockListeners() {
             if (confirm('Đây là xác nhận cuối cùng. Mọi dữ liệu sẽ bị xóa VĨNH VIỄN và không thể khôi phục. Bạn vẫn muốn tiếp tục?')) {
                 localStorage.clear();
                 if (window.indexedDB) {
-                    indexedDB.deleteDatabase('FamilyMedicalRecordDB');
+                    if (ImageStore.db) {
+                        try { ImageStore.db.close(); } catch (e) {}
+                        ImageStore.db = null;
+                    }
+                    indexedDB.deleteDatabase(ImageStore.dbName);
                 }
                 alert('Đã xóa toàn bộ dữ liệu. Ứng dụng sẽ khởi động lại.');
                 window.location.reload();
@@ -268,7 +272,7 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.88';
+const CURRENT_APP_VERSION = 'v2.9.92';
 const APP_CHANGELOG = {
     'v2.9.88': '• Khắc phục triệt để lỗi không nhận được chuông thông báo lịch uống thuốc: Kết nối lại toàn bộ luồng kích hoạt chuông báo, sửa lỗi sai lệch ID thành phần giao diện và lỗi lệch múi giờ (UTC so với Giờ Việt Nam).\n• Hệ thống âm thanh đa tầng: Tích hợp âm thanh chuông báo dự phòng (Web Audio API Synthesizer) tự động kích hoạt ngay cả khi thiết bị mất mạng hoặc trình duyệt hạn chế âm thanh ngoài.\n• Thông báo đẩy hệ thống (Web System Notifications): Tự động đẩy thông báo ra màn hình khóa / khay thông báo thiết bị khi đến giờ uống thuốc.\n• Quản lý cữ thuốc thông minh: Cho phép bấm "Đã uống", "Nhắc lại sau 30 phút", "Bỏ qua" hoặc mở xem chi tiết đơn thuốc trực tiếp từ màn hình báo thức.\n• Hỗ trợ kiểm tra quyền thông báo và nút Thử chuông & báo thức mẫu ngay trong Cài đặt Hệ thống.',
     'v2.9.87': '• Nâng cấp tính năng Thêm vào Lịch điện thoại (Báo thức): Chuẩn hóa tệp .ics theo chuẩn quốc tế RFC 5545, tự động kích hoạt báo thức chuẩn xác trên mọi thiết bị.\n• Mở nhanh trên Google Calendar: Cho phép thêm ngay lịch uống thuốc/khám bệnh vào Google Calendar chỉ với 1 chạm, không cần tải tệp thủ công.\n• Bổ sung hộp thoại hướng dẫn 3 bước chi tiết cho iPhone, Samsung và điện thoại Android.\n• Thêm biểu tượng Lịch nhanh trên từng thẻ lịch hẹn ở màn hình chính.',
@@ -1466,6 +1470,15 @@ function setupEventListeners() {
     // Save Member
     document.getElementById('form-member').addEventListener('submit', (e) => {
         e.preventDefault();
+
+        const isYearOnly = document.getElementById('member-dob-full').classList.contains('hidden');
+        const dobRaw = isYearOnly
+            ? document.getElementById('member-dob-year').value.trim()
+            : document.getElementById('member-dob-full').value;
+        if (!dobRaw) {
+            showToast(isYearOnly ? 'Vui lòng nhập năm sinh.' : 'Vui lòng nhập ngày sinh.', 'error');
+            return;
+        }
         
         const customFields = [];
         document.querySelectorAll('.custom-field-row').forEach(row => {
@@ -1480,9 +1493,7 @@ function setupEventListeners() {
             id: document.getElementById('member-id').value,
             name: document.getElementById('member-name').value,
             nickname: document.getElementById('member-nickname').value,
-            dob: document.getElementById('member-dob-full').classList.contains('hidden') ? 
-                 document.getElementById('member-dob-year').value : 
-                 (document.getElementById('member-dob-full').value ? document.getElementById('member-dob-full').value.split('-').reverse().join('/') : ''),
+            dob: isYearOnly ? dobRaw : dobRaw.split('-').reverse().join('/'),
             blood: document.getElementById('member-blood').value,
             height: document.getElementById('member-height').value,
             weight: document.getElementById('member-weight').value,
@@ -3085,7 +3096,7 @@ function setupEventListeners() {
                 title: document.getElementById('reminder-title').value,
                 date: document.getElementById('reminder-date').value,
                 time: document.getElementById('reminder-time').value,
-                note: document.getElementById('reminder-note').value,
+                note: document.getElementById('reminder-note')?.value || '',
                 datetime,
                 selected_offsets: Array.from(document.querySelectorAll('input[name="reminder_offsets"]:checked')).map(cb => cb.value),
                 notified_offsets: {} 
