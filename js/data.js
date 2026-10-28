@@ -63,6 +63,11 @@ const DataManager = {
             geminiApiKey: '',
             openaiApiKey: '',
             anthropicApiKey: '',
+            deepseekApiKey: '',
+            deepseekModel: 'deepseek-chat',
+            zhipuApiKey: '',
+            zhipuModel: 'glm-4-flash',
+            providerOcr: 'gemini',
             // Cho phép ghi đè tên model của ChatGPT/Claude (mặc định dùng model khá cũ do OpenAI/
             // Cho phép ghi đè tên model của ChatGPT/Claude (mặc định dùng model khá cũ do OpenAI/
             // Anthropic cũng thường xuyên ra bản mới) — để trống thì dùng giá trị mặc định bên dưới.
@@ -111,6 +116,11 @@ const DataManager = {
     // trong Cài đặt khi biết tên model mới hơn).
     getOpenAIModel() { return this.getSettings().openaiModel || 'gpt-4o'; },
     getAnthropicModel() { return this.getSettings().anthropicModel || 'claude-3-5-sonnet-20240620'; },
+    getDeepSeekApiKey() { return this.getSettings().deepseekApiKey; },
+    getDeepSeekModel() { return this.getSettings().deepseekModel || 'deepseek-chat'; },
+    getZhipuApiKey() { return this.getSettings().zhipuApiKey; },
+    getZhipuModel() { return this.getSettings().zhipuModel || 'glm-4-flash'; },
+    getProviderOcr() { return this.getSettings().providerOcr || 'gemini'; },
 
     /**
      * Tự động nâng cấp model Gemini đã ngừng hoạt động lên model mặc định hiện tại, cho những

@@ -1,3 +1,11 @@
+
+function getProviderDisplayName(provider) {
+    if (provider === 'deepseek') return 'DeepSeek';
+    if (provider === 'zhipu') return 'Zhipu AI (GLM)';
+    if (provider === 'openai') return 'ChatGPT';
+    if (provider === 'anthropic') return 'Claude';
+    return 'Gemini';
+}
 /**
  * app.js — điểm khởi tạo (bootstrap), gắn sự kiện (event listeners) và các hàm điều phối
  * (logic functions) nối UI (components.js), dữ liệu (data.js) và AI (ai.js) lại với nhau.
@@ -272,8 +280,10 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.92';
+const CURRENT_APP_VERSION = 'v2.9.93';
 const APP_CHANGELOG = {
+    'v2.9.93': '• Hỗ trợ AI Trung Quốc: Tích hợp dịch vụ DeepSeek (V3/R1) và Zhipu AI (GLM-4-Flash miễn phí 100%), hoạt động mượt mà tại Trung Quốc không cần VPN.\n• Hỗ trợ Quét thông minh (OCR): Cho phép đọc ảnh phiếu khám/xét nghiệm bằng Zhipu AI GLM-4V (Miễn phí 100%) hoặc OpenAI gpt-4o khi không sử dụng được Google Gemini.\n• Phím tắt 1 chạm "Dùng AI TQ": Tự động cấu hình toàn bộ ứng dụng sang AI Trung Quốc chỉ với 1 click trong Cài đặt.\n• Hướng dẫn chi tiết cách tạo API Key miễn phí cho DeepSeek và Zhipu AI.',
+
     'v2.9.88': '• Khắc phục triệt để lỗi không nhận được chuông thông báo lịch uống thuốc: Kết nối lại toàn bộ luồng kích hoạt chuông báo, sửa lỗi sai lệch ID thành phần giao diện và lỗi lệch múi giờ (UTC so với Giờ Việt Nam).\n• Hệ thống âm thanh đa tầng: Tích hợp âm thanh chuông báo dự phòng (Web Audio API Synthesizer) tự động kích hoạt ngay cả khi thiết bị mất mạng hoặc trình duyệt hạn chế âm thanh ngoài.\n• Thông báo đẩy hệ thống (Web System Notifications): Tự động đẩy thông báo ra màn hình khóa / khay thông báo thiết bị khi đến giờ uống thuốc.\n• Quản lý cữ thuốc thông minh: Cho phép bấm "Đã uống", "Nhắc lại sau 30 phút", "Bỏ qua" hoặc mở xem chi tiết đơn thuốc trực tiếp từ màn hình báo thức.\n• Hỗ trợ kiểm tra quyền thông báo và nút Thử chuông & báo thức mẫu ngay trong Cài đặt Hệ thống.',
     'v2.9.87': '• Nâng cấp tính năng Thêm vào Lịch điện thoại (Báo thức): Chuẩn hóa tệp .ics theo chuẩn quốc tế RFC 5545, tự động kích hoạt báo thức chuẩn xác trên mọi thiết bị.\n• Mở nhanh trên Google Calendar: Cho phép thêm ngay lịch uống thuốc/khám bệnh vào Google Calendar chỉ với 1 chạm, không cần tải tệp thủ công.\n• Bổ sung hộp thoại hướng dẫn 3 bước chi tiết cho iPhone, Samsung và điện thoại Android.\n• Thêm biểu tượng Lịch nhanh trên từng thẻ lịch hẹn ở màn hình chính.',
     'v2.9.47': `• Sửa lỗi bấm nút màu cam ở mục Chia sẻ không có tác dụng. Cấu trúc lại luồng xử lý Web Share API để tương thích hoàn toàn với trình duyệt.\n• Khắc phục triệt để lỗi không mở được bảng chia sẻ Zalo/Messenger trên một số trình duyệt (do trình duyệt yêu cầu thao tác chạm trực tiếp). Quy trình mới: Bấm lần 1 để chuẩn bị dữ liệu -> Bấm lần 2 để mở bảng chia sẻ.\n• Cải tiến tính năng Chia sẻ dữ liệu: Hỗ trợ mở trực tiếp bảng chia sẻ gốc của điện thoại (để chọn gửi qua Zalo, Messenger, Email...) thay vì chỉ tải file về máy. Cho phép import lại file sao lưu dưới định dạng .txt để tương thích tốt hơn với các nền tảng chat.\n• Tối ưu hiển thị Lịch nhắc: Tự động gộp chung các chỉ định (siêu âm, xét nghiệm, tái khám...) của CÙNG MỘT bác sĩ vào chung 1 lịch hẹn cho gọn gàng. Chỉ tách riêng nếu các lịch hẹn đó thuộc về 2 bác sĩ / chuyên khoa khác nhau.\n• Sửa lỗi treo app (không hiện cảnh báo) khi điện thoại bị đầy bộ nhớ không thể lưu thêm ảnh (QuotaExceededError).\n• Nâng cấp AI Đọc hồ sơ: AI giờ đây đã biết tự động cộng trừ ngày tháng (vd: đọc "sau 3 tháng" sẽ tự tính ra ngày tái khám chính xác), đồng thời không còn bỏ sót lịch hẹn khi đọc nhiều đơn thuốc cùng lúc.\n• Tối ưu AI Đọc đơn thuốc: Ép buộc AI phải đọc và ghi chép tỉ mỉ từng loại thuốc, tuyệt đối không được tự ý tóm tắt đơn thuốc dài thành vài loại cơ bản.\n• Làm gọn giao diện: Tinh chỉnh lại bảng chỉ số xét nghiệm (ẩn chữ "Đỏ", thu nhỏ nút xóa thành dấu X) giúp màn hình gọn gàng, bớt rối mắt hơn trên điện thoại.\n• Sửa lỗi AI Nhắc lịch: Bắt buộc AI phải tách riêng từng lịch khám/xét nghiệm thành các mục độc lập, không được tự ý gộp chung lại làm mất chi tiết khi chúng trùng ngày.\n• Cải tiến AI (Smart Reminders): Khắc phục lỗi AI chỉ trích xuất được 1 lịch hẹn duy nhất và bỏ sót các lịch khác. Từ nay AI có thể đọc và đề xuất toàn bộ các lịch hẹn khám, xét nghiệm định kỳ có trong hồ sơ.\n• Dọn dẹp giao diện: Xóa bỏ nút Hướng dẫn (màu cam) khổng lồ choán chỗ ở góc phải bên dưới màn hình, vì nút Trợ giúp đã được chuyển lên thanh menu ở góc trên.\n• Gộp nút Hướng dẫn: Đơn giản hóa giao diện bằng cách gộp nút "Cẩm nang hướng dẫn" và "Trợ lý AI" vào chung 1 nút (dấu chấm hỏi). Khi bấm vào, Trợ lý AI sẽ hiện ra để bạn hỏi đáp trực tiếp, nếu muốn đọc cẩm nang, chỉ cần bấm nút "Cẩm nang" ngay góc trên của cửa sổ chat.\n• Cập nhật Giao diện: Tách đôi nút tạo lịch trên màn hình chính để thao tác nhanh hơn (Khám bệnh/Uống thuốc). Di chuyển nút Trợ lý AI (dấu ?) lên góc phải màn hình theo đúng thiết kế tiêu chuẩn.\n• Sửa lỗi (Bugfix): Khắc phục sự cố khi tạo hồ sơ bằng AI OCR (quét ảnh), hệ thống tự động sinh ra hàng loạt Lịch uống thuốc lẻ tẻ theo thiết kế cũ (bị trùng lặp với Kế hoạch nhắc thuốc thông minh).\n• Tối ưu giao diện Trợ lý AI: Thiết kế lại nút Trợ lý AI Hỏi đáp (trong Chế độ Hướng dẫn) thành biểu tượng dấu chấm hỏi nhỏ gọn, đặt ở góc trên cùng bên phải màn hình để không che khuất tầm nhìn và đồng bộ với giao diện chính.\n• Cải tiến thao tác tạo Lịch: Tách nút "Tạo lịch hẹn mới" thành 2 nút riêng biệt "+ Khám bệnh" và "+ Uống thuốc" đặt ngay bên ngoài màn hình danh sách, giúp thao tác nhanh hơn 1 bước và bố cục cân đối hơn.\n• Nâng cấp giao diện Xác nhận: Thay thế toàn bộ các thông báo xác nhận trắng đen (xóa, ghi đè dữ liệu, khôi phục) của trình duyệt bằng một giao diện Pop-up hiện đại, đẹp mắt và đồng bộ với thiết kế của ứng dụng.\n• Quản lý Tiến độ uống thuốc: Khi báo thức uống thuốc reo lên, bạn có thể chọn "Đã uống (Hoàn thành)", "Nhắc lại sau 30 phút", hoặc "Bỏ qua". Bổ sung thêm tính năng xem Báo cáo tuân thủ uống thuốc (dạng bảng lưới điểm danh) khi mở chi tiết Lịch uống thuốc, giúp bạn theo dõi chính xác mình có hay quên uống thuốc cữ nào không.\n• Tối ưu hoá hiển thị Chi tiết Lịch uống thuốc: Theo góp ý từ người dùng, màn hình chi tiết giờ đây sẽ hiển thị danh sách các buổi uống thuốc ở dạng thu gọn mặc định. Khi cần xem chi tiết buổi nào, bạn chỉ việc nhấn vào mục đó để mở bung ra (thay vì tự động mở buổi gần nhất như trước, giúp app nhẹ hơn và tránh bị rối mắt).\n• Sửa lỗi nghiêm trọng (Critical Bugfix): Khắc phục sự cố Lịch uống thuốc được tạo bằng tay bị lỗi không báo chuông và bị nhận nhầm thành lịch hẹn thông thường dẫn đến không hoạt động.\n• Bổ sung tính năng Sửa Lịch Uống Thuốc: Thêm nút Sửa (hình cây bút chì) trực tiếp trên các Lịch uống thuốc ở màn hình chính, giúp bạn dễ dàng vào điều chỉnh lại loại thuốc hoặc thời gian báo chuông cho từng lịch cũ.\n• Cải tiến Lịch uống thuốc: Bổ sung "Khung giờ uống thuốc của Lịch này". Thay vì phải dùng chung khung giờ cố định từ hệ thống, bạn giờ đây có thể tùy chỉnh giờ Sáng/Trưa/Chiều/Tối riêng biệt cho từng Lịch uống thuốc (phù hợp khi có thuốc uống trước ăn lúc 5h chiều, hoặc sau ăn lúc 8h tối).\n• Cải tiến hiển thị Thông báo: Nội dung cập nhật tính năng mới giờ đây sẽ hiển thị trực tiếp ngay trong bảng thông báo, giúp bạn không cần phải bấm thêm một bước "Xem thay đổi" như trước đây.\n• Cải tiến Lịch hẹn: Bổ sung thêm các tuỳ chọn báo chuông "Trước 1 giờ" và "Trước 3 giờ" để bạn có thời gian chuẩn bị linh hoạt hơn.\n• Tạo Lịch uống thuốc thủ công: Giờ đây bạn có thể tự mình tạo Lịch uống thuốc mà không cần thông qua AI phân tích. Trong màn hình tạo Lịch hẹn, chuyển sang tab "Lịch uống thuốc" để thêm từng loại thuốc, chọn cữ uống, cách dùng theo ý muốn.\n`,
@@ -544,6 +554,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (settings.geminiApiKey) document.getElementById('input-api-key').value = settings.geminiApiKey;
     if (settings.openaiApiKey) document.getElementById('input-openai-key').value = settings.openaiApiKey;
     if (settings.anthropicApiKey) document.getElementById('input-anthropic-key').value = settings.anthropicApiKey;
+        if (settings.deepseekApiKey && document.getElementById('input-deepseek-key')) document.getElementById('input-deepseek-key').value = settings.deepseekApiKey;
+        if (settings.deepseekModel && document.getElementById('input-deepseek-model')) document.getElementById('input-deepseek-model').value = settings.deepseekModel;
+        if (settings.zhipuApiKey && document.getElementById('input-zhipu-key')) document.getElementById('input-zhipu-key').value = settings.zhipuApiKey;
+        if (settings.zhipuModel && document.getElementById('input-zhipu-model')) document.getElementById('input-zhipu-model').value = settings.zhipuModel;
+        if (settings.providerOcr && document.getElementById('input-ai-provider-ocr')) document.getElementById('input-ai-provider-ocr').value = settings.providerOcr;
     
     if (settings.alarmSound && document.getElementById('input-alarm-sound')) {
         document.getElementById('input-alarm-sound').value = settings.alarmSound;
@@ -1000,10 +1015,33 @@ function setupEventListeners() {
         alert("Trạng thái cấp quyền:\n" + results.join("\n"));
     });
 
+    
+    // Nút kích hoạt nhanh AI Trung Quốc (DeepSeek + Zhipu AI)
+    document.getElementById('btn-preset-china')?.addEventListener('click', () => {
+        const selAssessment = document.getElementById('input-ai-provider-assessment');
+        const selSearch = document.getElementById('input-ai-provider-search');
+        const selTrend = document.getElementById('input-ai-provider-trend');
+        const selChat = document.getElementById('input-ai-provider-chat');
+        const selOcr = document.getElementById('input-ai-provider-ocr');
+
+        if (selAssessment) selAssessment.value = 'deepseek';
+        if (selSearch) selSearch.value = 'deepseek';
+        if (selTrend) selTrend.value = 'deepseek';
+        if (selChat) selChat.value = 'deepseek';
+        if (selOcr) selOcr.value = 'zhipu';
+
+        showToast('Đã chuyển nhanh toàn bộ cấu hình AI sang DeepSeek & Zhipu AI (GLM)!', 'success');
+    });
+
     document.getElementById('btn-save-settings').addEventListener('click', () => {
         const geminiKey = document.getElementById('input-api-key').value.trim();
         const openaiKey = document.getElementById('input-openai-key').value.trim();
         const anthropicKey = document.getElementById('input-anthropic-key').value.trim();
+        const deepseekKey = document.getElementById('input-deepseek-key') ? document.getElementById('input-deepseek-key').value.trim() : '';
+        const deepseekModel = document.getElementById('input-deepseek-model') ? document.getElementById('input-deepseek-model').value : 'deepseek-chat';
+        const zhipuKey = document.getElementById('input-zhipu-key') ? document.getElementById('input-zhipu-key').value.trim() : '';
+        const zhipuModel = document.getElementById('input-zhipu-model') ? document.getElementById('input-zhipu-model').value : 'glm-4-flash';
+        const providerOcr = document.getElementById('input-ai-provider-ocr') ? document.getElementById('input-ai-provider-ocr').value : 'gemini';
         
         const providerAssessment = document.getElementById('input-ai-provider-assessment').value;
         const providerSearch = document.getElementById('input-ai-provider-search').value;
@@ -1027,6 +1065,11 @@ function setupEventListeners() {
             geminiApiKey: geminiKey,
             openaiApiKey: openaiKey,
             anthropicApiKey: anthropicKey,
+            deepseekApiKey: deepseekKey,
+            deepseekModel: deepseekModel,
+            zhipuApiKey: zhipuKey,
+            zhipuModel: zhipuModel,
+            providerOcr: providerOcr,
             providerAssessment: providerAssessment,
             providerSearch: providerSearch,
             providerTrend: providerTrend,
@@ -1751,7 +1794,7 @@ function setupEventListeners() {
         const records = DataManager.getRecords(currentMemberId);
         const member = DataManager.getMembers().find(m => m.id === currentMemberId);
         const activeProvider = DataManager.getProviderTrend();
-        const pName = activeProvider === 'openai' ? 'ChatGPT' : (activeProvider === 'anthropic' ? 'Claude' : 'Gemini');
+        const pName = getProviderDisplayName(activeProvider);
         
         document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">auto_awesome</span> ${pName} Đánh giá xu hướng sức khỏe`;
         openModal('modal-ai-assessment');
@@ -2057,7 +2100,7 @@ function setupEventListeners() {
             
             if (record && member) {
                 const activeProvider = DataManager.getProviderAssessment();
-                const pName = activeProvider === 'openai' ? 'ChatGPT' : (activeProvider === 'anthropic' ? 'Claude' : 'Gemini');
+                const pName = getProviderDisplayName(activeProvider);
                 
                 document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">psychiatry</span> ${pName} Nhận xét tình trạng`;
                 openModal('modal-ai-assessment');
@@ -2116,7 +2159,7 @@ function setupEventListeners() {
             if (!disease) return;
             
             const activeProvider = DataManager.getProviderSearch();
-            const pName = activeProvider === 'openai' ? 'ChatGPT' : (activeProvider === 'anthropic' ? 'Claude' : 'Gemini');
+            const pName = getProviderDisplayName(activeProvider);
             
             document.querySelector('#modal-ai-assessment .modal-header h3').innerHTML = `<span class="material-symbols-rounded ai-sparkle">travel_explore</span> Tra cứu chuyên sâu (${pName})`;
             openModal('modal-ai-assessment');
@@ -4624,6 +4667,32 @@ document.addEventListener('click', async (e) => {
                     <li style="margin-bottom: 10px;">Nhập tên tùy ý (ví dụ "App So Kham") rồi bấm Create.</li>
                     <li style="margin-bottom: 10px;">Copy chuỗi ký tự hiển thị ra (bắt đầu bằng <code>sk-proj-...</code>). <em>Lưu ý: Mã này chỉ hiện ra 1 lần duy nhất.</em></li>
                     <li>Dán mã đó vào ô <strong>OpenAI API Key</strong> của phần mềm và lưu lại.</li>
+                </ol>
+            `;
+        
+        } else if (provider === 'deepseek') {
+            titleEl.innerHTML = '<span style="color: #1e40af;">Hướng dẫn tạo API Key DeepSeek (Hoạt động tốt tại Trung Quốc)</span>';
+            contentEl.innerHTML = `
+                <p>DeepSeek là hệ sinh thái AI hàng đầu của Trung Quốc, có trụ sở tại Hàng Châu. Dịch vụ này hoạt động mượt mà tại Trung Quốc mà không cần VPN, chi phí cực kỳ rẻ (chỉ khoảng vài hào/triệu token) và có tặng credit dùng thử khi đăng ký.</p>
+                <ol style="margin-left: 20px;">
+                    <li style="margin-bottom: 10px;">Mở trang <a href="https://platform.deepseek.com" target="_blank" style="color: #1e40af; font-weight: bold;">DeepSeek Open Platform (platform.deepseek.com)</a>.</li>
+                    <li style="margin-bottom: 10px;">Đăng ký hoặc đăng nhập (hỗ trợ số điện thoại Trung Quốc, số quốc tế hoặc Email).</li>
+                    <li style="margin-bottom: 10px;">Ở thanh menu bên trái, chọn mục <strong>API Keys</strong>.</li>
+                    <li style="margin-bottom: 10px;">Bấm nút <strong>Create API Key</strong>, đặt tên tùy ý rồi bấm Create.</li>
+                    <li style="margin-bottom: 10px;">Sao chép mã API Key vừa tạo (bắt đầu bằng <code>sk-...</code>).</li>
+                    <li>Dán mã đó vào ô <strong>DeepSeek API Key</strong> trong phần Cài đặt của ứng dụng rồi bấm "Lưu cài đặt".</li>
+                </ol>
+            `;
+        } else if (provider === 'zhipu') {
+            titleEl.innerHTML = '<span style="color: #0284c7;">Hướng dẫn tạo API Key Zhipu AI / GLM (Miễn phí 100% tại TQ)</span>';
+            contentEl.innerHTML = `
+                <p>Zhipu AI (Trí Phổ AI - open.bigmodel.cn) là công ty AI chính thức của Đại học Thanh Hoa (Bắc Kinh), được cấp phép hoạt động tại Trung Quốc. Đặc biệt, Zhipu cung cấp model <strong>GLM-4-Flash</strong> (văn bản) và <strong>GLM-4V-Flash</strong> (đọc ảnh OCR) <strong>HOÀN TOÀN MIỄN PHÍ VĨNH VIỄN 100%</strong>, không cần nạp tiền hay thẻ tín dụng.</p>
+                <ol style="margin-left: 20px;">
+                    <li style="margin-bottom: 10px;">Mở trang <a href="https://open.bigmodel.cn" target="_blank" style="color: #0284c7; font-weight: bold;">Zhipu BigModel (open.bigmodel.cn)</a>.</li>
+                    <li style="margin-bottom: 10px;">Đăng ký / Đăng nhập tài khoản bằng số điện thoại.</li>
+                    <li style="margin-bottom: 10px;">Vào trung tâm người dùng, chọn mục <strong>API Keys</strong> (hoặc truy cập trực tiếp <code>open.bigmodel.cn/usercenter/proj-mgmt/apikeys</code>).</li>
+                    <li style="margin-bottom: 10px;">Bấm <strong>Tạo API Key mới</strong> và sao chép đoạn mã.</li>
+                    <li>Dán mã đó vào ô <strong>Zhipu AI (GLM) API Key</strong> của ứng dụng rồi bấm "Lưu cài đặt".</li>
                 </ol>
             `;
         } else if (provider === 'anthropic') {

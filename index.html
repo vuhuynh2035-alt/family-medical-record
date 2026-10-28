@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=2.9.92">
+    <link rel="stylesheet" href="css/style.css?v=2.9.93">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
@@ -147,7 +147,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.92</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.93</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -517,7 +517,43 @@
                     
                     <input type="file" id="input-import-data" accept=".json, .fhm, .txt" hidden>
                 </div>
-                <div class="help-text" style="margin-top: 10px; margin-bottom: 20px; color: var(--danger);">
+                
+                        <!-- DeepSeek API Key -->
+                        <div class="form-group" style="margin-top: 15px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 15px;">
+                            <label style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 600; color: #1e40af;">DeepSeek API Key (Hoạt động tốt tại Trung Quốc)</span>
+                                <a href="#" class="btn-create-key" data-provider="deepseek" style="font-size: 12px; color: var(--primary-blue); text-decoration: underline;">Cách tạo Key DeepSeek</a>
+                            </label>
+                            <input type="password" id="input-deepseek-key" class="neumorphic-input" placeholder="sk-..." data-help-title="API Key của DeepSeek" data-help-desc="Nhập mã bí mật từ tài khoản DeepSeek. Hoạt động cực mượt tại Trung Quốc không cần VPN.">
+                            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
+                                <div style="flex: 1;">
+                                    <select id="input-deepseek-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model DeepSeek" data-help-desc="deepseek-chat là DeepSeek-V3 nhanh và thông minh. deepseek-reasoner là DeepSeek-R1 suy luận sâu.">
+                                        <option value="deepseek-chat">deepseek-chat (DeepSeek-V3 - Khuyên dùng)</option>
+                                        <option value="deepseek-reasoner">deepseek-reasoner (DeepSeek-R1 - Suy luận sâu)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Zhipu AI (GLM) API Key -->
+                        <div class="form-group" style="margin-top: 15px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 15px;">
+                            <label style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 600; color: #0284c7;">Zhipu AI (GLM) API Key (Miễn phí 100% tại TQ)</span>
+                                <a href="#" class="btn-create-key" data-provider="zhipu" style="font-size: 12px; color: var(--primary-blue); text-decoration: underline;">Cách tạo Key Zhipu miễn phí</a>
+                            </label>
+                            <input type="password" id="input-zhipu-key" class="neumorphic-input" placeholder="Mã API Key Zhipu..." data-help-title="API Key của Zhipu AI (GLM)" data-help-desc="Dịch vụ AI chính thức của Trung Quốc. Miễn phí 100% vĩnh viễn cả văn bản (glm-4-flash) và đọc ảnh OCR (glm-4v-flash).">
+                            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
+                                <div style="flex: 1;">
+                                    <select id="input-zhipu-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model Zhipu" data-help-desc="glm-4-flash hoàn toàn miễn phí, tốc độ cao.">
+                                        <option value="glm-4-flash">glm-4-flash (Miễn phí 100% vĩnh viễn)</option>
+                                        <option value="glm-4-plus">glm-4-plus (Bản cao cấp)</option>
+                                        <option value="glm-4-air">glm-4-air</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+<div class="help-text" style="margin-top: 10px; margin-bottom: 20px; color: var(--danger);">
                     Lưu ý: Khôi phục dữ liệu sẽ ghi đè toàn bộ hồ sơ và cài đặt hiện tại của bạn trên máy này.
                 </div>
                 
@@ -611,14 +647,40 @@
                         <span class="material-symbols-rounded" style="font-size: 20px; color: var(--text-muted);">touch_app</span>
                     </summary>
                     <div style="margin-top: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05), inset -2px -2px 5px rgba(255,255,255,0.5);">
-                        <p class="modal-desc" style="margin-bottom: 20px;">Phân công tác vụ cho các nhà cung cấp AI khác nhau (Google, OpenAI, Anthropic).</p>
+                        <p class="modal-desc" style="margin-bottom: 12px;">Phân công tác vụ cho các nhà cung cấp AI khác nhau (Google, OpenAI, Anthropic, DeepSeek, Zhipu AI).</p>
+                        <!-- Phím tắt chuyển nhanh AI Trung Quốc -->
+                        <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(245, 158, 11, 0.08)); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #b91c1c; font-size: 13px; display: flex; align-items: center; gap: 5px;">
+                                    <span>🇨🇳</span> Bạn đang ở Trung Quốc (hoặc không dùng VPN)?
+                                </div>
+                                <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                                    Bấm nút bên cạnh để tự động chuyển tất cả các mục AI sang DeepSeek & Zhipu AI (GLM) không bị chặn mạng.
+                                </div>
+                            </div>
+                            <button type="button" id="btn-preset-china" class="primary-btn neumorphic-btn" style="background: linear-gradient(135deg, #e11d48, #be123c); color: white; white-space: nowrap; font-size: 12px; padding: 6px 12px; border: none; font-weight: 600; border-radius: 8px;">
+                                Dùng AI TQ
+                            </button>
+                        </div>
+
                         
+                        
+                        <div class="form-group">
+                            <label style="font-weight: bold; color: var(--primary-blue);">AI Quét thông minh & Đọc ảnh hồ sơ (OCR)</label>
+                            <select id="input-ai-provider-ocr" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn AI Quét ảnh" data-help-desc="Hệ thống AI đọc ảnh phiếu xét nghiệm/hồ sơ. Khi ở Trung Quốc hoặc không có VPN, hãy chọn Zhipu AI GLM-4V (Miễn phí 100%).">
+                                <option value="gemini">Google Gemini 1.5/2.0 Flash (Mặc định)</option>
+                                <option value="zhipu">Zhipu AI GLM-4V-Flash (Trung Quốc / Miễn phí 100% / Không cần VPN)</option>
+                                <option value="openai">OpenAI ChatGPT (gpt-4o)</option>
+                            </select>
+                        </div>
                         <div class="form-group">
                             <label style="font-weight: bold; color: var(--primary-blue);">AI Phân tích tình trạng bệnh án</label>
                             <select id="input-ai-provider-assessment" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn AI Phân tích" data-help-desc="Quyết định hệ thống AI nào sẽ đọc và giải thích hồ sơ bệnh án của bạn. (Khuyên dùng: OpenAI ChatGPT).">
                                 <option value="gemini">Google Gemini (Mặc định)</option>
                                 <option value="openai">OpenAI ChatGPT</option>
                                 <option value="anthropic">Anthropic Claude</option>
+                                <option value="deepseek">DeepSeek (Trung Quốc / Siêu rẻ)</option>
+                                <option value="zhipu">Zhipu AI - GLM (Trung Quốc / Miễn phí 100%)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -627,6 +689,8 @@
                                 <option value="gemini">Google Gemini (Mặc định)</option>
                                 <option value="openai">OpenAI ChatGPT</option>
                                 <option value="anthropic">Anthropic Claude</option>
+                                <option value="deepseek">DeepSeek (Trung Quốc / Siêu rẻ)</option>
+                                <option value="zhipu">Zhipu AI - GLM (Trung Quốc / Miễn phí 100%)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -635,6 +699,8 @@
                                 <option value="gemini">Google Gemini (Mặc định)</option>
                                 <option value="openai">OpenAI ChatGPT</option>
                                 <option value="anthropic">Anthropic Claude</option>
+                                <option value="deepseek">DeepSeek (Trung Quốc / Siêu rẻ)</option>
+                                <option value="zhipu">Zhipu AI - GLM (Trung Quốc / Miễn phí 100%)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -643,6 +709,8 @@
                                 <option value="gemini">Google Gemini (Mặc định)</option>
                                 <option value="openai">OpenAI ChatGPT</option>
                                 <option value="anthropic">Anthropic Claude</option>
+                                <option value="deepseek">DeepSeek (Trung Quốc / Siêu rẻ)</option>
+                                <option value="zhipu">Zhipu AI - GLM (Trung Quốc / Miễn phí 100%)</option>
                             </select>
                         </div>
 
@@ -747,7 +815,7 @@
 
 
                 <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    Phiên bản <strong class="version-tag">v2.9.92</strong> (Sửa lỗi xóa dữ liệu, khôi phục & ngày sinh)
+                    Phiên bản <strong class="version-tag">v2.9.93</strong> (Hỗ trợ AI Trung Quốc DeepSeek & Zhipu GLM không cần VPN)
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">

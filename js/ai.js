@@ -256,7 +256,15 @@ Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy đ�
         // temperature = 0: đây là tác vụ trích xuất/phân loại dữ liệu (không phải viết văn), nên
         // ưu tiên tuyệt đối tính nhất quán — cùng 1 ảnh đọc nhiều lần nên ra cùng 1 kết quả, thay
         // vì "sáng tạo" ra các cách diễn đạt/phân loại khác nhau mỗi lần gọi.
-        let result = await this.callGeminiAPI(prompt, base64Images, true, null, 0);
+        const ocrProvider = DataManager.getProviderOcr();
+        let result = "";
+        if (ocrProvider === 'zhipu') {
+            result = await this.callZhipuVision(prompt, base64Images, true);
+        } else if (ocrProvider === 'openai') {
+            result = await this.callOpenAIVision(prompt, base64Images, true);
+        } else {
+            result = await this.callGeminiAPI(prompt, base64Images, true, null, 0);
+        }
         try {
             let cleanResult = result.trim();
             // Try parsing directly first
@@ -378,6 +386,10 @@ Vui lòng phân tích và đưa ra nhận xét:
             return await this.callOpenAI(prompt);
         } else if (provider === 'anthropic') {
             return await this.callAnthropic(prompt);
+        } else if (provider === 'deepseek') {
+            return await this.callDeepSeek(prompt);
+        } else if (provider === 'zhipu') {
+            return await this.callZhipu(prompt);
         } else {
             // BUG ĐÃ SỬA: trước đây gọi callGeminiAPI(prompt, null, false, true) — tham số thứ 4
             // (overrideModel) bị truyền nhầm giá trị boolean `true` thay vì tên model/`null`.
@@ -435,6 +447,10 @@ Vui lòng phân tích và xuất Báo cáo Đánh giá Xu hướng Sức khỏe 
             return await this.callOpenAI(prompt);
         } else if (provider === 'anthropic') {
             return await this.callAnthropic(prompt);
+        } else if (provider === 'deepseek') {
+            return await this.callDeepSeek(prompt);
+        } else if (provider === 'zhipu') {
+            return await this.callZhipu(prompt);
         } else {
             return await this.callGeminiAPI(prompt, null, false);
         }
@@ -463,6 +479,10 @@ Hãy viết với văn phong đồng cảm, khoa học, chính xác, nhưng dễ
             return await this.callOpenAI(prompt);
         } else if (provider === 'anthropic') {
             return await this.callAnthropic(prompt);
+        } else if (provider === 'deepseek') {
+            return await this.callDeepSeek(prompt);
+        } else if (provider === 'zhipu') {
+            return await this.callZhipu(prompt);
         } else {
             // BUG ĐÃ SỬA: trước đây gọi callGeminiAPI(prompt, null, false, true) — tham số thứ 4
             // (overrideModel) bị truyền nhầm giá trị boolean `true` thay vì tên model/`null`.
@@ -491,11 +511,15 @@ Các tính năng chính của phần mềm:
 Hãy trả lời câu hỏi sau của người dùng một cách ngắn gọn, dễ hiểu, thân thiện, và định dạng bằng Markdown (in đậm, danh sách) để dễ đọc:
 Câu hỏi của người dùng: "${userQuestion}"`;
 
-        const provider = DataManager.getProviderSearch(); // Sử dụng chung provider của tính năng Tra cứu
+        const provider = DataManager.getProviderSearch();
         if (provider === 'openai') {
             return await this.callOpenAI(systemInstruction);
         } else if (provider === 'anthropic') {
             return await this.callAnthropic(systemInstruction);
+        } else if (provider === 'deepseek') {
+            return await this.callDeepSeek(systemInstruction);
+        } else if (provider === 'zhipu') {
+            return await this.callZhipu(systemInstruction);
         } else {
             return await this.callGeminiAPI(systemInstruction, null, false);
         }
@@ -514,11 +538,15 @@ Hãy phân tích chuyên sâu về các loại thuốc (nếu có) trong nội d
 Nếu văn bản trên không chứa tên thuốc rõ ràng hoặc chỉ là lời khuyên chung chung, hãy giải thích ngắn gọn ý nghĩa của lời khuyên đó.
 *LƯU Ý QUAN TRỌNG:* Cuối bài, luôn thêm dòng cảnh báo in nghiêng: "*Lưu ý: Thông tin trên chỉ mang tính chất tham khảo. Vui lòng luôn tuân thủ chính xác liều lượng và chỉ định của Bác sĩ điều trị. Không tự ý ngưng thuốc.*"`;
 
-        const provider = DataManager.getProviderChat(); // Phân tích thuốc dùng chung provider với Chat
+        const provider = DataManager.getProviderChat();
         if (provider === 'openai') {
             return await this.callOpenAI(prompt);
         } else if (provider === 'anthropic') {
             return await this.callAnthropic(prompt);
+        } else if (provider === 'deepseek') {
+            return await this.callDeepSeek(prompt);
+        } else if (provider === 'zhipu') {
+            return await this.callZhipu(prompt);
         } else {
             return await this.callGeminiAPI(prompt, null, false);
         }
@@ -570,6 +598,10 @@ ${recordContext}
             return await this.callOpenAI(fullPrompt, 0.4);
         } else if (provider === 'anthropic') {
             return await this.callAnthropic(fullPrompt, 0.4);
+        } else if (provider === 'deepseek') {
+            return await this.callDeepSeek(fullPrompt, 0.4);
+        } else if (provider === 'zhipu') {
+            return await this.callZhipu(fullPrompt, 0.4);
         } else {
             return await this.callGeminiAPI(fullPrompt, null, false, null, 0.4);
         }
@@ -586,6 +618,10 @@ Không cần lời chào hỏi, đi thẳng vào giải thích ý nghĩa.`;
             return await this.callOpenAI(prompt, 0.2);
         } else if (provider === 'anthropic') {
             return await this.callAnthropic(prompt, 0.2);
+        } else if (provider === 'deepseek') {
+            return await this.callDeepSeek(prompt, 0.2);
+        } else if (provider === 'zhipu') {
+            return await this.callZhipu(prompt, 0.2);
         } else {
             return await this.callGeminiAPI(prompt, null, false, null, 0.2);
         }
@@ -642,6 +678,10 @@ Chú ý:
                 resText = await this.callOpenAI(prompt, 0.1, true);
             } else if (provider === 'anthropic') {
                 resText = await this.callAnthropic(prompt, 0.1);
+            } else if (provider === 'deepseek') {
+                resText = await this.callDeepSeek(prompt, 0.1, true);
+            } else if (provider === 'zhipu') {
+                resText = await this.callZhipu(prompt, 0.1);
             } else {
                 resText = await this.callGeminiAPI(prompt, null, true, null, 0.1);
             }
@@ -1013,6 +1053,10 @@ Viết với văn phong khoa học, chuẩn y khoa, ân cần và dễ hiểu.`;
             return await this.callOpenAI(prompt, 0.2);
         } else if (provider === 'anthropic') {
             return await this.callAnthropic(prompt, 0.2);
+        } else if (provider === 'deepseek') {
+            return await this.callDeepSeek(prompt, 0.2);
+        } else if (provider === 'zhipu') {
+            return await this.callZhipu(prompt, 0.2);
         } else {
             return await this.callGeminiAPI(prompt, null, false, null, 0.2);
         }

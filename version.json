@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.92",
-  "updatedAt": "2026-10-04T05:19:00.000Z",
-  "releaseNotes": "Sửa Xóa sạch dữ liệu / Quên PIN không xóa ảnh, khôi phục file lỗi vẫn báo thành công, bắt buộc nhập ngày sinh khi lưu thành viên"
+  "version": "v2.9.93",
+  "updatedAt": "2026-10-28T18:43:35.771Z",
+  "releaseNotes": "Bổ sung dịch vụ AI Trung Quốc (DeepSeek, Zhipu GLM-4-Flash miễn phí 100%, OCR Zhipu GLM-4V) dùng tốt tại TQ không cần VPN, phím tắt chuyển đổi 1 chạm"
 }

@@ -1,4 +1,4 @@
-const SW_VERSION = 'v2.9.92';
+const SW_VERSION = 'v2.9.93';
 const BUILD_TIME = '2026-10-04_12:19';
 
 self.addEventListener('install', (e) => {
