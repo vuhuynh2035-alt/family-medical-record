@@ -33,7 +33,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=2.9.93">
+    <link rel="stylesheet" href="css/style.css?v=2.9.94">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
@@ -45,30 +45,41 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- Local scripts -->
-    <script defer src="js/data.js?v=2.9.92"></script>
-    <script defer src="js/ai.js?v=2.9.92"></script>
-    <script defer src="js/components.js?v=2.9.92"></script>
-    <script defer src="js/help.js?v=2.9.92"></script>
-    <script defer src="js/speech.js?v=2.9.92"></script>
-    <script defer src="js/app.js?v=2.9.92"></script>
+    <script defer src="js/i18n.js?v=2.9.94"></script>
+    <script defer src="js/data.js?v=2.9.94"></script>
+    <script defer src="js/ai.js?v=2.9.94"></script>
+    <script defer src="js/components.js?v=2.9.94"></script>
+    <script defer src="js/help.js?v=2.9.94"></script>
+    <script defer src="js/speech.js?v=2.9.94"></script>
+    <script defer src="js/app.js?v=2.9.94"></script>
 </head>
 <body>
     <!-- PIN Lock Screen: hiển thị đè lên toàn bộ ứng dụng khi tính năng khóa PIN được bật.
          Đây là lớp khóa GIAO DIỆN, không mã hóa dữ liệu — xem ghi chú trong js/data.js. -->
     <div id="lock-screen" class="hidden" role="dialog" aria-modal="true" aria-label="Màn hình khóa">
         <div class="lock-box neumorphic-modal">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+                <div class="quick-lang-picker" style="padding: 4px 10px; box-shadow: none; border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.03);">
+                    <span class="material-symbols-rounded" style="color: var(--primary-blue); font-size: 18px;">language</span>
+                    <select id="lock-language-select" class="quick-lang-dropdown" style="font-size: 12.5px;" aria-label="Select Language">
+                        <option value="vi">🇻🇳 Tiếng Việt</option>
+                        <option value="en">🇬🇧 English</option>
+                        <option value="ja">🇯🇵 日本語</option>
+                        <option value="zh">🇨🇳 中文</option>
+                    </select>
+                </div>
+            </div>
             <div class="lock-icon"><span class="material-symbols-rounded">lock</span></div>
-            <h2>Nhập mã PIN</h2>
-            <p class="help-text">Hồ sơ sức khỏe gia đình đã được khóa để bảo vệ riêng tư.</p>
+            <h2 data-i18n="lock_title">Nhập mã PIN</h2>
+            <p class="help-text" data-i18n="lock_desc">Hồ sơ sức khỏe gia đình đã được khóa để bảo vệ riêng tư.</p>
             <form id="form-unlock">
                 <input type="password" id="input-unlock-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" minlength="4" autocomplete="off" placeholder="••••" aria-label="Nhập mã PIN">
-                <div id="unlock-error" class="lock-error hidden" role="alert">Mã PIN không đúng, vui lòng thử lại.</div>
-                <button type="submit" class="primary-btn neumorphic-btn magic-btn" style="width:100%; justify-content:center; margin-top:15px;">Mở khóa</button>
+                <div id="unlock-error" class="lock-error hidden" role="alert" data-i18n="lock_error">Mã PIN không đúng, vui lòng thử lại.</div>
+                <button type="submit" class="primary-btn neumorphic-btn magic-btn" style="width:100%; justify-content:center; margin-top:15px;" data-i18n="lock_btn_unlock">Mở khóa</button>
             </form>
 
-            
             <div style="margin-top: 25px; text-align: center;">
-                <button type="button" id="btn-forgot-pin-reset" style="background: none; border: none; color: var(--danger-color); font-size: 13px; text-decoration: underline; cursor: pointer; padding: 5px;">
+                <button type="button" id="btn-forgot-pin-reset" style="background: none; border: none; color: var(--danger-color); font-size: 13px; text-decoration: underline; cursor: pointer; padding: 5px;" data-i18n="lock_forgot_pin">
                     Quên mã PIN? (Xóa toàn bộ dữ liệu)
                 </button>
             </div>
@@ -78,20 +89,31 @@
     <!-- Màn hình tạo mã PIN bắt buộc lần đầu -->
     <div id="forced-pin-setup-screen" class="hidden" role="dialog" aria-modal="true" aria-label="Thiết lập mã PIN lần đầu" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: var(--bg-body); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
         <div class="lock-box neumorphic-modal" style="width: 90%; max-width: 400px; text-align: center;">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+                <div class="quick-lang-picker" style="padding: 4px 10px; box-shadow: none; border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.03);">
+                    <span class="material-symbols-rounded" style="color: var(--primary-blue); font-size: 18px;">language</span>
+                    <select id="setup-language-select" class="quick-lang-dropdown" style="font-size: 12.5px;" aria-label="Select Language">
+                        <option value="vi">🇻🇳 Tiếng Việt</option>
+                        <option value="en">🇬🇧 English</option>
+                        <option value="ja">🇯🇵 日本語</option>
+                        <option value="zh">🇨🇳 中文</option>
+                    </select>
+                </div>
+            </div>
             <div class="lock-icon" style="background: var(--primary-blue); color: white;"><span class="material-symbols-rounded">security</span></div>
-            <h2>Bảo mật dữ liệu</h2>
-            <p class="help-text">Để đảm bảo an toàn cho dữ liệu y tế, vui lòng tạo mã PIN (từ 4-6 số). Mã này được dùng để mở ứng dụng và xác nhận khi xoá dữ liệu.</p>
+            <h2 data-i18n="forced_pin_title">Bảo mật dữ liệu</h2>
+            <p class="help-text" data-i18n="forced_pin_desc">Để đảm bảo an toàn cho dữ liệu y tế, vui lòng tạo mã PIN (từ 4-6 số). Mã này được dùng để mở ứng dụng và xác nhận khi xoá dữ liệu.</p>
             <form id="form-forced-pin-setup" style="margin-top: 20px;">
                 <div class="form-group" style="text-align: left;">
-                    <label>Mã PIN (4-6 chữ số)</label>
+                    <label data-i18n="forced_pin_label">Mã PIN (4-6 chữ số)</label>
                     <input type="password" id="input-forced-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" minlength="4" autocomplete="off" placeholder="••••" required>
                 </div>
                 <div class="form-group" style="text-align: left; margin-top: 15px;">
-                    <label>Xác nhận lại mã PIN</label>
+                    <label data-i18n="forced_pin_confirm_label">Xác nhận lại mã PIN</label>
                     <input type="password" id="input-forced-confirm-pin" class="neumorphic-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" minlength="4" autocomplete="off" placeholder="••••" required>
                 </div>
                 <div id="forced-pin-error" class="lock-error hidden" role="alert" style="margin-top: 15px;"></div>
-                <button type="submit" class="primary-btn neumorphic-btn magic-btn" style="width:100%; justify-content:center; margin-top:15px;">Tạo mã PIN</button>
+                <button type="submit" class="primary-btn neumorphic-btn magic-btn" style="width:100%; justify-content:center; margin-top:15px;" data-i18n="forced_pin_submit">Tạo mã PIN</button>
             </form>
         </div>
     </div>
@@ -147,7 +169,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.93</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.94</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -182,11 +204,20 @@
             <!-- View: Dashboard (Home) -->
             <section id="view-dashboard" class="view active">
                 <div class="dashboard-header">
-                    <h2>Thành viên gia đình</h2>
-                    <div style="display: flex; gap: 10px;">
-
+                    <h2 data-i18n="dashboard_family_members">Thành viên gia đình</h2>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <!-- Quick Language Picker on Home Screen -->
+                        <div class="quick-lang-picker" title="Chọn ngôn ngữ / Select Language">
+                            <span class="material-symbols-rounded" style="color: var(--primary-blue); font-size: 20px;">language</span>
+                            <select id="home-language-select" class="quick-lang-dropdown" aria-label="Select Language">
+                                <option value="vi">🇻🇳 Tiếng Việt</option>
+                                <option value="en">🇬🇧 English</option>
+                                <option value="ja">🇯🇵 日本語</option>
+                                <option value="zh">🇨🇳 中文</option>
+                            </select>
+                        </div>
                         <button id="btn-add-member" class="primary-btn neumorphic-btn" data-help-title="Thêm thành viên" data-help-desc="Tạo hồ sơ mới cho người thân trong gia đình">
-                            <span class="material-symbols-rounded">person_add</span> Thêm thành viên
+                            <span class="material-symbols-rounded">person_add</span> <span data-i18n="btn_add_member">Thêm thành viên</span>
                         </button>
                     </div>
                 </div>
@@ -214,10 +245,10 @@
 
                 <!-- Tabs -->
                 <div class="tabs-container neumorphic-panel">
-                    <button class="tab-btn active" data-target="tab-reminders" data-help-title="Lịch hẹn" data-help-desc="Đặt lời nhắc đi tái khám hoặc tiêm chủng">Lịch hẹn</button>
-                    <button class="tab-btn" data-target="tab-history" data-help-title="Hồ sơ" data-help-desc="Xem danh sách các lần đi khám bệnh">Hồ sơ</button>
-                    <button class="tab-btn" data-target="tab-profile" data-help-title="Thông tin" data-help-desc="Xem thông tin cá nhân và sức khỏe chung">Thông tin</button>
-                    <button class="tab-btn" data-target="tab-stats" data-help-title="Thống kê" data-help-desc="Xem biểu đồ số lần đi khám trong năm">Thống kê</button>
+                    <button class="tab-btn active" data-target="tab-reminders" data-i18n="tab_reminders" data-help-title="Lịch hẹn" data-help-desc="Đặt lời nhắc đi tái khám hoặc tiêm chủng">Lịch hẹn</button>
+                    <button class="tab-btn" data-target="tab-history" data-i18n="tab_records" data-help-title="Hồ sơ" data-help-desc="Xem danh sách các lần đi khám bệnh">Hồ sơ</button>
+                    <button class="tab-btn" data-target="tab-profile" data-i18n="tab_info" data-help-title="Thông tin" data-help-desc="Xem thông tin cá nhân và sức khỏe chung">Thông tin</button>
+                    <button class="tab-btn" data-target="tab-stats" data-i18n="tab_stats" data-help-title="Thống kê" data-help-desc="Xem biểu đồ số lần đi khám trong năm">Thống kê</button>
                 </div>
 
                 <!-- Tab Contents -->
@@ -240,10 +271,10 @@
                             </div>
                             <div style="display: flex; gap: 15px;">
                                 <button id="btn-add-record" class="primary-btn neumorphic-btn" style="flex: 1; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 8px;" data-help-title="Thêm Hồ sơ mới" data-help-desc="Thêm một hồ sơ bệnh án mới (bạn có thể upload ảnh để AI tự động điền)">
-                                    <span class="material-symbols-rounded">post_add</span> Hồ sơ mới
+                                    <span class="material-symbols-rounded">post_add</span> <span data-i18n="btn_add_record">Hồ sơ mới</span>
                                 </button>
                                 <button id="btn-evaluate-trend" class="secondary-btn neumorphic-btn" style="flex: 1; padding: 12px 24px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;" data-help-title="Đánh giá xu hướng sức khỏe" data-help-desc="AI sẽ tổng hợp toàn bộ lịch sử khám bệnh của bạn để phân tích tổng quan và dự báo nguy cơ tiềm ẩn.">
-                                    <span class="material-symbols-rounded ai-sparkle" style="vertical-align: middle;">auto_awesome</span> Đánh giá xu hướng
+                                    <span class="material-symbols-rounded ai-sparkle" style="vertical-align: middle;">auto_awesome</span> <span data-i18n="btn_evaluate_trend">Đánh giá xu hướng</span>
                                 </button>
                             </div>
                         </div>
@@ -256,10 +287,10 @@
                     <div id="tab-reminders" class="tab-pane active">
                         <div class="history-controls neumorphic-panel" style="justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
                             <button id="btn-add-reminder-appointment" class="primary-btn neumorphic-btn" style="flex: 1;">
-                                <span class="material-symbols-rounded">medical_services</span> + Khám bệnh
+                                <span class="material-symbols-rounded">medical_services</span> <span data-i18n="btn_add_appointment">+ Khám bệnh</span>
                             </button>
                             <button id="btn-add-reminder-medication" class="primary-btn neumorphic-btn" style="flex: 1; background: var(--warning-color);">
-                                <span class="material-symbols-rounded">pill</span> + Uống thuốc
+                                <span class="material-symbols-rounded">pill</span> <span data-i18n="btn_add_medication">+ Uống thuốc</span>
                             </button>
                         </div>
                         <div id="member-reminders-list">
@@ -494,7 +525,23 @@
                 </button>
             </div>
             <div class="modal-body">
-                <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">save</span> Sao Lưu & Khôi Phục Dữ Liệu</h4>
+                <!-- Cài đặt Ngôn ngữ hiển thị -->
+                <div class="settings-section" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                    <h4 style="margin-bottom: 8px; color: var(--primary-blue); display: flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-rounded">language</span> <span data-i18n="settings_language">Ngôn ngữ hiển thị</span>
+                    </h4>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;" data-i18n="settings_language_desc">Chọn ngôn ngữ hiển thị của ứng dụng (Anh / Nhật / Trung / Việt)</p>
+                    <div class="form-group" style="margin: 0;">
+                        <select id="input-language" class="neumorphic-input" style="width: 100%; font-weight: 500;">
+                            <option value="vi">🇻🇳 Tiếng Việt (Vietnamese)</option>
+                            <option value="en">🇬🇧 English (Tiếng Anh)</option>
+                            <option value="ja">🇯🇵 日本語 (Japanese)</option>
+                            <option value="zh">🇨🇳 简体中文 (Chinese)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h4 style="margin-bottom: 15px; color: var(--primary-blue);"><span class="material-symbols-rounded" style="vertical-align: middle;">save</span> <span data-i18n="settings_backup_restore">Sao Lưu & Khôi Phục Dữ Liệu</span></h4>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Lưu trữ toàn bộ hồ sơ y tế thành một file dự phòng, hoặc khôi phục dữ liệu từ file.</p>
                     <div style="display: flex; gap: 10px;">

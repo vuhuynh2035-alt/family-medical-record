@@ -1811,3 +1811,46 @@ body.help-mode-active #btn-help-mobile {
 .header-btn { position: relative !important; }
 #notification-badge { overflow: visible !important; }
 .header-btn { position: relative !important; overflow: visible !important; }
+/* Quick Language Picker Styles */
+.quick-lang-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg-body);
+    box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.2s ease;
+}
+.quick-lang-picker:hover {
+    box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+}
+.quick-lang-dropdown {
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color);
+    cursor: pointer;
+    outline: none;
+    padding-right: 2px;
+}
+.quick-lang-dropdown option {
+    background: var(--bg-card);
+    color: var(--text-color);
+    font-size: 13.5px;
+}
+@media (max-width: 600px) {
+    .dashboard-header {
+        flex-wrap: wrap !important;
+        gap: 12px !important;
+    }
+    .quick-lang-picker {
+        padding: 4px 10px;
+    }
+    .quick-lang-dropdown {
+        font-size: 12px;
+    }
+}

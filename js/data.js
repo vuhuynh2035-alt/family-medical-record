@@ -89,7 +89,8 @@ const DataManager = {
             firstRunAt: null,
             backupReminderSnoozeUntil: null,
             alarmSound: 'synth:digital_loud', // Kiểu chuông to rõ mặc định
-            mutedMembers: [] // Mảng chứa ID của các thành viên KHÔNG đổ chuông/thông báo trên máy này
+            mutedMembers: [], // Mảng chứa ID của các thành viên KHÔNG đổ chuông/thông báo trên máy này
+            language: 'vi'
         };
         const stored = localStorage.getItem('family_settings');
         return stored ? { ...defaultSettings, ...JSON.parse(stored) } : defaultSettings;
@@ -100,6 +101,8 @@ const DataManager = {
         const updated = { ...current, ...settings };
         localStorage.setItem('family_settings', JSON.stringify(updated));
     },
+    getLanguage() { return this.getSettings().language || 'vi'; },
+    setLanguage(lang) { this.saveSettings({ language: lang }); },
     getGeminiApiKey() { return this.getSettings().geminiApiKey; },
     getOpenAIApiKey() { return this.getSettings().openaiApiKey; },
     getAnthropicApiKey() { return this.getSettings().anthropicApiKey; },

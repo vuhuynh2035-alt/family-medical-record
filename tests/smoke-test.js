@@ -369,6 +369,49 @@ function check(name, condition) {
     check('Chế độ Hướng dẫn: nút #btn-help đang tạm ẩn theo thiết kế giao diện tối giản', true);
   }
 
+  console.log('\n[Đa ngôn ngữ & Chuyển đổi ngôn ngữ tức thì]');
+  const homeLangSelectExists = await page.evaluate(() => !!document.getElementById('home-language-select'));
+  check('Bộ chọn ngôn ngữ nhanh #home-language-select hiển thị trên Trang chủ', homeLangSelectExists);
+
+  // 1. Chuyển sang Tiếng Anh (English)
+  await page.selectOption('#home-language-select', 'en');
+  await page.waitForTimeout(200);
+  const enTitle = await page.$eval('h2[data-i18n="dashboard_family_members"]', el => el.textContent.trim());
+  const enLangSetting = await page.evaluate(() => DataManager.getLanguage());
+  check('Đổi sang Tiếng Anh: Tiêu đề chuyển thành "Family Members"', enTitle === 'Family Members');
+  check('Đổi sang Tiếng Anh: DataManager.getLanguage() trả về "en"', enLangSetting === 'en');
+
+  // 2. Chuyển sang Tiếng Nhật (Japanese)
+  await page.selectOption('#home-language-select', 'ja');
+  await page.waitForTimeout(200);
+  const jaTitle = await page.$eval('h2[data-i18n="dashboard_family_members"]', el => el.textContent.trim());
+  const jaLangSetting = await page.evaluate(() => DataManager.getLanguage());
+  check('Đổi sang Tiếng Nhật: Tiêu đề chuyển thành "家族メンバー"', jaTitle === '家族メンバー');
+  check('Đổi sang Tiếng Nhật: DataManager.getLanguage() trả về "ja"', jaLangSetting === 'ja');
+
+  // 3. Chuyển sang Tiếng Trung (Chinese)
+  await page.selectOption('#home-language-select', 'zh');
+  await page.waitForTimeout(200);
+  const zhTitle = await page.$eval('h2[data-i18n="dashboard_family_members"]', el => el.textContent.trim());
+  const zhLangSetting = await page.evaluate(() => DataManager.getLanguage());
+  check('Đổi sang Tiếng Trung: Tiêu đề chuyển thành "家庭成员"', zhTitle === '家庭成员');
+  check('Đổi sang Tiếng Trung: DataManager.getLanguage() trả về "zh"', zhLangSetting === 'zh');
+
+  // 4. Chuyển lại Tiếng Việt (Vietnamese)
+  await page.selectOption('#home-language-select', 'vi');
+  await page.waitForTimeout(200);
+  const viTitle = await page.$eval('h2[data-i18n="dashboard_family_members"]', el => el.textContent.trim());
+  const viLangSetting = await page.evaluate(() => DataManager.getLanguage());
+  check('Đổi lại Tiếng Việt: Tiêu đề quay lại "Thành viên gia đình"', viTitle === 'Thành viên gia đình');
+  check('Đổi lại Tiếng Việt: DataManager.getLanguage() trả về "vi"', viLangSetting === 'vi');
+
+  // 5. Kiểm tra đồng bộ dropdown cài đặt
+  const syncSettingVal = await page.evaluate(() => {
+    const el = document.getElementById('input-language');
+    return el ? el.value : null;
+  });
+  check('Đồng bộ hóa: Dropdown #input-language trong Cài đặt khớp với ngôn ngữ hiện tại', syncSettingVal === 'vi');
+
   console.log(`\n[Lỗi console/pageerror bắt được: ${consoleErrors.length}]`);
   consoleErrors.forEach(e => console.log('  ! ' + e));
 

@@ -129,7 +129,8 @@ const UI = {
         if (/^\d{4}$/.test(dob)) {
             const years = new Date().getFullYear() - parseInt(dob, 10);
             if (isNaN(years) || years < 0 || years > 130) return null;
-            return { label: `~${years} tuổi` };
+            const suffix = (typeof I18n !== 'undefined') ? I18n.t('member_age_suffix', 'tuổi') : 'tuổi';
+            return { label: `~${years} ${suffix}` };
         }
 
         let birthDate;
@@ -148,7 +149,8 @@ const UI = {
             years--;
         }
         if (years < 0 || years > 130) return null;
-        return { label: `${years} tuổi` };
+        const suffix = (typeof I18n !== 'undefined') ? I18n.t('member_age_suffix', 'tuổi') : 'tuổi';
+        return { label: `${years} ${suffix}` };
     },
 
     /**
@@ -157,18 +159,19 @@ const UI = {
      * tự do người dùng/AI nhập vào, sinh màu ổn định theo hash cho các loại chưa biết.
      */
     getTypeInfo(type) {
-        if (!type) return { text: 'Chưa phân loại', style: 'background: #f5f5f5; color: #7f8c8d;' };
+        const t = (k, f) => (typeof I18n !== 'undefined') ? I18n.t(k, f) : f;
+        if (!type) return { text: t('type_uncategorized', 'Chưa phân loại'), style: 'background: #f5f5f5; color: #7f8c8d;' };
 
         // Handle legacy/standard strings
         const typeLower = type.toLowerCase().trim();
-        if (typeLower === 'routine' || typeLower === 'khám sức khỏe tổng quát' || typeLower === 'định kỳ')
-            return { text: 'Khám sức khỏe tổng quát', style: 'background: #e1f5fe; color: #0277bd;' };
-        if (typeLower === 'mild' || typeLower === 'bệnh lý cấp tính (nhẹ)' || typeLower === 'nhẹ')
-            return { text: 'Bệnh lý cấp tính (Nhẹ)', style: 'background: #f1f8e9; color: #33691e;' };
-        if (typeLower === 'severe' || typeLower === 'bệnh lý cấp tính (nặng)' || typeLower === 'nặng')
-            return { text: 'Bệnh lý cấp tính (Nặng/Cấp cứu)', style: 'background: #fbe9e7; color: #bf360c;' };
-        if (typeLower === 'chronic' || typeLower === 'bệnh lý mạn tính' || typeLower === 'mãn tính')
-            return { text: 'Bệnh lý mạn tính', style: 'background: #f3e5f5; color: #4a148c;' };
+        if (typeLower === 'routine' || typeLower === 'khám sức khỏe tổng quát' || typeLower === 'định kỳ' || typeLower === 'general checkup' || typeLower === '健康診断' || typeLower === '常规体检')
+            return { text: t('type_routine', 'Khám sức khỏe tổng quát'), style: 'background: #e1f5fe; color: #0277bd;' };
+        if (typeLower === 'mild' || typeLower === 'bệnh lý cấp tính (nhẹ)' || typeLower === 'nhẹ' || typeLower === 'acute (mild)' || typeLower === '急性疾患（軽度）' || typeLower === '急性病（轻度）')
+            return { text: t('type_mild', 'Bệnh lý cấp tính (Nhẹ)'), style: 'background: #f1f8e9; color: #33691e;' };
+        if (typeLower === 'severe' || typeLower === 'bệnh lý cấp tính (nặng)' || typeLower === 'bệnh lý cấp tính (nặng/cấp cứu)' || typeLower === 'nặng' || typeLower === 'acute (severe)' || typeLower === 'emergency' || typeLower === '急性疾患（重度・救急）' || typeLower === '急性病（重度/急诊）')
+            return { text: t('type_severe', 'Bệnh lý cấp tính (Nặng/Cấp cứu)'), style: 'background: #fbe9e7; color: #bf360c;' };
+        if (typeLower === 'chronic' || typeLower === 'bệnh lý mạn tính' || typeLower === 'mãn tính' || typeLower === 'chronic disease' || typeLower === '慢性疾患' || typeLower === '慢性病')
+            return { text: t('type_chronic', 'Bệnh lý mạn tính'), style: 'background: #f3e5f5; color: #4a148c;' };
 
         // Dynamic types
         const hue = this._hashHue(type);
@@ -208,7 +211,7 @@ const UI = {
         if (members.length === 0) {
             grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">
                 <span class="material-symbols-rounded" style="font-size: 48px; margin-bottom: 10px; display: block;">group</span>
-                Chưa có thành viên nào. Hãy thêm thành viên mới!
+                ${(typeof I18n !== 'undefined' ? I18n.t('no_members', 'Chưa có thành viên nào. Hãy thêm thành viên mới!') : 'Chưa có thành viên nào. Hãy thêm thành viên mới!')}
             </div>`;
             return;
         }
@@ -216,7 +219,7 @@ const UI = {
         members.forEach(member => {
             const records = DataManager.getRecords(member.id);
             const totalRecords = records.length;
-            const lastVisit = records.length > 0 ? this.formatDate(records[0].date) : 'Chưa khám';
+            const lastVisit = records.length > 0 ? this.formatDate(records[0].date) : (typeof I18n !== 'undefined' ? I18n.t('not_visited_yet', 'Chưa khám') : 'Chưa khám');
 
             const card = document.createElement('div');
             card.className = 'member-card';
@@ -230,7 +233,7 @@ const UI = {
                 <img src="${this.escapeHtml(this.getAvatarUrl(member))}" alt="${displayName}" class="member-avatar">
                 <h3>${displayName}</h3>
                 <div class="member-stats">
-                    <span class="stat-badge">${totalRecords} hồ sơ</span>
+                    <span class="stat-badge">${totalRecords} ${(typeof I18n !== 'undefined' ? I18n.t('records_suffix', 'hồ sơ') : 'hồ sơ')}</span>
                     <span class="stat-badge">${this.escapeHtml(lastVisit)}</span>
                 </div>
             `;
@@ -695,7 +698,7 @@ const UI = {
         if (!statsCards || !chartContainer) return;
 
         if (records.length === 0) {
-            statsCards.innerHTML = `<div class="stat-card neumorphic-card" style="grid-column: 1 / -1;"><p>Chưa có dữ liệu thống kê.</p></div>`;
+            statsCards.innerHTML = `<div class="stat-card neumorphic-card" style="grid-column: 1 / -1;"><p>${(typeof I18n !== 'undefined' ? I18n.t('stat_no_data', 'Chưa có dữ liệu thống kê.') : 'Chưa có dữ liệu thống kê.')}</p></div>`;
             chartContainer.innerHTML = '';
             return;
         }
@@ -706,11 +709,11 @@ const UI = {
 
         statsCards.innerHTML = `
             <div class="stat-card neumorphic-card cost">
-                <h3>Tổng chi phí y tế</h3>
+                <h3>${(typeof I18n !== 'undefined' ? I18n.t('stat_total_cost', 'Tổng chi phí y tế') : 'Tổng chi phí y tế')}</h3>
                 <div class="stat-value">${this.formatCurrency(totalCost)}</div>
             </div>
             <div class="stat-card neumorphic-card">
-                <h3>Số lần đi khám</h3>
+                <h3>${(typeof I18n !== 'undefined' ? I18n.t('stat_total_visits', 'Số lần đi khám') : 'Số lần đi khám')}</h3>
                 <div class="stat-value">${totalVisits}</div>
             </div>
         `;
@@ -729,7 +732,7 @@ const UI = {
 
         chartContainer.innerHTML = `
             <div class="neumorphic-card">
-                <h3>Thống kê theo loại khám</h3>
+                <h3>${(typeof I18n !== 'undefined' ? I18n.t('stat_chart_title', 'Thống kê theo loại khám') : 'Thống kê theo loại khám')}</h3>
                 <div class="bar-chart">
                     ${barsHTML}
                 </div>

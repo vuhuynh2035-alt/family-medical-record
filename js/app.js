@@ -280,8 +280,10 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.93';
+const CURRENT_APP_VERSION = 'v2.9.94';
 const APP_CHANGELOG = {
+    'v2.9.94': '• Hỗ trợ Đa ngôn ngữ: Tích hợp đầy đủ 4 ngôn ngữ: Tiếng Việt, Tiếng Anh (English), Tiếng Nhật (日本語) và Tiếng Trung (中文).\n• Chuyển đổi ngôn ngữ tức thì ngay tại Trang chủ: Tích hợp bộ chọn ngôn ngữ trực quan ngay trên Trang chủ và Màn hình thiết lập mã PIN giúp người dùng quốc tế dễ dàng lựa chọn ngay khi vừa mở ứng dụng.\n• Đồng bộ hóa toàn diện: Tự động dịch tiêu đề, nút bấm, hướng dẫn, bộ lọc và các phân tích AI theo ngôn ngữ đã chọn.',
+
     'v2.9.93': '• Hỗ trợ AI Trung Quốc: Tích hợp dịch vụ DeepSeek (V3/R1) và Zhipu AI (GLM-4-Flash miễn phí 100%), hoạt động mượt mà tại Trung Quốc không cần VPN.\n• Hỗ trợ Quét thông minh (OCR): Cho phép đọc ảnh phiếu khám/xét nghiệm bằng Zhipu AI GLM-4V (Miễn phí 100%) hoặc OpenAI gpt-4o khi không sử dụng được Google Gemini.\n• Phím tắt 1 chạm "Dùng AI TQ": Tự động cấu hình toàn bộ ứng dụng sang AI Trung Quốc chỉ với 1 click trong Cài đặt.\n• Hướng dẫn chi tiết cách tạo API Key miễn phí cho DeepSeek và Zhipu AI.',
 
     'v2.9.88': '• Khắc phục triệt để lỗi không nhận được chuông thông báo lịch uống thuốc: Kết nối lại toàn bộ luồng kích hoạt chuông báo, sửa lỗi sai lệch ID thành phần giao diện và lỗi lệch múi giờ (UTC so với Giờ Việt Nam).\n• Hệ thống âm thanh đa tầng: Tích hợp âm thanh chuông báo dự phòng (Web Audio API Synthesizer) tự động kích hoạt ngay cả khi thiết bị mất mạng hoặc trình duyệt hạn chế âm thanh ngoài.\n• Thông báo đẩy hệ thống (Web System Notifications): Tự động đẩy thông báo ra màn hình khóa / khay thông báo thiết bị khi đến giờ uống thuốc.\n• Quản lý cữ thuốc thông minh: Cho phép bấm "Đã uống", "Nhắc lại sau 30 phút", "Bỏ qua" hoặc mở xem chi tiết đơn thuốc trực tiếp từ màn hình báo thức.\n• Hỗ trợ kiểm tra quyền thông báo và nút Thử chuông & báo thức mẫu ngay trong Cài đặt Hệ thống.',
@@ -618,6 +620,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // tới khi mở khóa thành công — tránh lộ nội dung nhắc hẹn qua hộp thoại alert() trước khi
     // người dùng xác thực (hộp thoại alert() của trình duyệt luôn hiện trên mọi lớp phủ z-index).
     // Nếu chưa có mã PIN, ép buộc tạo mã PIN (chặn không cho dùng app)
+    if (typeof I18n !== 'undefined') {
+        I18n.init();
+        I18n.bindEvents();
+    }
     ensureFirstRunTimestamp();
     if (!settings.pinHash) {
         document.getElementById('forced-pin-setup-screen').classList.remove('hidden');
@@ -753,6 +759,10 @@ function setupEventListeners() {
     // Settings Modal
     document.getElementById('btn-settings').addEventListener('click', () => {
         const settings = DataManager.getSettings();
+        const inputLang = document.getElementById('input-language');
+        if (inputLang) {
+            inputLang.value = settings.language || 'vi';
+        }
         
         // Add current model to dropdown if it doesn't exist
         if (settings.geminiModel) {
@@ -1061,7 +1071,14 @@ function setupEventListeners() {
         
         
 
+        const inputLang = document.getElementById('input-language');
+        const language = inputLang ? inputLang.value : (settings.language || 'vi');
+        if (typeof I18n !== 'undefined') {
+            I18n.setLanguage(language);
+        }
+
         DataManager.saveSettings({
+            language: language,
             geminiApiKey: geminiKey,
             openaiApiKey: openaiKey,
             anthropicApiKey: anthropicKey,

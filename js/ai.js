@@ -13,6 +13,18 @@ const AIService = {
     // Tăng lên 150s (2.5 phút) vì đọc nhiều trang PDF/Ảnh mất rất nhiều thời gian xử lý
     DEFAULT_TIMEOUT_MS: 150000,
 
+    getLanguagePromptInstruction() {
+        const lang = (typeof DataManager !== 'undefined' && DataManager.getLanguage) ? DataManager.getLanguage() : 'vi';
+        if (lang === 'en') {
+            return "\n\n[IMPORTANT LANGUAGE REQUIREMENT]: Please write the entire response in English. All explanations, headings, and recommendations must be in clear and natural English.";
+        } else if (lang === 'ja') {
+            return "\n\n[IMPORTANT LANGUAGE REQUIREMENT]: 回答はすべて自然な日本語で記述してください。すべての見出し、解説、アドバイスを日本語で出力してください。";
+        } else if (lang === 'zh') {
+            return "\n\n[IMPORTANT LANGUAGE REQUIREMENT]: 请务必全部使用简体中文回答。所有标题、分析说明和健康建议必须使用标准中文。";
+        }
+        return "";
+    },
+
     /**
      * fetch() có kèm timeout tự động hủy request bằng AbortController.
      * @param {string} url
@@ -383,13 +395,13 @@ Vui lòng phân tích và đưa ra nhận xét:
 
         const provider = DataManager.getProviderAssessment();
         if (provider === 'openai') {
-            return await this.callOpenAI(prompt);
+            return await this.callOpenAI(prompt + this.getLanguagePromptInstruction());
         } else if (provider === 'anthropic') {
-            return await this.callAnthropic(prompt);
+            return await this.callAnthropic(prompt + this.getLanguagePromptInstruction());
         } else if (provider === 'deepseek') {
-            return await this.callDeepSeek(prompt);
+            return await this.callDeepSeek(prompt + this.getLanguagePromptInstruction());
         } else if (provider === 'zhipu') {
-            return await this.callZhipu(prompt);
+            return await this.callZhipu(prompt + this.getLanguagePromptInstruction());
         } else {
             // BUG ĐÃ SỬA: trước đây gọi callGeminiAPI(prompt, null, false, true) — tham số thứ 4
             // (overrideModel) bị truyền nhầm giá trị boolean `true` thay vì tên model/`null`.

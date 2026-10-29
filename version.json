@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.93",
-  "updatedAt": "2026-10-28T18:43:35.771Z",
-  "releaseNotes": "Bổ sung dịch vụ AI Trung Quốc (DeepSeek, Zhipu GLM-4-Flash miễn phí 100%, OCR Zhipu GLM-4V) dùng tốt tại TQ không cần VPN, phím tắt chuyển đổi 1 chạm"
+  "version": "v2.9.94",
+  "updatedAt": "2026-10-29T11:25:00.000Z",
+  "releaseNotes": "Hỗ trợ đa ngôn ngữ (Tiếng Việt, English, 日本語, 中文), tích hợp bộ chuyển đổi ngôn ngữ trực quan ngay tại trang chủ và màn hình khởi chạy giúp người nước ngoài chuyển đổi dễ dàng."
 }
