@@ -534,23 +534,52 @@ function check(name, condition) {
   });
   check('Đồng bộ hóa: Dropdown #input-language trong Cài đặt khớp với ngôn ngữ hiện tại', syncSettingVal === 'vi');
 
-  console.log('\n[Bố cục mới v2.9.101: Ngôn ngữ trên Header, Chuông & Tắt cạnh Thêm thành viên, Thu gọn mobile]');
+  console.log('\n[Bố cục mới v2.9.102: Ngôn ngữ trên Header, 2 ô thành viên 1 hàng, Nút Tắt app, Badge chuông]');
   const desktopLayout = await page.evaluate(() => {
     const langInHeader = !!document.querySelector('.glass-header #home-language-select');
     const notifInDashboard = !!document.querySelector('.dashboard-header #btn-notifications');
     const exitInDashboard = !!document.querySelector('.dashboard-header #btn-exit-app');
     const addMemberText = document.querySelector('#btn-add-member .btn-text');
     const textStyle = addMemberText ? window.getComputedStyle(addMemberText).display : 'none';
+    const gridEl = document.querySelector('#members-grid');
+    const gridStyle = gridEl ? window.getComputedStyle(gridEl) : {};
+    const cols = (gridStyle.gridTemplateColumns || '').split(' ').length;
     return {
       langInHeader,
       notifInDashboard,
       exitInDashboard,
-      textVisible: textStyle !== 'none'
+      textVisible: textStyle !== 'none',
+      gridColumns: cols
     };
   });
   check('Màn hình lớn: Bộ chọn ngôn ngữ nằm trên thanh Header', desktopLayout.langInHeader);
   check('Màn hình lớn: Nút Chuông & Tắt app nằm ở thanh Thành viên gia đình (Dashboard)', desktopLayout.notifInDashboard && desktopLayout.exitInDashboard);
   check('Màn hình lớn: Nút Thêm thành viên hiển thị đầy đủ text', desktopLayout.textVisible);
+  check('Màn hình lớn: Danh sách thành viên tự động xếp thành 2 ô trên 1 hàng (2 cột)', desktopLayout.gridColumns === 2);
+
+  // Thử mở và đóng modal Tắt app
+  await page.click('#btn-exit-app');
+  await page.waitForTimeout(100);
+  const exitModalOpen = await page.evaluate(() => !document.getElementById('modal-exit-app').classList.contains('hidden'));
+  check('Nút Tắt app: Bấm vào mở hộp thoại xác nhận đóng chương trình thành công', exitModalOpen);
+  await page.click('#modal-exit-app .close-modal');
+  await page.waitForTimeout(100);
+  const exitModalClosed = await page.evaluate(() => document.getElementById('modal-exit-app').classList.contains('hidden'));
+  check('Nút Tắt app: Bấm Quay lại đóng hộp thoại thành công', exitModalClosed);
+
+  // Thử kiểm tra badge chuông thông báo hiển thị số lượng thay vì đốm đỏ
+  await page.evaluate(() => {
+    localStorage.setItem('last_seen_changelog', 'v2.0.0'); // tạo thông báo bản mới
+    loadSystemNotifications();
+  });
+  const badgeState = await page.evaluate(() => {
+    const b = document.getElementById('notification-badge');
+    return {
+      visible: !b.classList.contains('hidden'),
+      text: b.textContent.trim()
+    };
+  });
+  check('Nút chuông: Hiển thị rõ số lượng thông báo (chứa số > 0, không phải đốm đỏ rỗng)', badgeState.visible && badgeState.text.length > 0 && badgeState.text !== '');
 
   // Thử chuyển sang viewport điện thoại (375x667)
   await page.setViewportSize({ width: 375, height: 667 });

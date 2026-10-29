@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.101",
-  "updatedAt": "2026-10-29T09:29:39.053Z",
-  "releaseNotes": "Điều chỉnh bố cục theo yêu cầu: Đưa bộ chọn ngôn ngữ lên thanh tiêu đề trên cùng; đưa nút Chuông thông báo và Tắt chương trình xuống cùng hàng với nút Thêm thành viên; trên màn hình nhỏ nút Thêm thành viên tự động rút gọn chỉ hiển thị icon để tối ưu không gian."
+  "version": "v2.9.102",
+  "updatedAt": "2026-10-29T09:49:45.240Z",
+  "releaseNotes": "Điều chỉnh giao diện & chức năng theo phản hồi: Danh sách thành viên tự động xếp thành 2 ô trên 1 hàng gọn gàng; nút Chuông thông báo hiển thị rõ số lượng thông báo thay vì chỉ là đốm đỏ; nút Tắt app hoạt động tin cậy và hiển thị màn hình đóng ứng dụng an toàn."
 }

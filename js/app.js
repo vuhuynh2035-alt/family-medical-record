@@ -626,8 +626,9 @@ const OnboardingWizard = {
     }
 };
 
-const CURRENT_APP_VERSION = 'v2.9.101';
+const CURRENT_APP_VERSION = 'v2.9.102';
 const APP_CHANGELOG = {
+    'v2.9.102': '• Danh sách thành viên tự động xếp thành 2 ô trên 1 hàng (2 cột) gọn gàng trên cả máy tính, máy tính bảng và điện thoại màn hình gập.\n• Nút Chuông thông báo hiển thị rõ ràng số lượng thông báo mới thay vì chỉ là đốm đỏ.\n• Nút Tắt app hoạt động tin cậy: tự động lưu dữ liệu an toàn, khóa bảo mật và hiển thị màn hình đóng ứng dụng hoàn chỉnh.',
     'v2.9.101': '• Đưa bộ chọn ngôn ngữ lên thanh tiêu đề trên cùng (Header).\n• Đưa nút Chuông thông báo và Tắt chương trình xuống cùng hàng với nút Thêm thành viên.\n• Màn hình nhỏ: Nút Thêm thành viên tự động rút gọn chỉ hiển thị icon (bỏ chữ) giúp giao diện tinh gọn, không tràn dòng.',
     'v2.9.100': '• Thêm nút Bỏ qua (Skip) ngay trên thanh tiêu đề và dưới chân quy trình cài đặt để vào thẳng chương trình.\n• Lưu trạng thái bỏ qua để không lặp lại khi tải lại trang.',
     'v2.9.99': '• Bố trí các icon trên thanh tiêu đề thành 2 hàng đôi (2x2 grid) gọn gàng trên cả màn hình lớn (PC/tablet) và điện thoại.\n• Sửa lỗi icon bị dàn ngang 1 hàng dài trên màn hình rộng.',
@@ -999,31 +1000,62 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 
+function getSystemNotificationCount() {
+    let count = 0;
+    const runningVer = getRunningAppVersion();
+    if (localStorage.getItem('last_seen_changelog') !== runningVer && APP_CHANGELOG[runningVer]) {
+        count += 1;
+    }
+    try {
+        const reminders = DataManager.getReminders ? DataManager.getReminders() : [];
+        const now = new Date();
+        const todayStr = now.toISOString().slice(0, 10);
+        const pending = reminders.filter(r => !r.completed && r.date && r.date <= todayStr);
+        count += pending.length;
+    } catch (e) {}
+    return count;
+}
+
+function updateSystemNotificationBadge() {
+    const notifBadge = document.getElementById('notification-badge');
+    if (!notifBadge) return;
+    const count = getSystemNotificationCount();
+    if (count > 0) {
+        notifBadge.textContent = count > 9 ? '9+' : String(count);
+        notifBadge.classList.remove('hidden');
+    } else {
+        notifBadge.textContent = '';
+        notifBadge.classList.add('hidden');
+    }
+}
+
 function loadSystemNotifications() {
     const notifList = document.getElementById('notifications-list');
-    const notifBadge = document.getElementById('notification-badge');
     if (!notifList) return;
     
     notifList.innerHTML = '';
-    let hasSystemNotif = false;
+    let hasItems = false;
     const runningVer = getRunningAppVersion();
     
+    // 1. Thông báo bản cập nhật hệ thống
     if (localStorage.getItem('last_seen_changelog') !== runningVer && APP_CHANGELOG[runningVer]) {
-        hasSystemNotif = true;
+        hasItems = true;
         const changelogText = APP_CHANGELOG[runningVer];
         const updateDiv = document.createElement('div');
         updateDiv.className = 'neumorphic-panel';
-        updateDiv.style.padding = '12px';
-        updateDiv.style.marginBottom = '10px';
+        updateDiv.style.padding = '14px';
+        updateDiv.style.marginBottom = '12px';
         updateDiv.style.borderLeft = '4px solid var(--primary-blue)';
         updateDiv.style.background = 'rgba(41, 128, 185, 0.05)';
         
-        const listHtml = '<ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-color); margin-bottom: 15px; line-height: 1.4;">' + changelogText.split('\n').map(line => `<li style="margin-bottom: 8px;">${line.replace('• ', '')}</li>`).join('') + '</ul>';
+        const listHtml = '<ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-color); margin-bottom: 15px; line-height: 1.5;">' + changelogText.split('\n').map(line => '<li style="margin-bottom: 6px;">' + line.replace('• ', '') + '</li>').join('') + '</ul>';
 
         updateDiv.innerHTML = `
-            <h4 style="color: var(--primary-blue); margin: 0 0 10px 0; font-size: 15px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded">new_releases</span> Đã cập nhật lên ${runningVer}!</h4>
+            <h4 style="color: var(--primary-blue); margin: 0 0 10px 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-rounded">new_releases</span> Đã cập nhật lên ${runningVer}!
+            </h4>
             ${listHtml}
-            <button id="btn-dismiss-changelog" class="primary-btn neumorphic-btn" style="font-size: 13px; padding: 8px 12px; width: 100%;">Đã hiểu</button>
+            <button id="btn-dismiss-changelog" class="primary-btn neumorphic-btn" style="font-size: 13px; padding: 8px 12px; width: 100%; justify-content: center;">Đã hiểu</button>
         `;
         
         notifList.appendChild(updateDiv);
@@ -1031,30 +1063,67 @@ function loadSystemNotifications() {
         updateDiv.querySelector('#btn-dismiss-changelog').addEventListener('click', () => {
             updateDiv.remove();
             localStorage.setItem('last_seen_changelog', runningVer);
-            if (notifBadge) {
-                notifBadge.classList.add('hidden');
-                notifBadge.innerText = '';
-            }
+            updateSystemNotificationBadge();
             if (notifList.children.length === 0) {
                 closeModal('modal-notifications');
             }
         });
     }
 
-    if (!hasSystemNotif) {
-        notifList.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0;"><span class="material-symbols-rounded" style="font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.5;">notifications_paused</span>Không có thông báo chung nào từ hệ thống.</div>';
-        if (notifBadge) {
-            notifBadge.classList.add('hidden');
-            notifBadge.innerText = '';
-        }
-    } else {
-        if (notifBadge) {
-            notifBadge.classList.remove('hidden');
-            notifBadge.innerText = '1';
-        }
-    }
-}
+    // 2. Danh sách lịch hẹn hôm nay hoặc quá hạn
+    try {
+        const reminders = DataManager.getReminders ? DataManager.getReminders() : [];
+        const members = DataManager.getMembers ? DataManager.getMembers() : [];
+        const now = new Date();
+        const todayStr = now.toISOString().slice(0, 10);
+        const pending = reminders.filter(r => !r.completed && r.date && r.date <= todayStr);
+        
+        if (pending.length > 0) {
+            hasItems = true;
+            const remDiv = document.createElement('div');
+            remDiv.className = 'neumorphic-panel';
+            remDiv.style.padding = '14px';
+            remDiv.style.marginBottom = '12px';
+            remDiv.style.borderLeft = '4px solid #e67e22';
+            remDiv.style.background = 'rgba(230, 126, 34, 0.05)';
 
+            let remListHtml = pending.map(r => {
+                const member = members.find(m => m.id === r.memberId);
+                const memName = member ? member.name : 'Thành viên';
+                const isOverdue = r.date < todayStr;
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,0.1); font-size: 13px;">
+                        <div>
+                            <strong style="color: var(--primary-blue);">${memName}</strong>: ${r.title || 'Lịch nhắc'}
+                            <div style="font-size: 11px; color: ${isOverdue ? '#e74c3c' : '#7f8c8d'};">
+                                ${isOverdue ? '⚠️ Quá hạn' : '🔔 Hôm nay'}: ${r.date} ${r.time || ''}
+                            </div>
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
+                            <input type="checkbox" class="chk-complete-reminder" data-id="${r.id}"> Xong
+                        </label>
+                    </div>
+                `;
+            }).join('');
+
+            remDiv.innerHTML = `
+                <h4 style="color: #e67e22; margin: 0 0 10px 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-rounded">event_available</span> Lịch hẹn cần chú ý (${pending.length})
+                </h4>
+                ${remListHtml}
+            `;
+            notifList.appendChild(remDiv);
+        }
+    } catch (e) {
+        console.error(e);
+    }
+
+    if (!hasItems) {
+        notifList.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 25px 0;"><span class="material-symbols-rounded" style="font-size: 36px; display: block; margin-bottom: 10px; opacity: 0.5;">notifications_paused</span>Không có thông báo nào từ hệ thống.</div>';
+    }
+
+    updateSystemNotificationBadge();
+}
 
 function updateNotificationPermissionBanner() {
     const banner = document.getElementById('notification-permission-banner');
@@ -1095,6 +1164,7 @@ function updateNotificationPermissionBanner() {
 function initDashboard() {
     const members = DataManager.getMembers();
     UI.renderMembersList(members);
+    updateSystemNotificationBadge();
 }
 
 // --- EVENT LISTENERS ---
@@ -1663,16 +1733,18 @@ function setupEventListeners() {
     // Exit App Logic
     const btnExitApp = document.getElementById('btn-exit-app');
     if (btnExitApp) {
-        btnExitApp.addEventListener('click', () => {
-            document.getElementById('modal-exit-app').classList.remove('hidden');
+        btnExitApp.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal('modal-exit-app');
         });
     }
 
     const btnConfirmExit = document.getElementById('btn-confirm-exit');
     if (btnConfirmExit) {
-        btnConfirmExit.addEventListener('click', async () => {
+        btnConfirmExit.addEventListener('click', async (e) => {
+            e.preventDefault();
             try {
-                // AUTO BACKUP LOGIC
+                // 1. Tự động sao lưu dữ liệu trước khi thoát
                 if (DataManager.isDataChanged) {
                     try {
                         const exportData = await DataManager.exportData();
@@ -1682,33 +1754,42 @@ function setupEventListeners() {
                     }
                 }
 
-                // Trick để lừa trình duyệt cho phép đóng tab (hoạt động trên một số trình duyệt)
-                window.open(location.href, '_self', '');
-                window.close();
-                
-                // Dành cho PWA hoặc môi trường đặc biệt
-                if (window.electron) {
-                    window.close();
-                } else if (navigator.app && navigator.app.exitApp) {
-                    navigator.app.exitApp();
+                // 2. Khóa phiên làm việc bảo mật
+                sessionStorage.removeItem('pin_unlocked');
+
+                // 3. Đóng modal xác nhận
+                closeModal('modal-exit-app');
+
+                // 4. Thử đóng ứng dụng trên môi trường hỗ trợ
+                if (window.electron && window.electron.close) {
+                    window.electron.close();
+                    return;
                 }
-                
-                // Nếu trình duyệt vẫn chặn window.close() (đặc biệt là trên Cloud/Web)
-                setTimeout(() => {
-                    // Dọn dẹp DOM và hiển thị thông báo thoát an toàn đẹp mắt
-                    document.body.innerHTML = `
-                        <div style="display:flex; height:100vh; align-items:center; justify-content:center; flex-direction:column; background:var(--bg-body, #f0f2f5); font-family:'Outfit', sans-serif; color:var(--text-dark, #2d3436); text-align:center; padding: 20px;">
-                            <span class="material-symbols-rounded" style="font-size: 64px; color: var(--primary-blue, #2980b9); margin-bottom: 20px;">check_circle</span>
-                            <h2 style="margin-bottom: 10px; font-weight: 600;">Đã thoát chương trình an toàn</h2>
-                            <p style="color: var(--text-muted, #636e72); margin-bottom: 30px; font-size: 15px;">Dữ liệu đã được lưu trữ cục bộ. Bạn có thể đóng thẻ trình duyệt này.</p>
-                            <button onclick="window.close()" style="padding: 12px 24px; border: none; border-radius: 25px; background: var(--primary-blue, #2980b9); color: white; font-family: inherit; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(41,128,185,0.3);">
-                                Đóng trang (hoặc bấm Ctrl + W)
-                            </button>
+                if (navigator.app && navigator.app.exitApp) {
+                    navigator.app.exitApp();
+                    return;
+                }
+
+                // Cố gắng đóng tab (tránh dùng window.open(location.href, '_self') vì sẽ làm reload lại trang)
+                window.close();
+
+                // 5. Hiển thị màn hình thoát ứng dụng an toàn toàn màn hình
+                document.body.innerHTML = `
+                    <div style="display:flex; min-height:100vh; align-items:center; justify-content:center; flex-direction:column; background:var(--bg-body, #f0f2f5); font-family:'Outfit', sans-serif; color:var(--text-dark, #2d3436); text-align:center; padding: 24px; box-sizing: border-box;">
+                        <div style="width:76px; height:76px; border-radius:50%; background:#e74c3c; display:flex; align-items:center; justify-content:center; color:white; margin-bottom:20px; box-shadow:0 10px 25px rgba(231,76,60,0.35);">
+                            <span class="material-symbols-rounded" style="font-size:40px;">power_settings_new</span>
                         </div>
-                    `;
-                }, 400);
-            } catch(e) {
-                console.error(e);
+                        <h2 style="margin-bottom:12px; font-weight:700; font-size:22px;">Đã thoát ứng dụng an toàn</h2>
+                        <p style="color:var(--text-muted, #636e72); max-width:340px; line-height:1.6; margin-bottom:25px; font-size:14.5px;">
+                            Dữ liệu y tế của gia đình bạn đã được lưu an toàn và khóa bảo mật. Bạn có thể vuốt lên để đóng ứng dụng hoặc đóng tab này.
+                        </p>
+                        <button onclick="location.reload()" style="padding:12px 28px; border-radius:24px; border:none; background:var(--primary-color, #0984e3); color:white; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 4px 15px rgba(9,132,227,0.3); display:inline-flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-rounded" style="font-size:18px;">refresh</span> Mở lại ứng dụng
+                        </button>
+                    </div>
+                `;
+            } catch (err) {
+                console.error('Lỗi khi thoát app:', err);
             }
         });
     }
@@ -4506,7 +4587,7 @@ function checkReminders() {
 
     const notifBadge = document.getElementById('notification-badge');
     if (notifBadge) {
-        if (alarmsToTrigger.length > 0) notifBadge.classList.remove('hidden');
+        updateSystemNotificationBadge();
     }
 
     if (alarmsToTrigger.length > 0) {

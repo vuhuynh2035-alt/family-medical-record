@@ -450,7 +450,7 @@
     </div>
 
     <!-- Modal xác nhận thoát chương trình -->
-    <div id="modal-exit-app" class="modal-overlay hidden" style="z-index: 9999;">
+    <div id="modal-exit-app" class="modal-overlay hidden" style="z-index: 99999;">
         <div class="modal-content neumorphic-modal" style="max-width: 350px;">
             <div class="modal-header">
                 <h3>Đóng chương trình</h3>
@@ -458,7 +458,7 @@
             <div class="modal-body">
                 <p style="margin-bottom: 25px; text-align: center; color: var(--text-color);">Bạn có chắc chắn muốn đóng chương trình không?</p>
                 <div style="display: flex; gap: 15px;">
-                    <button type="button" class="secondary-btn neumorphic-btn close-modal" style="flex: 1; justify-content: center;">Quay lại</button>
+                    <button type="button" class="secondary-btn neumorphic-btn close-modal" onclick="closeModal('modal-exit-app')" style="flex: 1; justify-content: center;">Quay lại</button>
                     <button id="btn-confirm-exit" type="button" class="primary-btn neumorphic-btn danger" style="flex: 1; justify-content: center; background: #e74c3c; color: white;">Đồng ý</button>
                 </div>
             </div>
@@ -480,7 +480,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.101</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.102</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -522,13 +522,13 @@
                             <span class="material-symbols-rounded">person_add</span> <span class="btn-text" data-i18n="btn_add_member">Thêm thành viên</span>
                         </button>
                         <!-- Nút chuông thông báo đưa xuống cùng hàng với Thêm thành viên -->
-                        <button id="btn-notifications" class="icon-btn neumorphic-btn dashboard-icon-btn" title="Thông báo hệ thống" data-help-title="Thông báo Hệ thống" data-help-desc="Nơi hiển thị các thông báo chung (ví dụ: thông tin bản cập nhật ứng dụng mới). Lịch hẹn riêng của từng người sẽ nằm trong trang hồ sơ của người đó.">
-                            <span class="material-symbols-rounded">notifications</span>
+                        <button id="btn-notifications" class="icon-btn neumorphic-btn dashboard-icon-btn" onclick="loadSystemNotifications(); openModal('modal-notifications');" title="Thông báo hệ thống" data-help-title="Thông báo Hệ thống" data-help-desc="Nơi hiển thị các thông báo chung (ví dụ: thông tin bản cập nhật ứng dụng mới). Lịch hẹn riêng của từng người sẽ nằm trong trang hồ sơ của người đó.">
+                            <span class="material-symbols-rounded" style="pointer-events: none;">notifications</span>
                             <span id="notification-badge" class="badge hidden"></span>
                         </button>
                         <!-- Nút tắt chương trình đưa xuống cùng hàng với Thêm thành viên -->
-                        <button id="btn-exit-app" class="icon-btn neumorphic-btn dashboard-icon-btn danger" title="Đóng chương trình" data-help-title="Thoát ứng dụng" data-help-desc="Đóng an toàn chương trình để bảo mật dữ liệu.">
-                            <span class="material-symbols-rounded" style="color: #e74c3c;">power_settings_new</span>
+                        <button id="btn-exit-app" class="icon-btn neumorphic-btn dashboard-icon-btn danger" onclick="openModal('modal-exit-app');" title="Đóng chương trình" data-help-title="Thoát ứng dụng" data-help-desc="Đóng an toàn chương trình để bảo mật dữ liệu.">
+                            <span class="material-symbols-rounded" style="color: #e74c3c; pointer-events: none;">power_settings_new</span>
                         </button>
                     </div>
                 </div>
