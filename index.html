@@ -96,14 +96,19 @@
                     <span id="wizard-step-badge" style="background: var(--primary-blue); color: white; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 12px; letter-spacing: 0.5px;">BƯỚC 1/5</span>
                     <span id="wizard-step-name" style="font-size: 12.5px; font-weight: 600; color: var(--text-muted);">Ngôn ngữ</span>
                 </div>
-                <div class="quick-lang-picker" style="padding: 2px 8px; box-shadow: none; border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.03);">
-                    <span class="material-symbols-rounded" style="color: var(--primary-blue); font-size: 16px;">language</span>
-                    <select id="setup-language-select" class="quick-lang-dropdown" style="font-size: 12px;" aria-label="Select Language">
-                        <option value="vi">🇻🇳 Tiếng Việt</option>
-                        <option value="en">🇬🇧 English</option>
-                        <option value="ja">🇯🇵 日本語</option>
-                        <option value="zh">🇨🇳 中文</option>
-                    </select>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="quick-lang-picker" style="padding: 2px 8px; box-shadow: none; border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.03);">
+                        <span class="material-symbols-rounded" style="color: var(--primary-blue); font-size: 16px;">language</span>
+                        <select id="setup-language-select" class="quick-lang-dropdown" style="font-size: 12px;" aria-label="Select Language">
+                            <option value="vi">🇻🇳 Tiếng Việt</option>
+                            <option value="en">🇬🇧 English</option>
+                            <option value="ja">🇯🇵 日本語</option>
+                            <option value="zh">🇨🇳 中文</option>
+                        </select>
+                    </div>
+                    <button type="button" id="btn-wizard-skip-header" class="btn-wizard-skip-all secondary-btn neumorphic-btn" style="padding: 3px 10px; font-size: 12px; font-weight: 600; color: var(--text-muted); border: 1px solid rgba(0,0,0,0.12); background: rgba(0,0,0,0.02); border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Bỏ qua cài đặt và vào thẳng chương trình">
+                        <span data-i18n="wizard_btn_skip_all">Bỏ qua</span> <span class="material-symbols-rounded" style="font-size: 14px;">close</span>
+                    </button>
                 </div>
             </div>
 
@@ -414,6 +419,13 @@
                 </div>
             </div>
 
+            <!-- Global Skip Wizard Link (Bỏ qua & Vào thẳng ứng dụng) -->
+            <div style="text-align: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed rgba(0,0,0,0.08);">
+                <button type="button" id="btn-wizard-skip-all" class="btn-wizard-skip-all" style="background: none; border: none; color: var(--text-muted); font-size: 12.5px; text-decoration: underline; cursor: pointer; padding: 6px 12px; font-weight: 500; transition: color 0.2s;">
+                    <span data-i18n="wizard_btn_skip_all_link">Bỏ qua thiết lập & Vào thẳng ứng dụng ➔</span>
+                </button>
+            </div>
+
         </div>
     </div>
 
@@ -468,7 +480,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.99</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.100</span>
                     </div>
                 </div>
                 <div class="header-actions">

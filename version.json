@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.99",
-  "updatedAt": "2026-10-29T09:16:10.124Z",
-  "releaseNotes": "Khôi phục và chuẩn hóa hiển thị các icon trên thanh tiêu đề (Header) thành 2 hàng đôi gọn gàng (2x2 grid) trên cả màn hình lớn (máy tính, máy tính bảng) và điện thoại, giúp thanh tiêu đề luôn tinh tế, ngăn nắp và không bị dàn trải."
+  "version": "v2.9.100",
+  "updatedAt": "2026-10-29T09:21:44.918Z",
+  "releaseNotes": "Bổ sung nút Bỏ qua (Skip) trên thanh tiêu đề và dưới chân quy trình thiết lập lần đầu (Onboarding Wizard), cho phép người dùng thoát nhanh quy trình và vào thẳng giao diện chính bất cứ lúc nào."
 }

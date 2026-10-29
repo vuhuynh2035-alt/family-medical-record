@@ -119,6 +119,8 @@ function check(name, condition) {
   console.log('\n[Quy trình Hướng dẫn & Thiết lập Lần đầu (Onboarding Wizard)]');
   const isWizardVisible = await page.isVisible('#forced-pin-setup-screen:not(.hidden)');
   check('Màn hình Onboarding Wizard hiển thị khi mở lần đầu', isWizardVisible);
+  check('Bước 1: Có nút Bỏ qua (Skip) trên thanh tiêu đề', await page.isVisible('#btn-wizard-skip-header'));
+  check('Bước 1: Có link Bỏ qua cài đặt vào thẳng ứng dụng', await page.isVisible('#btn-wizard-skip-all'));
 
   // Bước 1: Chọn ngôn ngữ
   const langCardsCount = await page.locator('.wizard-lang-btn').count();
@@ -422,18 +424,10 @@ function check(name, condition) {
   await page.click('#btn-reopen-onboarding');
   await page.waitForTimeout(200);
   check('Mở lại Wizard từ nút Xem lại trong Cài đặt thành công', await page.isVisible('#forced-pin-setup-screen:not(.hidden)'));
-  // Lướt qua và đóng lại
-  await page.click('#btn-wizard-next-1');
-  await page.waitForTimeout(100);
-  await page.click('#btn-wizard-next-2');
-  await page.waitForTimeout(100);
-  await page.click('#btn-wizard-skip-pin');
-  await page.waitForTimeout(100);
-  await page.click('#btn-wizard-next-4');
-  await page.waitForTimeout(100);
-  await page.click('#btn-wizard-finish');
+  // Kiểm tra bấm nút Bỏ qua (Skip) thoát ngay wizard vào màn hình chính
+  await page.click('#btn-wizard-skip-header');
   await page.waitForTimeout(200);
-  check('Đóng Wizard xem lại thành công và quay lại màn hình chính', await page.isHidden('#forced-pin-setup-screen'));
+  check('Bấm nút Bỏ qua (Skip) đóng ngay Wizard và quay lại màn hình chính', await page.isHidden('#forced-pin-setup-screen'));
 
   console.log('\n[Hệ thống Hướng dẫn sử dụng (Help/Tour) — js/help.js]');
   // Bug đã sửa ở Phase 7: renderHelpElements() từng khai báo trùng `const padding` trong

@@ -499,6 +499,11 @@ const OnboardingWizard = {
             });
         }
 
+        // Global Skip All buttons
+        document.querySelectorAll('.btn-wizard-skip-all').forEach(btn => {
+            btn.addEventListener('click', () => this.skipAll());
+        });
+
         // Reopen onboarding button in Settings
         const reopenBtn = document.getElementById('btn-reopen-onboarding');
         if (reopenBtn) {
@@ -596,6 +601,19 @@ const OnboardingWizard = {
         }
     },
 
+    skipAll() {
+        localStorage.setItem('onboarding_completed', 'true');
+        localStorage.setItem('onboarding_skipped', 'true');
+        const screen = document.getElementById('forced-pin-setup-screen');
+        if (screen) screen.classList.add('hidden');
+        const toastMsg = typeof I18n !== 'undefined' 
+            ? I18n.t('wizard_skip_toast', 'Đã vào thẳng ứng dụng. Bạn có thể cài đặt thêm trong phần Cài đặt bất cứ lúc nào.')
+            : 'Đã vào thẳng ứng dụng. Bạn có thể cài đặt thêm trong phần Cài đặt bất cứ lúc nào.';
+        showToast(toastMsg);
+        checkReminders();
+        checkBackupReminder();
+    },
+
     open(step = 1) {
         this.init();
         const screen = document.getElementById('forced-pin-setup-screen');
@@ -608,8 +626,9 @@ const OnboardingWizard = {
     }
 };
 
-const CURRENT_APP_VERSION = 'v2.9.99';
+const CURRENT_APP_VERSION = 'v2.9.100';
 const APP_CHANGELOG = {
+    'v2.9.100': '• Thêm nút Bỏ qua (Skip) ngay trên thanh tiêu đề và dưới chân quy trình cài đặt để vào thẳng chương trình.\n• Lưu trạng thái bỏ qua để không lặp lại khi tải lại trang.',
     'v2.9.99': '• Bố trí các icon trên thanh tiêu đề thành 2 hàng đôi (2x2 grid) gọn gàng trên cả màn hình lớn (PC/tablet) và điện thoại.\n• Sửa lỗi icon bị dàn ngang 1 hàng dài trên màn hình rộng.',
     'v2.9.98': '• Khắc phục hoàn toàn lỗi 404 khi mở ứng dụng đã cài đặt trên điện thoại (PWA start_url & root redirect).\n• Bổ sung 404.html tự động chuyển hướng về trang chủ.\n• Hoàn thiện màn hình Cài đặt AI lần đầu với link lấy API Key và phân công hoạt động.',
     'v2.9.97': '• Nâng cấp Bước 4 Cài đặt AI trong Hướng dẫn lần đầu (Onboarding Wizard):\n  - Bổ sung trực tiếp đường link lấy API Key cho từng dịch vụ AI (Google AI Studio, OpenAI Platform, Zhipu BigModel miễn phí 100%, DeepSeek Platform) giúp người dùng mở và lấy key dễ dàng.\n  - Bổ sung ô nhập API Key và nút Lưu cho cả Google Gemini, OpenAI, Zhipu AI và DeepSeek.\n  - Bổ sung bộ phân công hoạt động AI (chọn AI xử lý Đọc ảnh OCR và AI Phân tích bệnh án).\n• Đồng bộ và bổ sung đường link trực tiếp lấy API Key cho tất cả các nhà cung cấp AI trong phần Cài đặt Hệ thống.',
@@ -962,14 +981,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         OnboardingWizard.init();
     }
     ensureFirstRunTimestamp();
-    if (!settings.pinHash) {
+    const onboardingDone = localStorage.getItem('onboarding_completed') === 'true' || localStorage.getItem('onboarding_skipped') === 'true';
+    if (!settings.pinHash && !onboardingDone) {
         if (typeof OnboardingWizard !== 'undefined') {
             OnboardingWizard.open(1);
         } else {
             document.getElementById('forced-pin-setup-screen').classList.remove('hidden');
             setTimeout(() => document.getElementById('input-forced-pin').focus(), 50);
         }
-    } else if (settings.pinEnabled) {
+    } else if (settings.pinEnabled && settings.pinHash) {
         showLockScreen();
     } else {
         checkReminders();
