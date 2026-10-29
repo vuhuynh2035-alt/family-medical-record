@@ -608,8 +608,9 @@ const OnboardingWizard = {
     }
 };
 
-const CURRENT_APP_VERSION = 'v2.9.98';
+const CURRENT_APP_VERSION = 'v2.9.99';
 const APP_CHANGELOG = {
+    'v2.9.99': '• Bố trí các icon trên thanh tiêu đề thành 2 hàng đôi (2x2 grid) gọn gàng trên cả màn hình lớn (PC/tablet) và điện thoại.\n• Sửa lỗi icon bị dàn ngang 1 hàng dài trên màn hình rộng.',
     'v2.9.98': '• Khắc phục hoàn toàn lỗi 404 khi mở ứng dụng đã cài đặt trên điện thoại (PWA start_url & root redirect).\n• Bổ sung 404.html tự động chuyển hướng về trang chủ.\n• Hoàn thiện màn hình Cài đặt AI lần đầu với link lấy API Key và phân công hoạt động.',
     'v2.9.97': '• Nâng cấp Bước 4 Cài đặt AI trong Hướng dẫn lần đầu (Onboarding Wizard):\n  - Bổ sung trực tiếp đường link lấy API Key cho từng dịch vụ AI (Google AI Studio, OpenAI Platform, Zhipu BigModel miễn phí 100%, DeepSeek Platform) giúp người dùng mở và lấy key dễ dàng.\n  - Bổ sung ô nhập API Key và nút Lưu cho cả Google Gemini, OpenAI, Zhipu AI và DeepSeek.\n  - Bổ sung bộ phân công hoạt động AI (chọn AI xử lý Đọc ảnh OCR và AI Phân tích bệnh án).\n• Đồng bộ và bổ sung đường link trực tiếp lấy API Key cho tất cả các nhà cung cấp AI trong phần Cài đặt Hệ thống.',
     'v2.9.96': '• Hướng dẫn Cài đặt & Thiết lập Lần đầu (Onboarding Wizard) 5 bước trực quan:\n  1. Lựa chọn ngôn ngữ hiển thị ngay khi mở app với các thẻ quốc kỳ lớn (Việt Nam, Anh, Nhật Bản, Trung Quốc).\n  2. Hướng dẫn cài đặt ứng dụng vào điện thoại ra màn hình chính (hỗ trợ nút cài đặt PWA nhanh cùng hình ảnh/hướng dẫn chi tiết cho iOS Safari và Android Chrome).\n  3. Thiết lập Mã PIN bảo mật hồ sơ sức khỏe 4-6 số.\n  4. Lựa chọn & Kích hoạt AI 1 chạm: Hỗ trợ kích hoạt nhanh AI Trung Quốc (DeepSeek & Zhipu GLM-4-Flash miễn phí 100% không cần VPN) hoặc nhập key Google Gemini.\n  5. Bảng tổng kết sẵn sàng trước khi bắt đầu.\n• Nút "Xem lại Hướng dẫn cài đặt lần đầu" trong Cài đặt hệ thống giúp người dùng có thể mở lại cẩm nang hướng dẫn cài đặt bất cứ khi nào cần.',

@@ -540,6 +540,32 @@ function check(name, condition) {
   });
   check('Đồng bộ hóa: Dropdown #input-language trong Cài đặt khớp với ngôn ngữ hiện tại', syncSettingVal === 'vi');
 
+  console.log('\n[Bố cục 2 hàng đôi các icon trên thanh Header]');
+  const desktopHeaderGrid = await page.evaluate(() => {
+    const el = document.querySelector('.glass-header .header-actions');
+    const style = window.getComputedStyle(el);
+    return {
+      display: style.display,
+      columns: style.gridTemplateColumns.split(' ').length
+    };
+  });
+  check('Màn hình lớn: Các icon trên header xếp thành 2 cột / 2 hàng đôi', desktopHeaderGrid.display === 'grid' && desktopHeaderGrid.columns === 2);
+
+  // Thử chuyển sang viewport điện thoại (375x667)
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.waitForTimeout(100);
+  const mobileHeaderGrid = await page.evaluate(() => {
+    const el = document.querySelector('.glass-header .header-actions');
+    const style = window.getComputedStyle(el);
+    return {
+      display: style.display,
+      columns: style.gridTemplateColumns.split(' ').length
+    };
+  });
+  check('Màn hình nhỏ (điện thoại): Các icon trên header vẫn xếp thành 2 cột / 2 hàng đôi', mobileHeaderGrid.display === 'grid' && mobileHeaderGrid.columns === 2);
+  // Khôi phục lại viewport desktop
+  await page.setViewportSize({ width: 1280, height: 720 });
+
   console.log(`\n[Lỗi console/pageerror bắt được: ${consoleErrors.length}]`);
   consoleErrors.forEach(e => console.log('  ! ' + e));
 

@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.98",
-  "updatedAt": "2026-10-29T09:04:26.743Z",
-  "releaseNotes": "Khắc phục triệt để lỗi 404 khi cài đặt ứng dụng vào điện thoại (sửa manifest start_url, bổ sung 404.html và cấu hình tự động chuyển hướng từ root domain). Cập nhật phiên bản v2.9.98 với đầy đủ link lấy API Key cho từng dịch vụ AI và tùy chọn phân công AI."
+  "version": "v2.9.99",
+  "updatedAt": "2026-10-29T09:16:10.124Z",
+  "releaseNotes": "Khôi phục và chuẩn hóa hiển thị các icon trên thanh tiêu đề (Header) thành 2 hàng đôi gọn gàng (2x2 grid) trên cả màn hình lớn (máy tính, máy tính bảng) và điện thoại, giúp thanh tiêu đề luôn tinh tế, ngăn nắp và không bị dàn trải."
 }

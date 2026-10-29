@@ -55,10 +55,23 @@ body {
     margin: 0 auto;
 }
 
+/* Bố trí các icon trên header thành 2 hàng đôi (2x2 grid) cố định gọn gàng cho cả màn hình lớn và nhỏ */
 .header-actions {
-    display: flex;
+    display: grid !important;
+    grid-template-columns: repeat(2, 40px) !important;
+    grid-auto-rows: 40px !important;
+    gap: 8px !important;
+    width: auto !important;
+    flex-shrink: 0 !important;
+    justify-content: end;
     align-items: center;
-    gap: 15px;
+}
+
+.detail-header .header-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: auto !important;
 }
 
 .header-btn {
@@ -66,23 +79,34 @@ body {
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
-    width: 45px;
-    height: 45px;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
-    /* Nếu font "Material Symbols Rounded" (tải từ Google Fonts) chưa kịp load hoặc bị chặn
-       (mất mạng, trình duyệt/tiện ích chặn CDN...), trình duyệt sẽ hiển thị chữ thường thay cho
-       icon (vd: "power_settings_new") — dài hơn nhiều so với khung tròn 45px này. Không có
-       overflow: hidden, phần chữ tràn ra sẽ đè lên các nút lân cận trong hàng và chặn luôn thao
-       tác click vào chúng. Xem tests/smoke-test.js phần "Khóa PIN" (nơi phát hiện ra lỗi này khi
-       chạy offline không tải được font ngoài).
-       */
+    padding: 0 !important;
+    /* Nếu font "Material Symbols Rounded" chưa kịp tải, không để tràn chữ phá vỡ layout */
     overflow: hidden;
 }
+
+.header-btn .material-symbols-rounded {
+    font-size: 22px !important;
+}
+
+/* Sắp xếp vị trí 2 hàng đôi trên cả màn hình lớn và nhỏ:
+   Hàng trên: Trợ giúp AI (1), Cài đặt (2)
+   Hàng dưới: Chuông thông báo (3), Nút thoát (4) */
+#btn-ai-help-chat { order: 1; }
+#btn-settings { order: 2; }
+#btn-notifications { order: 3; }
+#btn-exit-app { order: 4; }
+#btn-help { order: 5; }
+#btn-install-app { order: 6; }
 
 .header-btn:hover {
     background: rgba(255, 255, 255, 0.2);
@@ -1070,16 +1094,11 @@ input::placeholder {
         opacity: 0.85;
     }
 
-    /* Bố trí các icon thành 2 hàng đôi (2x2 grid) cố định không bị co méo */
+    /* Tối ưu kích thước 2 hàng đôi trên điện thoại nhỏ */
     .header-actions {
-        display: grid !important;
         grid-template-columns: repeat(2, 38px) !important;
-        grid-template-rows: repeat(2, 38px) !important;
+        grid-auto-rows: 38px !important;
         gap: 8px !important;
-        width: auto !important;
-        flex-shrink: 0 !important;
-        justify-content: end;
-        align-items: center;
     }
 
     .header-btn {
@@ -1087,22 +1106,11 @@ input::placeholder {
         height: 38px !important;
         min-width: 38px !important;
         min-height: 38px !important;
-        padding: 0 !important;
     }
 
     .header-btn .material-symbols-rounded {
         font-size: 20px !important;
     }
-
-    /* Sắp xếp vị trí 2 hàng đôi:
-       Hàng trên: Trợ giúp AI (1), Cài đặt (2)
-       Hàng dưới: Chuông thông báo (3), Nút thoát (4) */
-    #btn-ai-help-chat { order: 1; }
-    #btn-settings { order: 2; }
-    #btn-notifications { order: 3; }
-    #btn-exit-app { order: 4; }
-    #btn-help { order: 5; }
-    #btn-install-app { order: 6; }
 }
 
 /* AI Chatbot Styles */
