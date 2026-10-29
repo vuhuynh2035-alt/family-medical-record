@@ -1,9 +1,9 @@
 {
-  "id": "/",
+  "id": "./index.html",
   "name": "Family Health Manager",
   "short_name": "Health",
   "description": "Quản lý hồ sơ sức khỏe gia đình",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",

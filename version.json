@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.97",
-  "updatedAt": "2026-10-29T15:50:00.000Z",
-  "releaseNotes": "Nâng cấp Bước 4 Cài đặt AI trong Onboarding Wizard: Bổ sung trực tiếp đường link lấy API Key cho từng dịch vụ AI (Google Gemini, OpenAI ChatGPT, Zhipu AI GLM-4-Flash miễn phí 100%, DeepSeek), ô nhập và nút Lưu cho từng Key, bộ chọn phân công hoạt động AI (OCR & Phân tích bệnh án), đồng thời bổ sung link trực tiếp trong Cài đặt Hệ thống."
+  "version": "v2.9.98",
+  "updatedAt": "2026-10-29T09:04:26.743Z",
+  "releaseNotes": "Khắc phục triệt để lỗi 404 khi cài đặt ứng dụng vào điện thoại (sửa manifest start_url, bổ sung 404.html và cấu hình tự động chuyển hướng từ root domain). Cập nhật phiên bản v2.9.98 với đầy đủ link lấy API Key cho từng dịch vụ AI và tùy chọn phân công AI."
 }
