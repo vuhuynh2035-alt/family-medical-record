@@ -144,7 +144,36 @@ const TRANSLATIONS = {
         "ai_help_title": "Trợ lý AI Hướng dẫn",
         "ai_help_greeting": "Xin chào! Tôi là Trợ lý AI của phần mềm Hồ sơ Sức khỏe. Bạn cần hướng dẫn sử dụng tính năng nào?",
         "ai_help_placeholder": "Nhập câu hỏi của bạn (VD: Làm sao đổi mã PIN?)...",
-        "ai_thinking": "AI đang trả lời..."
+        "ai_thinking": "AI đang trả lời...",
+        "wizard_step1_title": "Chào mừng bạn đến với Health Care",
+        "wizard_step1_desc": "Vui lòng chọn ngôn ngữ hiển thị bạn muốn sử dụng:",
+        "wizard_step2_title": "Cài đặt ứng dụng vào điện thoại",
+        "wizard_step2_desc": "Cài app ra màn hình chính giúp mở toàn màn hình mượt mà và hoạt động tốt khi mất mạng.",
+        "wizard_btn_install_now": "Cài đặt ngay vào máy",
+        "wizard_ios_title": "Dành cho iPhone / iPad (Safari)",
+        "wizard_ios_steps": "<li>Bấm nút <strong>Chia sẻ</strong> (hình vuông có mũi tên hướng lên ⎋) ở thanh dưới.</li><li>Cuộn xuống và chọn <strong>'Thêm vào MH chính'</strong> (Add to Home Screen).</li><li>Bấm <strong>'Thêm'</strong> ở góc trên bên phải.</li>",
+        "wizard_android_title": "Dành cho Android (Chrome)",
+        "wizard_android_steps": "<li>Bấm nút menu <strong>3 chấm (⋮)</strong> ở góc trên bên phải trình duyệt.</li><li>Chọn <strong>'Thêm vào Màn hình chính'</strong> (Add to Home screen) hoặc <strong>'Cài đặt ứng dụng'</strong>.</li>",
+        "wizard_step3_title": "Bảo mật & Tạo Mã PIN",
+        "wizard_step3_desc": "Tạo mã PIN (4-6 chữ số) để bảo vệ hồ sơ sức khỏe riêng tư trên thiết bị này.",
+        "wizard_step4_title": "Cài đặt Trí tuệ Nhân tạo (AI)",
+        "wizard_step4_desc": "AI giúp tự động quét đơn thuốc, đánh giá xu hướng và tư vấn sức khỏe. Chọn dịch vụ phù hợp với bạn:",
+        "wizard_ai_china_title": "Ở Trung Quốc / Miễn phí 100% không VPN",
+        "wizard_ai_china_desc": "Dùng Zhipu AI (GLM-4-Flash miễn phí 100%) và DeepSeek. Hoạt động mượt mà tại Trung Quốc không cần VPN.",
+        "wizard_btn_activate_china_ai": "Kích hoạt AI Trung Quốc ngay",
+        "wizard_ai_global_title": "Quốc tế / Việt Nam: Google Gemini",
+        "wizard_ai_global_desc": "Google Gemini (miễn phí), ChatGPT hoặc Claude với độ chính xác cao.",
+        "wizard_btn_skip_ai": "Để sau (Tôi sẽ cài đặt API Key sau trong phần Cài đặt) →",
+        "wizard_step5_title": "Tuyệt vời! Bạn đã sẵn sàng",
+        "wizard_step5_desc": "Ứng dụng đã được cấu hình hoàn tất để đồng hành cùng sức khỏe gia đình bạn.",
+        "wizard_check_lang": "Ngôn ngữ giao diện đã sẵn sàng",
+        "wizard_check_install": "Hướng dẫn cài đặt màn hình chính hoàn tất",
+        "wizard_check_pin": "Mã PIN bảo mật đã được kích hoạt",
+        "wizard_check_privacy": "Dữ liệu bảo mật 100% trên thiết bị (Offline-First)",
+        "wizard_btn_start_now": "Bắt đầu sử dụng ngay",
+        "btn_next": "Tiếp tục",
+        "btn_reopen_onboarding": "Xem lại Hướng dẫn cài đặt lần đầu",
+        "toast_pin_required_wizard": "Vui lòng tạo mã PIN (4-6 số) trước khi tiếp tục."
     },
     "en": {
         "app_title": "Health Care",
@@ -286,7 +315,36 @@ const TRANSLATIONS = {
         "ai_help_title": "AI Help Assistant",
         "ai_help_greeting": "Hello! I am your Family Health Manager AI Assistant. Which feature would you like help with?",
         "ai_help_placeholder": "Type your question (e.g., How to change PIN?)...",
-        "ai_thinking": "AI is replying..."
+        "ai_thinking": "AI is replying...",
+        "wizard_step1_title": "Welcome to Health Care",
+        "wizard_step1_desc": "Please select your preferred display language:",
+        "wizard_step2_title": "Install App to Device",
+        "wizard_step2_desc": "Adding to Home Screen allows seamless full-screen view and offline operation.",
+        "wizard_btn_install_now": "Install to Device Now",
+        "wizard_ios_title": "For iPhone / iPad (Safari)",
+        "wizard_ios_steps": "<li>Tap the <strong>Share</strong> button (square with arrow ⎋) at the bottom toolbar.</li><li>Scroll down and select <strong>'Add to Home Screen'</strong>.</li><li>Tap <strong>'Add'</strong> in the top right corner.</li>",
+        "wizard_android_title": "For Android (Chrome)",
+        "wizard_android_steps": "<li>Tap the <strong>3 dots menu (⋮)</strong> in the top right corner of Chrome.</li><li>Select <strong>'Add to Home screen'</strong> or <strong>'Install app'</strong>.</li>",
+        "wizard_step3_title": "Security PIN Setup",
+        "wizard_step3_desc": "Create a 4-6 digit PIN to protect sensitive medical records on this device.",
+        "wizard_step4_title": "AI & API Key Configuration",
+        "wizard_step4_desc": "AI auto-scans prescriptions, evaluates trends, and offers medical advice. Choose your service:",
+        "wizard_ai_china_title": "In China / 100% Free without VPN",
+        "wizard_ai_china_desc": "Powered by Zhipu AI (GLM-4-Flash 100% free) & DeepSeek. Fast connection in China without VPN.",
+        "wizard_btn_activate_china_ai": "Activate China AI Now",
+        "wizard_ai_global_title": "Global: Google Gemini",
+        "wizard_ai_global_desc": "Google Gemini (free API), ChatGPT, or Claude for high accuracy.",
+        "wizard_btn_skip_ai": "Skip for now (I will configure API Keys later in Settings) →",
+        "wizard_step5_title": "You're All Set!",
+        "wizard_step5_desc": "The application is ready to assist your family healthcare management.",
+        "wizard_check_lang": "Display language configured",
+        "wizard_check_install": "Home screen installation guide ready",
+        "wizard_check_pin": "Security PIN code enabled",
+        "wizard_check_privacy": "100% Private local storage (Offline-First)",
+        "wizard_btn_start_now": "Get Started Now",
+        "btn_next": "Next",
+        "btn_reopen_onboarding": "Review Setup & Install Guide",
+        "toast_pin_required_wizard": "Please create a 4-6 digit PIN before proceeding."
     },
     "ja": {
         "app_title": "Health Care",
@@ -428,7 +486,36 @@ const TRANSLATIONS = {
         "ai_help_title": "AIヘルプアシスタント",
         "ai_help_greeting": "こんにちは！健康手帳アプリのAIアシスタントです。どの機能の使い方についてお知りになりたいですか？",
         "ai_help_placeholder": "質問を入力してください（例：暗証番号の変更方法は？）...",
-        "ai_thinking": "AIが回答を生成中..."
+        "ai_thinking": "AIが回答を生成中...",
+        "wizard_step1_title": "Health Care へようこそ",
+        "wizard_step1_desc": "使用する表示言語を選択してください：",
+        "wizard_step2_title": "アプリをスマートフォンにインストール",
+        "wizard_step2_desc": "ホーム画面に追加すると、全画面で快適に起動しオフラインでも利用できます。",
+        "wizard_btn_install_now": "今すぐインストール",
+        "wizard_ios_title": "iPhone / iPad（Safari）の場合",
+        "wizard_ios_steps": "<li>下部ツールバーの<strong>共有</strong>ボタン（四角に上矢印 ⎋）をタップします。</li><li>下にスクロールして<strong>「ホーム画面に追加」</strong>を選択します。</li><li>右上の<strong>「追加」</strong>をタップします。</li>",
+        "wizard_android_title": "Android（Chrome）の場合",
+        "wizard_android_steps": "<li>Chrome右上の<strong>3点メニュー（⋮）</strong>をタップします。</li><li><strong>「ホーム画面に追加」</strong>または<strong>「アプリをインストール」</strong>を選択します。</li>",
+        "wizard_step3_title": "暗証番号セキュリティ設定",
+        "wizard_step3_desc": "医療データを保護するため、4〜6桁の暗証番号を設定してください。",
+        "wizard_step4_title": "人工知能（AI）の設定",
+        "wizard_step4_desc": "AIが処方箋を自動スキャンし、健康トレンド評価を行います。利用するサービスを選択してください：",
+        "wizard_ai_china_title": "中国国内利用 / VPN不要・完全無料",
+        "wizard_ai_china_desc": "Zhipu AI（智譜AI 完全無料）とDeepSeekを採用。中国国内からVPNなしで快適に接続できます。",
+        "wizard_btn_activate_china_ai": "中国AIを今すぐ有効化",
+        "wizard_ai_global_title": "グローバル：Google Gemini",
+        "wizard_ai_global_desc": "Google Gemini（無料枠あり）、ChatGPT、Claudeの高精度AI。",
+        "wizard_btn_skip_ai": "後で設定する（後から設定画面で登録可能）→",
+        "wizard_step5_title": "準備が完了しました！",
+        "wizard_step5_desc": "家族の健康をサポートする準備が整いました。",
+        "wizard_check_lang": "表示言語を設定完了",
+        "wizard_check_install": "ホーム画面追加ガイド完了",
+        "wizard_check_pin": "暗証番号セキュリティ設定済み",
+        "wizard_check_privacy": "端末内完全ローカル保存（プライバシー保護）",
+        "wizard_btn_start_now": "今すぐ利用を開始する",
+        "btn_next": "次へ",
+        "btn_reopen_onboarding": "初期設定・インストールガイドを再確認",
+        "toast_pin_required_wizard": "次へ進む前に4〜6桁の暗証番号を設定してください。"
     },
     "zh": {
         "app_title": "Health Care",
@@ -570,7 +657,36 @@ const TRANSLATIONS = {
         "ai_help_title": "AI使用指南助手",
         "ai_help_greeting": "您好！我是家庭健康档案软件的AI助手。请问您需要了解哪个功能的使用方法？",
         "ai_help_placeholder": "请输入您的问题（例如：如何修改PIN密码？）...",
-        "ai_thinking": "AI正在生成回答..."
+        "ai_thinking": "AI正在生成回答...",
+        "wizard_step1_title": "欢迎使用 Health Care",
+        "wizard_step1_desc": "请选择您偏好的显示语言：",
+        "wizard_step2_title": "将应用程序安装到手机",
+        "wizard_step2_desc": "安装到主屏幕可实现全屏流畅运行，并在离线无网络时正常工作。",
+        "wizard_btn_install_now": "立即安装到手机",
+        "wizard_ios_title": "适用 iPhone / iPad（Safari）",
+        "wizard_ios_steps": "<li>点击底部工具栏的<strong>分享</strong>按钮（带向上箭头的方框 ⎋）。</li><li>向下滚动并选择<strong>“添加到主屏幕”</strong>。</li><li>点击右上角的<strong>“添加”</strong>完成。</li>",
+        "wizard_android_title": "适用 Android（Chrome）",
+        "wizard_android_steps": "<li>点击Chrome浏览器右上角的<strong>更多菜单（⋮）</strong>。</li><li>选择<strong>“添加到主屏幕”</strong>或<strong>“安装应用”</strong>。</li>",
+        "wizard_step3_title": "安全PIN码设置",
+        "wizard_step3_desc": "请设置4-6位数字PIN码，以保护本设备上的隐私医疗档案。",
+        "wizard_step4_title": "人工智能（AI）配置",
+        "wizard_step4_desc": "AI可自动扫描处方、评估健康趋势并提供咨询。请选择适合您的AI服务：",
+        "wizard_ai_china_title": "中国大陆直连 / 免VPN完全免费",
+        "wizard_ai_china_desc": "采用智谱AI（GLM-4-Flash 永久免费）和深度求索DeepSeek。国内高速直连，无需翻墙加速器。",
+        "wizard_btn_activate_china_ai": "立即激活中国本土AI",
+        "wizard_ai_global_title": "国际/主流：Google Gemini",
+        "wizard_ai_global_desc": "Google Gemini（支持免费调用）、ChatGPT或Claude高精度模型。",
+        "wizard_btn_skip_ai": "稍后设置（稍后可在设置中随时配置）→",
+        "wizard_step5_title": "太棒了！设置完成",
+        "wizard_step5_desc": "应用程序已配置就绪，随时为您与家人的健康保驾护航。",
+        "wizard_check_lang": "显示语言已配置就绪",
+        "wizard_check_install": "主屏幕安装指南已阅",
+        "wizard_check_pin": "安全PIN密码已成功启用",
+        "wizard_check_privacy": "100% 本地离线私密存储（安全放心）",
+        "wizard_btn_start_now": "立即开始使用",
+        "btn_next": "下一步",
+        "btn_reopen_onboarding": "重温首次安装与设置向导",
+        "toast_pin_required_wizard": "请先设置4-6位数字PIN码再继续。"
     }
 };
 
@@ -598,7 +714,7 @@ const I18n = {
     },
 
     bindEvents() {
-        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language', 'guide-language-select'];
+        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language', 'guide-language-select', 'wizard-top-lang-select'];
         langSelectIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -627,7 +743,7 @@ const I18n = {
         }
 
         // Đồng bộ toàn bộ các dropdown chọn ngôn ngữ trên toàn trang
-        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language', 'guide-language-select'];
+        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language', 'guide-language-select', 'wizard-top-lang-select'];
         langSelectIds.forEach(id => {
             const el = document.getElementById(id);
             if (el && el.value !== lang) {
@@ -708,7 +824,7 @@ const I18n = {
         });
 
         // Sync dropdown values
-        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language', 'guide-language-select'];
+        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language', 'guide-language-select', 'wizard-top-lang-select'];
         langSelectIds.forEach(id => {
             const el = document.getElementById(id);
             if (el && el.value !== this.currentLang) {

@@ -115,11 +115,49 @@ function check(name, condition) {
   await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(200);
   
-  // Bỏ qua màn hình thiết lập PIN bắt buộc
+  console.log('\n[Quy trình Hướng dẫn & Thiết lập Lần đầu (Onboarding Wizard)]');
+  const isWizardVisible = await page.isVisible('#forced-pin-setup-screen:not(.hidden)');
+  check('Màn hình Onboarding Wizard hiển thị khi mở lần đầu', isWizardVisible);
+
+  // Bước 1: Chọn ngôn ngữ
+  const langCardsCount = await page.locator('.wizard-lang-btn').count();
+  check('Bước 1: Hiển thị 4 thẻ chọn ngôn ngữ (Việt, Anh, Nhật, Trung)', langCardsCount === 4);
+  
+  await page.click('.wizard-lang-btn[data-lang="en"]');
+  await page.waitForTimeout(100);
+  const step1EnTitle = await page.$eval('#wizard-pane-1 h2', el => el.innerText);
+  check('Bước 1: Đổi ngôn ngữ tức thì trong wizard sang English', step1EnTitle.includes('Welcome'));
+
+  // Đổi lại Tiếng Việt và tiếp tục qua Bước 2
+  await page.click('.wizard-lang-btn[data-lang="vi"]');
+  await page.waitForTimeout(100);
+  await page.click('#btn-wizard-next-1');
+  await page.waitForTimeout(150);
+  check('Chuyển qua Bước 2: Hướng dẫn cài đặt ứng dụng vào máy', await page.isVisible('#wizard-pane-2:not(.hidden)'));
+  check('Bước 2: Có nút cài đặt PWA và hướng dẫn Safari/Chrome', await page.isVisible('#btn-wizard-pwa-install'));
+
+  // Qua Bước 3: Thiết lập mã PIN
+  await page.click('#btn-wizard-next-2');
+  await page.waitForTimeout(150);
+  check('Chuyển qua Bước 3: Tạo mã PIN bảo mật', await page.isVisible('#wizard-pane-3:not(.hidden)'));
   await page.fill('#input-forced-pin', '1234');
   await page.fill('#input-forced-confirm-pin', '1234');
   await page.click('#form-forced-pin-setup button[type=submit]');
+  await page.waitForTimeout(200);
+
+  // Qua Bước 4: AI & Kích hoạt AI Trung Quốc
+  check('Chuyển qua Bước 4: Cài đặt AI & API Key', await page.isVisible('#wizard-pane-4:not(.hidden)'));
+  await page.click('#btn-wizard-enable-china-ai');
+  await page.waitForTimeout(100);
+  check('Bước 4: Nút kích hoạt 1 chạm AI Trung Quốc thành công', await page.isVisible('#wizard-china-ai-status:not(.hidden)'));
+  await page.click('#btn-wizard-next-4');
+  await page.waitForTimeout(150);
+
+  // Qua Bước 5: Hoàn tất
+  check('Chuyển qua Bước 5: Hoàn tất & sẵn sàng', await page.isVisible('#wizard-pane-5:not(.hidden)'));
+  await page.click('#btn-wizard-finish');
   await page.waitForTimeout(300);
+  check('Hoàn tất Wizard: Màn hình onboarding đóng lại, chuyển vào trang chủ', await page.isHidden('#forced-pin-setup-screen'));
   console.log('\n[Thành viên & tìm kiếm/thống kê]');
   await page.click('#btn-add-member');
   await page.fill('#member-name', 'Người Test <b>an toàn</b>');
@@ -343,6 +381,25 @@ function check(name, condition) {
   check('Bật chế độ AI Trung Quốc chuyển nhà cung cấp sang DeepSeek & Zhipu', chinaSettings.assessment === 'deepseek' && chinaSettings.ocr === 'zhipu');
   check('Lưu cài đặt API Key DeepSeek & Zhipu AI thành công', chinaSettings.deepseekKey === 'sk-test-deepseek-key' && chinaSettings.deepseekModel === 'deepseek-reasoner' && chinaSettings.zhipuKey === 'test-zhipu-key.123');
   // #btn-save-settings tự đóng modal-settings (gọi closeModal('modal-settings') trong app.js).
+
+  // Kiểm tra nút Xem lại Hướng dẫn cài đặt lần đầu từ Settings
+  await page.evaluate(() => document.getElementById('btn-settings').click());
+  await page.waitForTimeout(150);
+  await page.click('#btn-reopen-onboarding');
+  await page.waitForTimeout(200);
+  check('Mở lại Wizard từ nút Xem lại trong Cài đặt thành công', await page.isVisible('#forced-pin-setup-screen:not(.hidden)'));
+  // Lướt qua và đóng lại
+  await page.click('#btn-wizard-next-1');
+  await page.waitForTimeout(100);
+  await page.click('#btn-wizard-next-2');
+  await page.waitForTimeout(100);
+  await page.click('#btn-wizard-skip-pin');
+  await page.waitForTimeout(100);
+  await page.click('#btn-wizard-next-4');
+  await page.waitForTimeout(100);
+  await page.click('#btn-wizard-finish');
+  await page.waitForTimeout(200);
+  check('Đóng Wizard xem lại thành công và quay lại màn hình chính', await page.isHidden('#forced-pin-setup-screen'));
 
   console.log('\n[Hệ thống Hướng dẫn sử dụng (Help/Tour) — js/help.js]');
   // Bug đã sửa ở Phase 7: renderHelpElements() từng khai báo trùng `const padding` trong

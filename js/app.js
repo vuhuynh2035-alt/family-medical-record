@@ -267,11 +267,15 @@ function setupPinLockListeners() {
         try {
             const hash = await DataManager.sha256Hex(pin);
             DataManager.saveSettings({ pinEnabled: true, pinHash: hash });
-            document.getElementById('forced-pin-setup-screen').classList.add('hidden');
             updatePinUIState();
             showToast('Đã tạo mã PIN thành công.');
-            checkReminders();
-            checkBackupReminder();
+            if (typeof OnboardingWizard !== 'undefined') {
+                OnboardingWizard.goToStep(4);
+            } else {
+                document.getElementById('forced-pin-setup-screen').classList.add('hidden');
+                checkReminders();
+                checkBackupReminder();
+            }
         } catch (err) {
             alert(err.message);
         }
@@ -280,8 +284,230 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.95';
+
+function applyChinaPresetConfig() {
+    DataManager.saveSettings({
+        aiProviderAssessment: 'deepseek',
+        aiProviderSearch: 'deepseek',
+        aiProviderTrend: 'deepseek',
+        aiProviderChat: 'deepseek',
+        aiProviderOcr: 'zhipu'
+    });
+    const selAssessment = document.getElementById('input-ai-provider-assessment');
+    const selSearch = document.getElementById('input-ai-provider-search');
+    const selTrend = document.getElementById('input-ai-provider-trend');
+    const selChat = document.getElementById('input-ai-provider-chat');
+    const selOcr = document.getElementById('input-ai-provider-ocr');
+
+    if (selAssessment) selAssessment.value = 'deepseek';
+    if (selSearch) selSearch.value = 'deepseek';
+    if (selTrend) selTrend.value = 'deepseek';
+    if (selChat) selChat.value = 'deepseek';
+    if (selOcr) selOcr.value = 'zhipu';
+}
+
+const OnboardingWizard = {
+    currentStep: 1,
+    totalSteps: 5,
+    _bound: false,
+
+    init() {
+        if (this._bound) return;
+        this._bound = true;
+        this.bindEvents();
+    },
+
+    bindEvents() {
+        // Step 1: Language selection cards
+        document.querySelectorAll('.wizard-lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.getAttribute('data-lang');
+                if (typeof I18n !== 'undefined' && I18n.setLanguage) {
+                    I18n.setLanguage(lang);
+                }
+                this.updateLanguageCards(lang);
+            });
+        });
+
+        // Step 1: Next button
+        const next1 = document.getElementById('btn-wizard-next-1');
+        if (next1) next1.addEventListener('click', () => this.goToStep(2));
+
+        // Step 2: PWA Install & Navigation
+        const pwaBtn = document.getElementById('btn-wizard-pwa-install');
+        if (pwaBtn) {
+            pwaBtn.addEventListener('click', async () => {
+                if (typeof deferredPrompt !== 'undefined' && deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const choice = await deferredPrompt.userChoice;
+                    if (choice && choice.outcome === 'accepted') {
+                        showToast('Đang cài đặt ứng dụng vào máy...');
+                    }
+                    deferredPrompt = null;
+                } else {
+                    showToast('Vui lòng làm theo hướng dẫn Safari hoặc Chrome bên dưới để thêm vào màn hình chính.');
+                }
+            });
+        }
+        const prev2 = document.getElementById('btn-wizard-prev-2');
+        if (prev2) prev2.addEventListener('click', () => this.goToStep(1));
+        const next2 = document.getElementById('btn-wizard-next-2');
+        if (next2) next2.addEventListener('click', () => this.goToStep(3));
+
+        // Step 3: PIN Setup - Back button & skip if existing
+        const prev3 = document.getElementById('btn-wizard-prev-3');
+        if (prev3) prev3.addEventListener('click', () => this.goToStep(2));
+
+        const skipPinBtn = document.getElementById('btn-wizard-skip-pin');
+        if (skipPinBtn) {
+            skipPinBtn.addEventListener('click', () => {
+                this.goToStep(4);
+            });
+        }
+
+        // Step 4: AI Setup
+        const chinaBtn = document.getElementById('btn-wizard-enable-china-ai');
+        if (chinaBtn) {
+            chinaBtn.addEventListener('click', () => {
+                applyChinaPresetConfig();
+                const statusEl = document.getElementById('wizard-china-ai-status');
+                if (statusEl) statusEl.classList.remove('hidden');
+                showToast('Đã kích hoạt Zhipu AI & DeepSeek cho người dùng Trung Quốc!');
+            });
+        }
+
+        const saveGeminiBtn = document.getElementById('btn-wizard-save-gemini-key');
+        if (saveGeminiBtn) {
+            saveGeminiBtn.addEventListener('click', () => {
+                const keyInput = document.getElementById('wizard-input-gemini-key');
+                const key = keyInput ? keyInput.value.trim() : '';
+                if (key) {
+                    DataManager.saveSettings({ apiKey: key });
+                    const inputMainKey = document.getElementById('input-api-key');
+                    if (inputMainKey) inputMainKey.value = key;
+                    showToast('Đã lưu Gemini API Key!');
+                }
+            });
+        }
+
+        const skipAiBtn = document.getElementById('btn-wizard-skip-ai');
+        if (skipAiBtn) skipAiBtn.addEventListener('click', () => this.goToStep(5));
+
+        const prev4 = document.getElementById('btn-wizard-prev-4');
+        if (prev4) prev4.addEventListener('click', () => this.goToStep(3));
+
+        const next4 = document.getElementById('btn-wizard-next-4');
+        if (next4) next4.addEventListener('click', () => this.goToStep(5));
+
+        // Step 5: Ready & Finish
+        const prev5 = document.getElementById('btn-wizard-prev-5');
+        if (prev5) prev5.addEventListener('click', () => this.goToStep(4));
+
+        const finishBtn = document.getElementById('btn-wizard-finish');
+        if (finishBtn) {
+            finishBtn.addEventListener('click', () => {
+                localStorage.setItem('onboarding_completed', 'true');
+                const screen = document.getElementById('forced-pin-setup-screen');
+                if (screen) screen.classList.add('hidden');
+                showToast('Chào mừng bạn đến với Health Care!');
+                checkReminders();
+                checkBackupReminder();
+            });
+        }
+
+        // Reopen onboarding button in Settings
+        const reopenBtn = document.getElementById('btn-reopen-onboarding');
+        if (reopenBtn) {
+            reopenBtn.addEventListener('click', () => {
+                const modalSettings = document.getElementById('modal-settings');
+                if (modalSettings) modalSettings.classList.add('hidden');
+                this.open(1);
+            });
+        }
+    },
+
+    updateLanguageCards(selectedLang) {
+        document.querySelectorAll('.wizard-lang-btn').forEach(b => {
+            const l = b.getAttribute('data-lang');
+            if (l === selectedLang) {
+                b.style.borderColor = 'var(--primary-blue)';
+                b.style.background = 'rgba(37, 99, 235, 0.08)';
+            } else {
+                b.style.borderColor = 'rgba(0,0,0,0.1)';
+                b.style.background = 'var(--bg-card)';
+            }
+        });
+    },
+
+    goToStep(step) {
+        this.currentStep = step;
+        for (let i = 1; i <= this.totalSteps; i++) {
+            const pane = document.getElementById(`wizard-pane-${i}`);
+            if (pane) {
+                if (i === step) pane.classList.remove('hidden');
+                else pane.classList.add('hidden');
+            }
+        }
+
+        // Update progress dots
+        document.querySelectorAll('.wizard-dot').forEach((dot, idx) => {
+            if (idx + 1 <= step) {
+                dot.style.background = 'var(--primary-blue)';
+            } else {
+                dot.style.background = 'rgba(0,0,0,0.12)';
+            }
+        });
+
+        // Update badge and step name
+        const badge = document.getElementById('wizard-step-badge');
+        const name = document.getElementById('wizard-step-name');
+        const titles = {
+            1: 'Ngôn ngữ',
+            2: 'Cài đặt máy',
+            3: 'Bảo mật PIN',
+            4: 'Trí tuệ AI',
+            5: 'Hoàn tất'
+        };
+        if (badge) badge.innerText = `BƯỚC ${step}/${this.totalSteps}`;
+        if (name) name.innerText = titles[step] || '';
+
+        // If step 3, check existing PIN status
+        if (step === 3) {
+            const currentSettings = DataManager.getSettings();
+            const existingNotice = document.getElementById('wizard-pin-existing-notice');
+            const skipBox = document.getElementById('wizard-pin-skip-box');
+            const pinInput = document.getElementById('input-forced-pin');
+            const confirmInput = document.getElementById('input-forced-confirm-pin');
+            if (currentSettings && currentSettings.pinHash) {
+                if (existingNotice) existingNotice.classList.remove('hidden');
+                if (skipBox) skipBox.classList.remove('hidden');
+                if (pinInput) pinInput.removeAttribute('required');
+                if (confirmInput) confirmInput.removeAttribute('required');
+            } else {
+                if (existingNotice) existingNotice.classList.add('hidden');
+                if (skipBox) skipBox.classList.add('hidden');
+                if (pinInput) pinInput.setAttribute('required', 'required');
+                if (confirmInput) confirmInput.setAttribute('required', 'required');
+                setTimeout(() => { if (pinInput) pinInput.focus(); }, 50);
+            }
+        }
+    },
+
+    open(step = 1) {
+        this.init();
+        const screen = document.getElementById('forced-pin-setup-screen');
+        if (screen) {
+            screen.classList.remove('hidden');
+            const curLang = (typeof I18n !== 'undefined' && I18n.currentLang) ? I18n.currentLang : 'vi';
+            this.updateLanguageCards(curLang);
+            this.goToStep(step);
+        }
+    }
+};
+
+const CURRENT_APP_VERSION = 'v2.9.96';
 const APP_CHANGELOG = {
+    'v2.9.96': '• Hướng dẫn Cài đặt & Thiết lập Lần đầu (Onboarding Wizard) 5 bước trực quan:\n  1. Lựa chọn ngôn ngữ hiển thị ngay khi mở app với các thẻ quốc kỳ lớn (Việt Nam, Anh, Nhật Bản, Trung Quốc).\n  2. Hướng dẫn cài đặt ứng dụng vào điện thoại ra màn hình chính (hỗ trợ nút cài đặt PWA nhanh cùng hình ảnh/hướng dẫn chi tiết cho iOS Safari và Android Chrome).\n  3. Thiết lập Mã PIN bảo mật hồ sơ sức khỏe 4-6 số.\n  4. Lựa chọn & Kích hoạt AI 1 chạm: Hỗ trợ kích hoạt nhanh AI Trung Quốc (DeepSeek & Zhipu GLM-4-Flash miễn phí 100% không cần VPN) hoặc nhập key Google Gemini.\n  5. Bảng tổng kết sẵn sàng trước khi bắt đầu.\n• Nút "Xem lại Hướng dẫn cài đặt lần đầu" trong Cài đặt hệ thống giúp người dùng có thể mở lại cẩm nang hướng dẫn cài đặt bất cứ khi nào cần.',
     'v2.9.95': '• Cập nhật Cẩm nang Hướng dẫn Sử dụng Toàn diện: Bổ sung đầy đủ 8 chủ đề hướng dẫn chi tiết về các tính năng mới nhất (Đa ngôn ngữ, Quét thông minh OCR, Đánh giá xu hướng PDF/TTS, Lịch uống thuốc & Báo thức, AI Trung Quốc không cần VPN, Bảo mật PIN và Sao lưu dữ liệu).\n• Cẩm nang Đa ngôn ngữ: Tự động hiển thị và cho phép chọn đọc hướng dẫn bằng 4 thứ tiếng (Tiếng Việt, English, 日本語, 简体中文).\n• Nâng cấp Trợ lý AI Hỏi đáp: Tích hợp với nhà cung cấp AI đang cấu hình để giải đáp mọi thắc mắc của người dùng bằng đúng ngôn ngữ đã chọn.',
 
     'v2.9.94': '• Hỗ trợ Đa ngôn ngữ: Tích hợp đầy đủ 4 ngôn ngữ: Tiếng Việt, Tiếng Anh (English), Tiếng Nhật (日本語) và Tiếng Trung (中文).\n• Chuyển đổi ngôn ngữ tức thì ngay tại Trang chủ: Tích hợp bộ chọn ngôn ngữ trực quan ngay trên Trang chủ và Màn hình thiết lập mã PIN giúp người dùng quốc tế dễ dàng lựa chọn ngay khi vừa mở ứng dụng.\n• Đồng bộ hóa toàn diện: Tự động dịch tiêu đề, nút bấm, hướng dẫn, bộ lọc và các phân tích AI theo ngôn ngữ đã chọn.',
@@ -626,10 +852,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         I18n.init();
         I18n.bindEvents();
     }
+    if (typeof OnboardingWizard !== 'undefined') {
+        OnboardingWizard.init();
+    }
     ensureFirstRunTimestamp();
     if (!settings.pinHash) {
-        document.getElementById('forced-pin-setup-screen').classList.remove('hidden');
-        setTimeout(() => document.getElementById('input-forced-pin').focus(), 50);
+        if (typeof OnboardingWizard !== 'undefined') {
+            OnboardingWizard.open(1);
+        } else {
+            document.getElementById('forced-pin-setup-screen').classList.remove('hidden');
+            setTimeout(() => document.getElementById('input-forced-pin').focus(), 50);
+        }
     } else if (settings.pinEnabled) {
         showLockScreen();
     } else {
@@ -1030,18 +1263,7 @@ function setupEventListeners() {
     
     // Nút kích hoạt nhanh AI Trung Quốc (DeepSeek + Zhipu AI)
     document.getElementById('btn-preset-china')?.addEventListener('click', () => {
-        const selAssessment = document.getElementById('input-ai-provider-assessment');
-        const selSearch = document.getElementById('input-ai-provider-search');
-        const selTrend = document.getElementById('input-ai-provider-trend');
-        const selChat = document.getElementById('input-ai-provider-chat');
-        const selOcr = document.getElementById('input-ai-provider-ocr');
-
-        if (selAssessment) selAssessment.value = 'deepseek';
-        if (selSearch) selSearch.value = 'deepseek';
-        if (selTrend) selTrend.value = 'deepseek';
-        if (selChat) selChat.value = 'deepseek';
-        if (selOcr) selOcr.value = 'zhipu';
-
+        applyChinaPresetConfig();
         showToast('Đã chuyển nhanh toàn bộ cấu hình AI sang DeepSeek & Zhipu AI (GLM)!', 'success');
     });
 

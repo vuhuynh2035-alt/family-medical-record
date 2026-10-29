@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.95",
-  "updatedAt": "2026-10-29T11:36:00.000Z",
-  "releaseNotes": "Cập nhật Cẩm nang Hướng dẫn Sử dụng toàn diện hỗ trợ 4 ngôn ngữ (Việt, Anh, Nhật, Trung), bao quát đầy đủ tính năng: Đa ngôn ngữ, Quét OCR, Đánh giá xu hướng, Lịch uống thuốc, AI Trung Quốc không cần VPN, Bảo mật PIN và Sao lưu."
+  "version": "v2.9.96",
+  "updatedAt": "2026-10-29T12:00:00.000Z",
+  "releaseNotes": "Thêm Quy trình Hướng dẫn Cài đặt & Thiết lập Lần đầu (Onboarding Wizard) 5 bước trực quan: Chọn ngôn ngữ với cờ tương tác, Hướng dẫn cài app vào máy (PWA/iOS Safari/Android), Tạo mã PIN bảo mật, Thiết lập AI & Kích hoạt AI Trung Quốc (DeepSeek & Zhipu GLM-4-Flash miễn phí không cần VPN), và nút Xem lại hướng dẫn trong Cài đặt."
 }
