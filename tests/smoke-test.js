@@ -72,10 +72,7 @@ async function withStubbedNetwork(page) {
     if (url.includes('pdf.js') || url.includes('pdf.min.js') || url.includes('pdf.worker')) return route.fulfill({ contentType: 'application/javascript', body: STUB_JS.pdfjs });
     if (url.includes('fonts.g')) return route.fulfill({ contentType: 'text/css', body: '' });
     if (url.includes('ui-avatars.com')) return route.fulfill({ contentType: 'image/gif', body: Buffer.from('R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==', 'base64') });
-    if (url.includes('generativelanguage.googleapis.com')) {
-      // Phân biệt 2 loại lời gọi Gemini theo nội dung prompt để mock đúng định dạng phản hồi:
-      // - extractDataFromImage() yêu cầu trả về JSON thuần (điền form)
-      // - generateComprehensiveReport() yêu cầu trả về Markdown (báo cáo đánh giá)
+    if (url.includes('generativelanguage.googleapis.com') || url.includes('api.openai.com') || url.includes('open.bigmodel.cn') || url.includes('api.deepseek.com')) {
       let isExtractRequest = false;
       try {
         const body = route.request().postData() || '';
@@ -88,7 +85,11 @@ async function withStubbedNetwork(page) {
             treatment: '', note: '', cost: 0, bp: '', hr: '', temp: '', spo2: '', dynamicFields: []
           })
         : '## Báo cáo đánh giá (Mock)\nTổng quan: bình thường.';
-      return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }) });
+      if (url.includes('generativelanguage.googleapis.com')) {
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }) });
+      } else {
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ choices: [{ message: { content: text } }] }) });
+      }
     }
     return route.abort();
   });
@@ -147,6 +148,38 @@ function check(name, condition) {
 
   // Qua Bước 4: AI & Kích hoạt AI Trung Quốc
   check('Chuyển qua Bước 4: Cài đặt AI & API Key', await page.isVisible('#wizard-pane-4:not(.hidden)'));
+
+  // Kiểm tra các đường link lấy API Key trực tiếp
+  const geminiLink = await page.$eval('#wizard-pane-4 a[href*="aistudio.google.com"]', el => el.href);
+  check('Bước 4: Có link trực tiếp lấy Gemini API Key (aistudio.google.com)', geminiLink.includes('aistudio.google.com'));
+
+  const openaiLink = await page.$eval('#wizard-pane-4 a[href*="platform.openai.com"]', el => el.href);
+  check('Bước 4: Có link trực tiếp lấy OpenAI API Key (platform.openai.com)', openaiLink.includes('platform.openai.com'));
+
+  const zhipuLink = await page.$eval('#wizard-pane-4 a[href*="bigmodel.cn"]', el => el.href);
+  check('Bước 4: Có link trực tiếp lấy Zhipu AI Key (bigmodel.cn)', zhipuLink.includes('bigmodel.cn'));
+
+  const deepseekLink = await page.$eval('#wizard-pane-4 a[href*="deepseek.com"]', el => el.href);
+  check('Bước 4: Có link trực tiếp lấy DeepSeek Key (deepseek.com)', deepseekLink.includes('deepseek.com'));
+
+  // Kiểm tra lưu key từ Step 4
+  await page.fill('#wizard-input-gemini-key', 'AIzaSyTestKey123');
+  await page.click('#btn-wizard-save-gemini-key');
+  await page.waitForTimeout(100);
+  const savedGeminiKey = await page.evaluate(() => DataManager.getSettings().geminiApiKey);
+  check('Bước 4: Nhập và Lưu Gemini API Key thành công', savedGeminiKey === 'AIzaSyTestKey123');
+
+  // Kiểm tra đổi hoạt động AI
+  await page.selectOption('#wizard-select-ocr', 'zhipu');
+  await page.waitForTimeout(100);
+  const savedOcrZhipu = await page.evaluate(() => DataManager.getSettings().providerOcr);
+  check('Bước 4: Phân công AI đọc ảnh (OCR) sang Zhipu thành công', savedOcrZhipu === 'zhipu');
+
+  await page.selectOption('#wizard-select-ocr', 'gemini');
+  await page.waitForTimeout(100);
+  const savedOcrGemini = await page.evaluate(() => DataManager.getSettings().providerOcr);
+  check('Bước 4: Đổi lại AI đọc ảnh sang Gemini thành công', savedOcrGemini === 'gemini');
+
   await page.click('#btn-wizard-enable-china-ai');
   await page.waitForTimeout(100);
   check('Bước 4: Nút kích hoạt 1 chạm AI Trung Quốc thành công', await page.isVisible('#wizard-china-ai-status:not(.hidden)'));
@@ -220,6 +253,7 @@ function check(name, condition) {
   await page.evaluate(() => {
     const s = DataManager.getSettings();
     s.geminiApiKey = 'test-fake-key';
+    s.providerOcr = 'gemini';
     DataManager.saveSettings(s);
   });
   await page.click('#btn-add-record');

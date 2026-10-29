@@ -236,6 +236,110 @@ const AIService = {
         if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi Anthropic API.");
         return data.content[0].text;
     },
+    async callDeepSeek(prompt, temperature = 0.3, isJson = false) {
+        const apiKey = DataManager.getDeepSeekApiKey();
+        if (!apiKey) throw new Error("Vui lòng thiết lập DeepSeek API Key trong Cài đặt.");
+        const model = DataManager.getDeepSeekModel();
+        const payload = {
+            model: model || 'deepseek-chat',
+            temperature: temperature,
+            messages: [{ role: "user", content: prompt }]
+        };
+        if (isJson) {
+            payload.response_format = { type: "json_object" };
+        }
+        const response = await this._fetchWithTimeout("https://api.deepseek.com/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi DeepSeek API.");
+        return data.choices[0].message.content;
+    },
+
+    async callZhipu(prompt, temperature = 0.3, isJson = false) {
+        const apiKey = DataManager.getZhipuApiKey();
+        if (!apiKey) throw new Error("Vui lòng thiết lập Zhipu AI API Key trong Cài đặt.");
+        const model = DataManager.getZhipuModel();
+        const payload = {
+            model: model || 'glm-4-flash',
+            temperature: temperature,
+            messages: [{ role: "user", content: prompt }]
+        };
+        const response = await this._fetchWithTimeout("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi Zhipu AI API.");
+        return data.choices[0].message.content;
+    },
+
+    async callZhipuVision(prompt, base64Images, isJson = false) {
+        const apiKey = DataManager.getZhipuApiKey();
+        if (!apiKey) throw new Error("Vui lòng thiết lập Zhipu AI API Key trong Cài đặt.");
+        const imagesArray = Array.isArray(base64Images) ? base64Images : [base64Images];
+        const content = [
+            { type: "text", text: prompt },
+            ...imagesArray.map(img => ({
+                type: "image_url",
+                image_url: { url: img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}` }
+            }))
+        ];
+        const response = await this._fetchWithTimeout("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'glm-4v-flash',
+                temperature: 0.1,
+                messages: [{ role: "user", content: content }]
+            })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi Zhipu AI Vision API.");
+        return data.choices[0].message.content;
+    },
+
+    async callOpenAIVision(prompt, base64Images, isJson = false) {
+        const apiKey = DataManager.getOpenAIApiKey();
+        if (!apiKey) throw new Error("Vui lòng thiết lập OpenAI API Key trong Cài đặt.");
+        const model = DataManager.getOpenAIModel() || 'gpt-4o';
+        const imagesArray = Array.isArray(base64Images) ? base64Images : [base64Images];
+        const content = [
+            { type: "text", text: prompt },
+            ...imagesArray.map(img => ({
+                type: "image_url",
+                image_url: { url: img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}` }
+            }))
+        ];
+        const response = await this._fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: model,
+                temperature: 0.1,
+                messages: [{ role: "user", content: content }]
+            })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi OpenAI Vision API.");
+        return data.choices[0].message.content;
+    },
+
 
     /**
      * 1. OCR & Trích xuất dữ liệu: đọc ảnh/PDF phiếu khám và trả về object dữ liệu hồ sơ dạng JSON.

@@ -287,11 +287,12 @@ function setupPinLockListeners() {
 
 function applyChinaPresetConfig() {
     DataManager.saveSettings({
-        aiProviderAssessment: 'deepseek',
-        aiProviderSearch: 'deepseek',
-        aiProviderTrend: 'deepseek',
-        aiProviderChat: 'deepseek',
-        aiProviderOcr: 'zhipu'
+        providerAssessment: 'deepseek',
+        providerSearch: 'deepseek',
+        providerTrend: 'deepseek',
+        providerChat: 'deepseek',
+        providerOcr: 'zhipu',
+        activeProvider: 'deepseek'
     });
     const selAssessment = document.getElementById('input-ai-provider-assessment');
     const selSearch = document.getElementById('input-ai-provider-search');
@@ -304,6 +305,11 @@ function applyChinaPresetConfig() {
     if (selTrend) selTrend.value = 'deepseek';
     if (selChat) selChat.value = 'deepseek';
     if (selOcr) selOcr.value = 'zhipu';
+
+    const wizOcr = document.getElementById('wizard-select-ocr');
+    const wizAssessment = document.getElementById('wizard-select-assessment');
+    if (wizOcr) wizOcr.value = 'zhipu';
+    if (wizAssessment) wizAssessment.value = 'deepseek';
 }
 
 const OnboardingWizard = {
@@ -365,7 +371,7 @@ const OnboardingWizard = {
             });
         }
 
-        // Step 4: AI Setup
+        // Step 4: AI Setup & China Preset
         const chinaBtn = document.getElementById('btn-wizard-enable-china-ai');
         if (chinaBtn) {
             chinaBtn.addEventListener('click', () => {
@@ -376,17 +382,95 @@ const OnboardingWizard = {
             });
         }
 
+        // Step 4: Save individual API keys
         const saveGeminiBtn = document.getElementById('btn-wizard-save-gemini-key');
         if (saveGeminiBtn) {
             saveGeminiBtn.addEventListener('click', () => {
                 const keyInput = document.getElementById('wizard-input-gemini-key');
                 const key = keyInput ? keyInput.value.trim() : '';
                 if (key) {
-                    DataManager.saveSettings({ apiKey: key });
+                    DataManager.saveSettings({ geminiApiKey: key, apiKey: key });
                     const inputMainKey = document.getElementById('input-api-key');
                     if (inputMainKey) inputMainKey.value = key;
-                    showToast('Đã lưu Gemini API Key!');
+                    showToast('Đã lưu Google Gemini API Key!');
                 }
+            });
+        }
+
+        const saveOpenaiBtn = document.getElementById('btn-wizard-save-openai-key');
+        if (saveOpenaiBtn) {
+            saveOpenaiBtn.addEventListener('click', () => {
+                const keyInput = document.getElementById('wizard-input-openai-key');
+                const key = keyInput ? keyInput.value.trim() : '';
+                if (key) {
+                    DataManager.saveSettings({ openaiApiKey: key });
+                    const inputMainKey = document.getElementById('input-openai-key');
+                    if (inputMainKey) inputMainKey.value = key;
+                    showToast('Đã lưu OpenAI API Key!');
+                }
+            });
+        }
+
+        const saveZhipuBtn = document.getElementById('btn-wizard-save-zhipu-key');
+        if (saveZhipuBtn) {
+            saveZhipuBtn.addEventListener('click', () => {
+                const keyInput = document.getElementById('wizard-input-zhipu-key');
+                const key = keyInput ? keyInput.value.trim() : '';
+                if (key) {
+                    DataManager.saveSettings({ zhipuApiKey: key });
+                    const inputMainKey = document.getElementById('input-zhipu-key');
+                    if (inputMainKey) inputMainKey.value = key;
+                    showToast('Đã lưu Zhipu AI API Key!');
+                }
+            });
+        }
+
+        const saveDeepseekBtn = document.getElementById('btn-wizard-save-deepseek-key');
+        if (saveDeepseekBtn) {
+            saveDeepseekBtn.addEventListener('click', () => {
+                const keyInput = document.getElementById('wizard-input-deepseek-key');
+                const key = keyInput ? keyInput.value.trim() : '';
+                if (key) {
+                    DataManager.saveSettings({ deepseekApiKey: key });
+                    const inputMainKey = document.getElementById('input-deepseek-key');
+                    if (inputMainKey) inputMainKey.value = key;
+                    showToast('Đã lưu DeepSeek API Key!');
+                }
+            });
+        }
+
+        // Step 4: Activity assignment dropdowns
+        const wizOcr = document.getElementById('wizard-select-ocr');
+        if (wizOcr) {
+            wizOcr.addEventListener('change', () => {
+                const val = wizOcr.value;
+                DataManager.saveSettings({ providerOcr: val });
+                const selOcr = document.getElementById('input-ai-provider-ocr');
+                if (selOcr) selOcr.value = val;
+                showToast('Đã cập nhật AI Quét ảnh (OCR)!');
+            });
+        }
+
+        const wizAssessment = document.getElementById('wizard-select-assessment');
+        if (wizAssessment) {
+            wizAssessment.addEventListener('change', () => {
+                const val = wizAssessment.value;
+                DataManager.saveSettings({
+                    providerAssessment: val,
+                    providerSearch: val,
+                    providerTrend: val,
+                    providerChat: val,
+                    activeProvider: val
+                });
+                const selAssessment = document.getElementById('input-ai-provider-assessment');
+                const selSearch = document.getElementById('input-ai-provider-search');
+                const selTrend = document.getElementById('input-ai-provider-trend');
+                const selChat = document.getElementById('input-ai-provider-chat');
+                if (selAssessment) selAssessment.value = val;
+                if (selSearch) selSearch.value = val;
+                if (selTrend) selTrend.value = val;
+                if (selChat) selChat.value = val;
+                showToast('Đã cập nhật AI Phân tích bệnh án & Tư vấn!');
             });
         }
 
@@ -491,6 +575,25 @@ const OnboardingWizard = {
                 setTimeout(() => { if (pinInput) pinInput.focus(); }, 50);
             }
         }
+
+        // If step 4, pre-fill keys and selections from current settings
+        if (step === 4) {
+            const currentSettings = DataManager.getSettings();
+            const geminiInput = document.getElementById('wizard-input-gemini-key');
+            const openaiInput = document.getElementById('wizard-input-openai-key');
+            const zhipuInput = document.getElementById('wizard-input-zhipu-key');
+            const deepseekInput = document.getElementById('wizard-input-deepseek-key');
+            const ocrSelect = document.getElementById('wizard-select-ocr');
+            const assessSelect = document.getElementById('wizard-select-assessment');
+
+            if (geminiInput) geminiInput.value = currentSettings.geminiApiKey || currentSettings.apiKey || '';
+            if (openaiInput) openaiInput.value = currentSettings.openaiApiKey || '';
+            if (zhipuInput) zhipuInput.value = currentSettings.zhipuApiKey || '';
+            if (deepseekInput) deepseekInput.value = currentSettings.deepseekApiKey || '';
+
+            if (ocrSelect) ocrSelect.value = currentSettings.providerOcr || 'gemini';
+            if (assessSelect) assessSelect.value = currentSettings.providerAssessment || 'gemini';
+        }
     },
 
     open(step = 1) {
@@ -505,8 +608,9 @@ const OnboardingWizard = {
     }
 };
 
-const CURRENT_APP_VERSION = 'v2.9.96';
+const CURRENT_APP_VERSION = 'v2.9.97';
 const APP_CHANGELOG = {
+    'v2.9.97': '• Nâng cấp Bước 4 Cài đặt AI trong Hướng dẫn lần đầu (Onboarding Wizard):\n  - Bổ sung trực tiếp đường link lấy API Key cho từng dịch vụ AI (Google AI Studio, OpenAI Platform, Zhipu BigModel miễn phí 100%, DeepSeek Platform) giúp người dùng mở và lấy key dễ dàng.\n  - Bổ sung ô nhập API Key và nút Lưu cho cả Google Gemini, OpenAI, Zhipu AI và DeepSeek.\n  - Bổ sung bộ phân công hoạt động AI (chọn AI xử lý Đọc ảnh OCR và AI Phân tích bệnh án).\n• Đồng bộ và bổ sung đường link trực tiếp lấy API Key cho tất cả các nhà cung cấp AI trong phần Cài đặt Hệ thống.',
     'v2.9.96': '• Hướng dẫn Cài đặt & Thiết lập Lần đầu (Onboarding Wizard) 5 bước trực quan:\n  1. Lựa chọn ngôn ngữ hiển thị ngay khi mở app với các thẻ quốc kỳ lớn (Việt Nam, Anh, Nhật Bản, Trung Quốc).\n  2. Hướng dẫn cài đặt ứng dụng vào điện thoại ra màn hình chính (hỗ trợ nút cài đặt PWA nhanh cùng hình ảnh/hướng dẫn chi tiết cho iOS Safari và Android Chrome).\n  3. Thiết lập Mã PIN bảo mật hồ sơ sức khỏe 4-6 số.\n  4. Lựa chọn & Kích hoạt AI 1 chạm: Hỗ trợ kích hoạt nhanh AI Trung Quốc (DeepSeek & Zhipu GLM-4-Flash miễn phí 100% không cần VPN) hoặc nhập key Google Gemini.\n  5. Bảng tổng kết sẵn sàng trước khi bắt đầu.\n• Nút "Xem lại Hướng dẫn cài đặt lần đầu" trong Cài đặt hệ thống giúp người dùng có thể mở lại cẩm nang hướng dẫn cài đặt bất cứ khi nào cần.',
     'v2.9.95': '• Cập nhật Cẩm nang Hướng dẫn Sử dụng Toàn diện: Bổ sung đầy đủ 8 chủ đề hướng dẫn chi tiết về các tính năng mới nhất (Đa ngôn ngữ, Quét thông minh OCR, Đánh giá xu hướng PDF/TTS, Lịch uống thuốc & Báo thức, AI Trung Quốc không cần VPN, Bảo mật PIN và Sao lưu dữ liệu).\n• Cẩm nang Đa ngôn ngữ: Tự động hiển thị và cho phép chọn đọc hướng dẫn bằng 4 thứ tiếng (Tiếng Việt, English, 日本語, 简体中文).\n• Nâng cấp Trợ lý AI Hỏi đáp: Tích hợp với nhà cung cấp AI đang cấu hình để giải đáp mọi thắc mắc của người dùng bằng đúng ngôn ngữ đã chọn.',
 
