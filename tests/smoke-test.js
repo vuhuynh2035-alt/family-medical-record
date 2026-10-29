@@ -369,6 +369,43 @@ function check(name, condition) {
     check('Chế độ Hướng dẫn: nút #btn-help đang tạm ẩn theo thiết kế giao diện tối giản', true);
   }
 
+  // Kiểm tra Cẩm nang Hướng dẫn Sử dụng (User Guide)
+  await page.evaluate(() => HelpService.showWorkflowGuide('vi'));
+  await page.waitForTimeout(200);
+  const isGuideVisible = await page.$eval('#modal-workflow-guide', el => !el.classList.contains('hidden'));
+  check('Cẩm nang Hướng dẫn Sử dụng: Mở thành công modal #modal-workflow-guide', isGuideVisible);
+
+  const guideSectionsCount = await page.evaluate(() => document.querySelectorAll('#workflow-guide-content .guide-card').length);
+  check('Cẩm nang: Hiển thị đầy đủ 8 chủ đề hướng dẫn tính năng', guideSectionsCount === 8);
+
+  // Đổi ngôn ngữ cẩm nang sang Tiếng Anh
+  await page.selectOption('#guide-language-select', 'en');
+  await page.waitForTimeout(200);
+  const guideEnFirstTitle = await page.evaluate(() => document.querySelector('#workflow-guide-content .guide-card h4')?.textContent.trim() || '');
+  check('Cẩm nang: Đổi sang Tiếng Anh hiển thị đúng tiêu đề tiếng Anh', guideEnFirstTitle.includes('Multilingual'));
+
+  // Đổi ngôn ngữ cẩm nang sang Tiếng Nhật
+  await page.selectOption('#guide-language-select', 'ja');
+  await page.waitForTimeout(200);
+  const guideJaFirstTitle = await page.evaluate(() => document.querySelector('#workflow-guide-content .guide-card h4')?.textContent.trim() || '');
+  check('Cẩm nang: Đổi sang Tiếng Nhật hiển thị đúng tiêu đề tiếng Nhật', guideJaFirstTitle.includes('多言語'));
+
+  // Đổi ngôn ngữ cẩm nang sang Tiếng Trung
+  await page.selectOption('#guide-language-select', 'zh');
+  await page.waitForTimeout(200);
+  const guideZhFirstTitle = await page.evaluate(() => document.querySelector('#workflow-guide-content .guide-card h4')?.textContent.trim() || '');
+  check('Cẩm nang: Đổi sang Tiếng Trung hiển thị đúng tiêu đề tiếng Trung', guideZhFirstTitle.includes('多语言'));
+
+  // Đóng cẩm nang
+  await page.click('#modal-workflow-guide .close-modal');
+  await page.waitForTimeout(200);
+  const isGuideClosed = await page.$eval('#modal-workflow-guide', el => el.classList.contains('hidden'));
+  check('Cẩm nang: Đóng modal thành công', isGuideClosed);
+
+  // Đổi lại ngôn ngữ sang Tiếng Việt cho các bước tiếp theo
+  await page.evaluate(() => I18n.setLanguage('vi'));
+  await page.waitForTimeout(200);
+
   console.log('\n[Đa ngôn ngữ & Chuyển đổi ngôn ngữ tức thì]');
   const homeLangSelectExists = await page.evaluate(() => !!document.getElementById('home-language-select'));
   check('Bộ chọn ngôn ngữ nhanh #home-language-select hiển thị trên Trang chủ', homeLangSelectExists);

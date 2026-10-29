@@ -280,8 +280,10 @@ function setupPinLockListeners() {
 
 }
 
-const CURRENT_APP_VERSION = 'v2.9.94';
+const CURRENT_APP_VERSION = 'v2.9.95';
 const APP_CHANGELOG = {
+    'v2.9.95': '• Cập nhật Cẩm nang Hướng dẫn Sử dụng Toàn diện: Bổ sung đầy đủ 8 chủ đề hướng dẫn chi tiết về các tính năng mới nhất (Đa ngôn ngữ, Quét thông minh OCR, Đánh giá xu hướng PDF/TTS, Lịch uống thuốc & Báo thức, AI Trung Quốc không cần VPN, Bảo mật PIN và Sao lưu dữ liệu).\n• Cẩm nang Đa ngôn ngữ: Tự động hiển thị và cho phép chọn đọc hướng dẫn bằng 4 thứ tiếng (Tiếng Việt, English, 日本語, 简体中文).\n• Nâng cấp Trợ lý AI Hỏi đáp: Tích hợp với nhà cung cấp AI đang cấu hình để giải đáp mọi thắc mắc của người dùng bằng đúng ngôn ngữ đã chọn.',
+
     'v2.9.94': '• Hỗ trợ Đa ngôn ngữ: Tích hợp đầy đủ 4 ngôn ngữ: Tiếng Việt, Tiếng Anh (English), Tiếng Nhật (日本語) và Tiếng Trung (中文).\n• Chuyển đổi ngôn ngữ tức thì ngay tại Trang chủ: Tích hợp bộ chọn ngôn ngữ trực quan ngay trên Trang chủ và Màn hình thiết lập mã PIN giúp người dùng quốc tế dễ dàng lựa chọn ngay khi vừa mở ứng dụng.\n• Đồng bộ hóa toàn diện: Tự động dịch tiêu đề, nút bấm, hướng dẫn, bộ lọc và các phân tích AI theo ngôn ngữ đã chọn.',
 
     'v2.9.93': '• Hỗ trợ AI Trung Quốc: Tích hợp dịch vụ DeepSeek (V3/R1) và Zhipu AI (GLM-4-Flash miễn phí 100%), hoạt động mượt mà tại Trung Quốc không cần VPN.\n• Hỗ trợ Quét thông minh (OCR): Cho phép đọc ảnh phiếu khám/xét nghiệm bằng Zhipu AI GLM-4V (Miễn phí 100%) hoặc OpenAI gpt-4o khi không sử dụng được Google Gemini.\n• Phím tắt 1 chạm "Dùng AI TQ": Tự động cấu hình toàn bộ ứng dụng sang AI Trung Quốc chỉ với 1 click trong Cài đặt.\n• Hướng dẫn chi tiết cách tạo API Key miễn phí cho DeepSeek và Zhipu AI.',

@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.94",
-  "updatedAt": "2026-10-29T11:25:00.000Z",
-  "releaseNotes": "Hỗ trợ đa ngôn ngữ (Tiếng Việt, English, 日本語, 中文), tích hợp bộ chuyển đổi ngôn ngữ trực quan ngay tại trang chủ và màn hình khởi chạy giúp người nước ngoài chuyển đổi dễ dàng."
+  "version": "v2.9.95",
+  "updatedAt": "2026-10-29T11:36:00.000Z",
+  "releaseNotes": "Cập nhật Cẩm nang Hướng dẫn Sử dụng toàn diện hỗ trợ 4 ngôn ngữ (Việt, Anh, Nhật, Trung), bao quát đầy đủ tính năng: Đa ngôn ngữ, Quét OCR, Đánh giá xu hướng, Lịch uống thuốc, AI Trung Quốc không cần VPN, Bảo mật PIN và Sao lưu."
 }

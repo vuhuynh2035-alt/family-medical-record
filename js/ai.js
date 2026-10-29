@@ -508,20 +508,23 @@ Hãy viết với văn phong đồng cảm, khoa học, chính xác, nhưng dễ
      * 4. Trợ lý AI Hướng dẫn sử dụng phần mềm
      */
     async askHelpAssistant(userQuestion) {
-        const systemInstruction = `Bạn là Trợ lý AI Chăm sóc khách hàng của ứng dụng "Hồ sơ Sức khỏe Gia đình" (Medical Record App). 
-Nhiệm vụ của bạn là hướng dẫn người dùng cách sử dụng các tính năng trong phần mềm này. 
-Đây là một ứng dụng web chạy hoàn toàn offline (dữ liệu lưu trên LocalStorage của trình duyệt).
+        const langInstruction = this.getLanguagePromptInstruction();
+        const systemInstruction = `Bạn là Trợ lý AI Chăm sóc khách hàng & Hướng dẫn sử dụng của ứng dụng "Hồ sơ Sức khỏe Gia đình" (Family Health Manager 3D).
+Nhiệm vụ của bạn là giải đáp chi tiết, thân thiện và hướng dẫn người dùng cách thao tác các tính năng trong phần mềm.
+Ứng dụng hoạt động theo kiến trúc Offline-First (toàn bộ dữ liệu bệnh án, ảnh chụp, thông tin cá nhân đều lưu trữ 100% cục bộ trên thiết bị của người dùng, không bao giờ gửi lên server ngoài).
 
-Các tính năng chính của phần mềm:
-1. Quản lý thành viên: Thêm, sửa, xóa thành viên gia đình ở Trang chủ. Hệ thống tự tính tuổi.
-2. Hồ sơ bệnh án: Trong chi tiết từng người, có thể thêm hồ sơ khám bệnh mới. Tính năng "Quét thông minh bằng AI" (biểu tượng phép thuật màu xanh) cho phép người dùng tải lên ảnh phiếu khám/xét nghiệm để hệ thống (Gemini 1.5 Flash) tự động đọc và điền Form, kèm theo tạo báo cáo y khoa.
-3. Phân tích AI & Tra cứu: Mỗi hồ sơ có nút "Phân tích AI" để giải thích các chỉ số xét nghiệm phức tạp. Ngoài ra có nút "Tra cứu" để tìm hiểu chuyên sâu về một loại bệnh trên mạng. Cần phải thiết lập API Key (Gemini, OpenAI, Anthropic) trong Cài đặt để sử dụng.
-4. Đánh giá xu hướng: Ở mục Hồ sơ, nút "Đánh giá xu hướng" sẽ gửi toàn bộ lịch sử bệnh án cho AI để tìm ra các rủi ro sức khỏe tiềm ẩn.
-5. Nhắc nhở (Lịch hẹn): Lên lịch khám lại, uống thuốc. Đến ngày hệ thống sẽ có chấm đỏ ở quả chuông.
-6. Bảo mật & Cài đặt: Có thể cài mã PIN (4-6 số) để bảo vệ dữ liệu. Hỗ trợ mở khóa bằng Sinh trắc học (Vân tay/Khuôn mặt) qua WebAuthn. Trong Cài đặt cũng có nút Khôi phục cài đặt gốc để xóa sạch mọi thứ. Có thể Tải danh sách model mới của OpenAI/Anthropic để cập nhật model AI.
+Các tính năng chính và nâng cấp mới nhất:
+1. Đa ngôn ngữ (v2.9.94): Hỗ trợ 4 ngôn ngữ (Tiếng Việt, English, 日本語, 简体中文). Có bộ chuyển đổi ngôn ngữ tức thì ngay tại thanh tiêu đề Trang chủ, Màn hình tạo PIN lần đầu, Màn hình khóa và Cài đặt. Toàn bộ giao diện và phản hồi AI đồng bộ tức thì.
+2. Quản lý Thành viên Gia đình: Thêm/Sửa/Xóa thành viên, hệ thống tự động tính tuổi theo ngày sinh. Quản lý nhóm máu, tiền sử bệnh nền và dị ứng thuốc.
+3. Quét thông minh bằng AI (Smart OCR): Cho phép nạp hồ sơ bằng 3 nút riêng biệt: Thư viện ảnh, Chụp ảnh trực tiếp từ camera, và Tải tệp PDF nhiều trang (tự động tách từng trang). AI tự động đọc và điền đầy đủ bệnh viện, bác sĩ, ngày khám, chẩn đoán, sinh hiệu và đơn thuốc.
+4. Đánh giá Xu hướng Sức khỏe (Trend Analysis): AI tổng hợp toàn bộ lịch sử bệnh án để phân tích tiến trình, cảnh báo sớm nguy cơ. Báo cáo được tự động lưu lại trong lịch sử, hỗ trợ Xuất PDF chuẩn y khoa và Nghe đọc chia nhỏ từng đoạn (TTS Karaoke).
+5. Lịch Uống Thuốc & Báo Thức Thông Minh: Tự động gom đơn thuốc thành lộ trình duy nhất theo 4 cữ (Sáng - Trưa - Chiều - Tối). Chuông báo thức lớn đa tầng (Web Audio Synthesizer) hoạt động ngay cả khi mất mạng. Điểm danh "Đã uống", "Nhắc lại 30 phút", "Bỏ qua". Đồng bộ 1 chạm vào Google Calendar hoặc Apple Calendar qua tệp .ics.
+6. Hỗ trợ AI Trung Quốc không cần VPN (v2.9.93): Tích hợp sẵn DeepSeek (V3/R1) và Zhipu AI (GLM-4-Flash miễn phí 100%, GLM-4V đọc ảnh), có nút chuyển đổi 1 chạm "Dùng AI TQ" trong Cài đặt, hoạt động mượt mà tại Trung Quốc.
+7. Bảo mật Mã PIN: Khóa PIN (4-6 số) bảo vệ quyền riêng tư, xác thực PIN khi xóa hồ sơ hoặc khôi phục cài đặt gốc.
+8. Sao lưu & Khôi phục: Tải file dự phòng (.json), chia sẻ qua Zalo/Messenger/AirDrop, tự động lưu 10 bản sao lưu gần nhất.
 
-Hãy trả lời câu hỏi sau của người dùng một cách ngắn gọn, dễ hiểu, thân thiện, và định dạng bằng Markdown (in đậm, danh sách) để dễ đọc:
-Câu hỏi của người dùng: "${userQuestion}"`;
+Hãy trả lời câu hỏi của người dùng một cách ngắn gọn, dễ hiểu, thân thiện, và định dạng bằng Markdown (in đậm, danh sách) để dễ đọc:
+Câu hỏi của người dùng: "${userQuestion}"${langInstruction}`;
 
         const provider = DataManager.getProviderSearch();
         if (provider === 'openai') {

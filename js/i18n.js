@@ -138,7 +138,13 @@ const TRANSLATIONS = {
         "member_age": "Số tuổi",
         "record_diagnosis": "Chẩn đoán",
         "no_diagnosis_yet": "Chưa có kết luận chẩn đoán",
-        "select_language": "Ngôn ngữ"
+        "select_language": "Ngôn ngữ",
+        "guide_title": "Cẩm nang Hướng dẫn Sử dụng",
+        "btn_guide": "Cẩm nang",
+        "ai_help_title": "Trợ lý AI Hướng dẫn",
+        "ai_help_greeting": "Xin chào! Tôi là Trợ lý AI của phần mềm Hồ sơ Sức khỏe. Bạn cần hướng dẫn sử dụng tính năng nào?",
+        "ai_help_placeholder": "Nhập câu hỏi của bạn (VD: Làm sao đổi mã PIN?)...",
+        "ai_thinking": "AI đang trả lời..."
     },
     "en": {
         "app_title": "Health Care",
@@ -274,7 +280,13 @@ const TRANSLATIONS = {
         "member_age": "Age",
         "record_diagnosis": "Diagnosis",
         "no_diagnosis_yet": "No diagnosis yet",
-        "select_language": "Language"
+        "select_language": "Language",
+        "guide_title": "User Guide & Manual",
+        "btn_guide": "Manual",
+        "ai_help_title": "AI Help Assistant",
+        "ai_help_greeting": "Hello! I am your Family Health Manager AI Assistant. Which feature would you like help with?",
+        "ai_help_placeholder": "Type your question (e.g., How to change PIN?)...",
+        "ai_thinking": "AI is replying..."
     },
     "ja": {
         "app_title": "Health Care",
@@ -410,7 +422,13 @@ const TRANSLATIONS = {
         "member_age": "年齢",
         "record_diagnosis": "診断",
         "no_diagnosis_yet": "診断未確定",
-        "select_language": "言語"
+        "select_language": "言語",
+        "guide_title": "利用ガイド・マニュアル",
+        "btn_guide": "マニュアル",
+        "ai_help_title": "AIヘルプアシスタント",
+        "ai_help_greeting": "こんにちは！健康手帳アプリのAIアシスタントです。どの機能の使い方についてお知りになりたいですか？",
+        "ai_help_placeholder": "質問を入力してください（例：暗証番号の変更方法は？）...",
+        "ai_thinking": "AIが回答を生成中..."
     },
     "zh": {
         "app_title": "Health Care",
@@ -546,7 +564,13 @@ const TRANSLATIONS = {
         "member_age": "年龄",
         "record_diagnosis": "诊断",
         "no_diagnosis_yet": "暂无诊断结论",
-        "select_language": "语言"
+        "select_language": "语言",
+        "guide_title": "使用指南与操作手册",
+        "btn_guide": "操作手册",
+        "ai_help_title": "AI使用指南助手",
+        "ai_help_greeting": "您好！我是家庭健康档案软件的AI助手。请问您需要了解哪个功能的使用方法？",
+        "ai_help_placeholder": "请输入您的问题（例如：如何修改PIN密码？）...",
+        "ai_thinking": "AI正在生成回答..."
     }
 };
 
@@ -574,7 +598,7 @@ const I18n = {
     },
 
     bindEvents() {
-        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language'];
+        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language', 'guide-language-select'];
         langSelectIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -603,7 +627,7 @@ const I18n = {
         }
 
         // Đồng bộ toàn bộ các dropdown chọn ngôn ngữ trên toàn trang
-        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language'];
+        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language', 'guide-language-select'];
         langSelectIds.forEach(id => {
             const el = document.getElementById(id);
             if (el && el.value !== lang) {
@@ -616,6 +640,14 @@ const I18n = {
         // Hiển thị toast thông báo đã đổi ngôn ngữ
         if (typeof showToast === 'function') {
             showToast(this.t('toast_lang_changed', 'Language updated'), 'success');
+        }
+
+        // Cập nhật lại cẩm nang hướng dẫn nếu đang mở
+        if (typeof HelpService !== 'undefined' && HelpService.renderWorkflowGuide) {
+            const modal = document.getElementById('modal-workflow-guide');
+            if (modal && !modal.classList.contains('hidden')) {
+                HelpService.renderWorkflowGuide(lang, HelpService.currentFilter || 'all');
+            }
         }
 
         // Cập nhật lại giao diện động
@@ -676,7 +708,7 @@ const I18n = {
         });
 
         // Sync dropdown values
-        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language'];
+        const langSelectIds = ['home-language-select', 'setup-language-select', 'lock-language-select', 'input-language', 'guide-language-select'];
         langSelectIds.forEach(id => {
             const el = document.getElementById(id);
             if (el && el.value !== this.currentLang) {
