@@ -534,7 +534,7 @@ function check(name, condition) {
   });
   check('Đồng bộ hóa: Dropdown #input-language trong Cài đặt khớp với ngôn ngữ hiện tại', syncSettingVal === 'vi');
 
-  console.log('\n[Bố cục mới v2.9.103: 2 cột thành viên trên mobile, Phím tắt Google Gemini, Gemini 3.0 Flash]');
+  console.log('\n[Bố cục mới v2.9.104: 2 cột thành viên trên mobile, Phím tắt Google Gemini, Gemini 3.0 Flash, Nút Đã nắm rõ]');
   const desktopLayout = await page.evaluate(() => {
     const langInHeader = !!document.querySelector('.glass-header #home-language-select');
     const notifInDashboard = !!document.querySelector('.dashboard-header #btn-notifications');
@@ -567,15 +567,28 @@ function check(name, condition) {
   const exitModalClosed = await page.evaluate(() => document.getElementById('modal-exit-app').classList.contains('hidden'));
   check('Nút Tắt app: Bấm Quay lại đóng hộp thoại thành công', exitModalClosed);
 
-  // Thử kiểm tra chuông thông báo
+  // Thử kiểm tra chuông thông báo & Nút "Đã nắm rõ"
   await page.click('#btn-notifications');
   await page.waitForTimeout(150);
   const notifModalOpen = await page.evaluate(() => {
     const modal = document.getElementById('modal-notifications');
     const hasItems = document.getElementById('notifications-list')?.children.length > 0;
-    return !modal.classList.contains('hidden') && hasItems;
+    const hasNewCard = !!document.getElementById('panel-new-changelog');
+    return !modal.classList.contains('hidden') && hasItems && hasNewCard;
   });
-  check('Nút chuông: Mở bảng thông báo thành công và luôn hiển thị bản tin cập nhật + lịch hẹn', notifModalOpen);
+  check('Nút chuông: Mở bảng thông báo thành công và hiển thị bản tin cập nhật mới', notifModalOpen);
+
+  // Bấm nút "Đã nắm rõ" -> Thẻ thông báo biến mất ngay lập tức và thu gọn
+  await page.click('#btn-dismiss-changelog');
+  await page.waitForTimeout(150);
+  const changelogDismissed = await page.evaluate(() => {
+    const hasNewCard = !!document.getElementById('panel-new-changelog');
+    const hasHistory = !!document.getElementById('panel-changelog-history');
+    const badgeHidden = document.getElementById('notification-badge').classList.contains('hidden');
+    return !hasNewCard && hasHistory && badgeHidden;
+  });
+  check('Thông báo chuông: Bấm "Đã nắm rõ" thẻ thông báo biến mất ngay và ẩn huy hiệu đỏ', changelogDismissed);
+
   await page.click('#modal-notifications .close-modal');
   await page.waitForTimeout(100);
 

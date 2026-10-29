@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.103",
-  "updatedAt": "2026-10-29T09:58:03.452Z",
-  "releaseNotes": "Bổ sung mục chuyển nhanh 1-chạm sang Google Gemini cho người dùng ở các nước khác (Việt Nam/Quốc tế); Nâng cấp toàn bộ mô hình Gemini lên chuẩn 3.0 Flash (khuyên dùng) và Flash Latest để không bị lỗi do Google ngừng hỗ trợ các bản cũ."
+  "version": "v2.9.104",
+  "updatedAt": "2026-10-29T11:35:00.000Z",
+  "releaseNotes": "Sửa triệt để sự cố thông báo lặp lại: Khi bấm 'Đã nắm rõ', thông báo cập nhật sẽ biến mất ngay lập tức và tự động thu gọn vào mục đã đọc."
 }

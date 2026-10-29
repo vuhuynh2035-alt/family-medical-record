@@ -670,8 +670,9 @@ const OnboardingWizard = {
     }
 };
 
-const CURRENT_APP_VERSION = 'v2.9.103';
+const CURRENT_APP_VERSION = 'v2.9.104';
 const APP_CHANGELOG = {
+    'v2.9.104': '• Khắc phục hoàn toàn sự cố nút "Đã nắm rõ" trong Thông báo hệ thống: Khi bấm "Đã nắm rõ", thông báo sẽ biến mất ngay lập tức và tự động thu gọn vào mục đã đọc, không còn hiển thị lặp lại.\n• Tối ưu hóa huy hiệu (badge) thông báo và đồng bộ trạng thái đọc trên mọi thiết bị.',
     'v2.9.103': '• Bổ sung mục Bạn đang ở các nước khác (Việt Nam / Quốc tế) để chuyển nhanh 1-chạm toàn bộ dịch vụ AI sang Google Gemini.\n• Nâng cấp các model Google Gemini lên chuẩn tối thiểu 3.0 Flash (khuyên dùng) và Flash Latest để không bị báo lỗi do Google ngừng hỗ trợ các bản cũ.\n• Tự động nâng cấp các model Gemini cũ lên 3.0 Flash.',
     'v2.9.102': '• Danh sách thành viên tự động xếp thành 2 ô trên 1 hàng (2 cột) gọn gàng trên cả máy tính, máy tính bảng và điện thoại màn hình gập.\n• Nút Chuông thông báo hiển thị rõ ràng số lượng thông báo mới thay vì chỉ là đốm đỏ.\n• Nút Tắt app hoạt động tin cậy: tự động lưu dữ liệu an toàn, khóa bảo mật và hiển thị màn hình đóng ứng dụng hoàn chỉnh.',
     'v2.9.101': '• Đưa bộ chọn ngôn ngữ lên thanh tiêu đề trên cùng (Header).\n• Đưa nút Chuông thông báo và Tắt chương trình xuống cùng hàng với nút Thêm thành viên.\n• Màn hình nhỏ: Nút Thêm thành viên tự động rút gọn chỉ hiển thị icon (bỏ chữ) giúp giao diện tinh gọn, không tràn dòng.',
@@ -1055,35 +1056,6 @@ function getSystemNotificationCount() {
         const reminders = DataManager.getReminders ? DataManager.getReminders() : [];
         const now = new Date();
         const todayStr = now.toISOString().slice(0, 10);
-        const pending = reminders.filter(r => !r.completed && r.date && r.date <= todayStr);
-        count += pending.length;
-    } catch (e) {}
-    return count;
-}
-
-function updateSystemNotificationBadge() {
-    const notifBadge = document.getElementById('notification-badge');
-    if (!notifBadge) return;
-    const count = getSystemNotificationCount();
-    if (count > 0) {
-        notifBadge.textContent = count > 9 ? '9+' : String(count);
-        notifBadge.classList.remove('hidden');
-    } else {
-        notifBadge.textContent = '';
-        notifBadge.classList.add('hidden');
-    }
-}
-
-function getSystemNotificationCount() {
-    let count = 0;
-    const runningVer = getRunningAppVersion();
-    if (localStorage.getItem('last_seen_changelog') !== runningVer && APP_CHANGELOG[runningVer]) {
-        count += 1;
-    }
-    try {
-        const reminders = DataManager.getReminders ? DataManager.getReminders() : [];
-        const now = new Date();
-        const todayStr = now.toISOString().slice(0, 10);
         // Đếm lịch hẹn chưa hoàn thành hôm nay hoặc quá hạn
         const pending = reminders.filter(r => !r.completed && r.date && r.date <= todayStr);
         count += pending.length;
@@ -1110,41 +1082,44 @@ function loadSystemNotifications() {
     
     notifList.innerHTML = '';
     const runningVer = getRunningAppVersion();
-    const isNewChangelog = localStorage.getItem('last_seen_changelog') !== runningVer;
-    
-    // 1. Luôn hiển thị Bản tin Hệ thống / Bản cập nhật phiên bản hiện tại
-    const changelogText = APP_CHANGELOG[runningVer] || APP_CHANGELOG['v2.9.103'] || 'Cập nhật hệ thống tối ưu hóa giao diện và dịch vụ AI.';
-    const updateDiv = document.createElement('div');
-    updateDiv.className = 'neumorphic-panel';
-    updateDiv.style.padding = '14px';
-    updateDiv.style.marginBottom = '12px';
-    updateDiv.style.borderLeft = isNewChangelog ? '4px solid #e74c3c' : '4px solid var(--primary-blue)';
-    updateDiv.style.background = isNewChangelog ? 'rgba(231, 76, 60, 0.05)' : 'rgba(41, 128, 185, 0.05)';
-    
+    const isNewChangelog = localStorage.getItem('last_seen_changelog') !== runningVer && !!APP_CHANGELOG[runningVer];
+    const changelogText = APP_CHANGELOG[runningVer] || APP_CHANGELOG[CURRENT_APP_VERSION] || 'Cập nhật hệ thống tối ưu hóa giao diện và dịch vụ AI.';
     const listHtml = '<ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-color); margin-bottom: 12px; line-height: 1.5;">' + changelogText.split('\n').map(line => '<li style="margin-bottom: 6px;">' + line.replace('• ', '') + '</li>').join('') + '</ul>';
 
-    updateDiv.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <h4 style="color: ${isNewChangelog ? '#e74c3c' : 'var(--primary-blue)'}; margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-rounded">${isNewChangelog ? 'campaign' : 'verified'}</span> Thông báo: Phiên bản ${runningVer}
-            </h4>
-            <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: ${isNewChangelog ? '#e74c3c' : 'var(--primary-blue)'}; color: white; font-weight: 600;">
-                ${isNewChangelog ? 'Mới' : 'Hiện tại'}
-            </span>
-        </div>
-        ${listHtml}
-        <button id="btn-dismiss-changelog" class="primary-btn neumorphic-btn" style="font-size: 13px; padding: 7px 12px; width: 100%; justify-content: center;">
-            ${isNewChangelog ? 'Đã hiểu & Đánh dấu đã đọc' : 'Đã nắm rõ'}
-        </button>
-    `;
-    notifList.appendChild(updateDiv);
+    // 1. Nếu có thông báo phiên bản MỚI chưa đọc -> Hiển thị thẻ thông báo nổi bật kèm nút "Đã nắm rõ"
+    if (isNewChangelog) {
+        const updateDiv = document.createElement('div');
+        updateDiv.id = 'panel-new-changelog';
+        updateDiv.className = 'neumorphic-panel';
+        updateDiv.style.padding = '14px';
+        updateDiv.style.marginBottom = '12px';
+        updateDiv.style.borderLeft = '4px solid #e74c3c';
+        updateDiv.style.background = 'rgba(231, 76, 60, 0.05)';
+        
+        updateDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h4 style="color: #e74c3c; margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-rounded">campaign</span> Thông báo: Phiên bản ${runningVer}
+                </h4>
+                <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: #e74c3c; color: white; font-weight: 600;">
+                    Mới
+                </span>
+            </div>
+            ${listHtml}
+            <button id="btn-dismiss-changelog" class="primary-btn neumorphic-btn" style="font-size: 13px; padding: 7px 12px; width: 100%; justify-content: center;">
+                Đã nắm rõ
+            </button>
+        `;
+        notifList.appendChild(updateDiv);
 
-    updateDiv.querySelector('#btn-dismiss-changelog').addEventListener('click', () => {
-        localStorage.setItem('last_seen_changelog', runningVer);
-        updateSystemNotificationBadge();
-        showToast('Đã đánh dấu thông báo phiên bản là đã đọc!');
-        closeModal('modal-notifications');
-    });
+        updateDiv.querySelector('#btn-dismiss-changelog').addEventListener('click', () => {
+            localStorage.setItem('last_seen_changelog', runningVer);
+            updateSystemNotificationBadge();
+            showToast('Đã nắm rõ thông báo phiên bản!', 'success');
+            // Tải lại ngay danh sách thông báo để thẻ thông báo biến mất lập tức
+            loadSystemNotifications();
+        });
+    }
 
     // 2. Danh sách lịch hẹn cần chú ý
     try {
@@ -1205,7 +1180,32 @@ function loadSystemNotifications() {
         console.error(e);
     }
 
-    // 3. Nút thử kiểm tra chuông báo và thông báo hệ thống
+    // 3. Nếu không có thông báo phiên bản mới -> Hiển thị mục thu gọn để xem lại khi cần (không hiện nút "Đã nắm rõ" nữa)
+    if (!isNewChangelog) {
+        const historyDiv = document.createElement('details');
+        historyDiv.id = 'panel-changelog-history';
+        historyDiv.style.marginBottom = '12px';
+        historyDiv.style.fontSize = '12.5px';
+        historyDiv.style.color = 'var(--text-muted)';
+        historyDiv.style.background = 'rgba(0,0,0,0.02)';
+        historyDiv.style.borderRadius = '10px';
+        historyDiv.style.padding = '8px 12px';
+        historyDiv.innerHTML = `
+            <summary style="cursor: pointer; font-weight: 500; color: var(--text-dark, #2d3436); display: flex; align-items: center; justify-content: space-between;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-rounded" style="font-size: 16px; color: #10b981;">check_circle</span>
+                    Ghi chú phiên bản ${runningVer} (Đã đọc)
+                </span>
+                <span style="font-size: 11px; color: var(--text-muted);">Xem lại ▾</span>
+            </summary>
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(0,0,0,0.08);">
+                ${listHtml}
+            </div>
+        `;
+        notifList.appendChild(historyDiv);
+    }
+
+    // 4. Nút thử kiểm tra chuông báo và thông báo hệ thống
     const testDiv = document.createElement('div');
     testDiv.style.textAlign = 'center';
     testDiv.style.marginTop = '8px';
