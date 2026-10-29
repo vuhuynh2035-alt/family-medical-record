@@ -60,7 +60,10 @@ const AIService = {
         }
 
         let model = overrideModel || DataManager.getGeminiModel();
-        // Không ép buộc tên model nữa, dùng chính xác model người dùng đã chọn
+        // Kiểm tra an toàn: nếu model để trống hoặc thuộc thế hệ cũ < 3.0, tự động dùng gemini-3.0-flash
+        if (!model || (DataManager.DEPRECATED_GEMINI_MODELS && DataManager.DEPRECATED_GEMINI_MODELS.includes(model)) || /^gemini-[12]./.test(model)) {
+            model = 'gemini-3.0-flash';
+        }
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
         let parts = [{ text: prompt }];

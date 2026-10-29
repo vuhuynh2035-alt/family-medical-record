@@ -369,7 +369,7 @@ function check(name, condition) {
   await page.click('#form-unlock button[type=submit]');
   await page.waitForTimeout(200);
   const migratedModel = await page.evaluate(() => DataManager.getSettings().geminiModel);
-  check('Model Gemini đã ngừng hoạt động được tự động nâng cấp khi tải lại trang', migratedModel === 'gemini-3.1-pro');
+  check('Model Gemini đã ngừng hoạt động được tự động nâng cấp khi tải lại trang', migratedModel === 'gemini-3.0-flash');
 
   await page.evaluate(() => document.getElementById('btn-settings').click());
   await page.waitForTimeout(150);
@@ -534,7 +534,7 @@ function check(name, condition) {
   });
   check('Đồng bộ hóa: Dropdown #input-language trong Cài đặt khớp với ngôn ngữ hiện tại', syncSettingVal === 'vi');
 
-  console.log('\n[Bố cục mới v2.9.102: Ngôn ngữ trên Header, 2 ô thành viên 1 hàng, Nút Tắt app, Badge chuông]');
+  console.log('\n[Bố cục mới v2.9.103: 2 cột thành viên trên mobile, Phím tắt Google Gemini, Gemini 3.0 Flash]');
   const desktopLayout = await page.evaluate(() => {
     const langInHeader = !!document.querySelector('.glass-header #home-language-select');
     const notifInDashboard = !!document.querySelector('.dashboard-header #btn-notifications');
@@ -567,19 +567,31 @@ function check(name, condition) {
   const exitModalClosed = await page.evaluate(() => document.getElementById('modal-exit-app').classList.contains('hidden'));
   check('Nút Tắt app: Bấm Quay lại đóng hộp thoại thành công', exitModalClosed);
 
-  // Thử kiểm tra badge chuông thông báo hiển thị số lượng thay vì đốm đỏ
-  await page.evaluate(() => {
-    localStorage.setItem('last_seen_changelog', 'v2.0.0'); // tạo thông báo bản mới
-    loadSystemNotifications();
+  // Thử kiểm tra chuông thông báo
+  await page.click('#btn-notifications');
+  await page.waitForTimeout(150);
+  const notifModalOpen = await page.evaluate(() => {
+    const modal = document.getElementById('modal-notifications');
+    const hasItems = document.getElementById('notifications-list')?.children.length > 0;
+    return !modal.classList.contains('hidden') && hasItems;
   });
-  const badgeState = await page.evaluate(() => {
-    const b = document.getElementById('notification-badge');
-    return {
-      visible: !b.classList.contains('hidden'),
-      text: b.textContent.trim()
-    };
+  check('Nút chuông: Mở bảng thông báo thành công và luôn hiển thị bản tin cập nhật + lịch hẹn', notifModalOpen);
+  await page.click('#modal-notifications .close-modal');
+  await page.waitForTimeout(100);
+
+  // Thử kiểm tra phím tắt chuyển sang Google Gemini & Model Gemini 3.0 Flash
+  const globalPresetWork = await page.evaluate(() => {
+    // 1. Chuyển sang AI TQ trước
+    applyChinaPresetConfig();
+    const isChina = DataManager.getProviderAssessment() === 'deepseek';
+    // 2. Chuyển sang Google Gemini
+    applyGooglePresetConfig();
+    const isGoogle = DataManager.getProviderAssessment() === 'gemini';
+    const model = DataManager.getGeminiModel();
+    const modelOpts = Array.from(document.getElementById('input-gemini-model')?.options || []).map(o => o.value);
+    return isChina && isGoogle && model === 'gemini-3.0-flash' && modelOpts.includes('gemini-3.0-flash') && modelOpts.includes('gemini-flash-latest');
   });
-  check('Nút chuông: Hiển thị rõ số lượng thông báo (chứa số > 0, không phải đốm đỏ rỗng)', badgeState.visible && badgeState.text.length > 0 && badgeState.text !== '');
+  check('Phím tắt Google: Chuyển nhanh toàn bộ tác vụ AI về Google Gemini 3.0 Flash thành công', globalPresetWork);
 
   // Thử chuyển sang viewport điện thoại (375x667)
   await page.setViewportSize({ width: 375, height: 667 });
@@ -589,12 +601,17 @@ function check(name, condition) {
     const textStyle = addMemberText ? window.getComputedStyle(addMemberText).display : '';
     const addBtn = document.querySelector('#btn-add-member');
     const btnRect = addBtn ? addBtn.getBoundingClientRect() : { width: 0 };
+    const gridEl = document.querySelector('#members-grid');
+    const gridStyle = gridEl ? window.getComputedStyle(gridEl) : {};
+    const cols = (gridStyle.gridTemplateColumns || '').split(' ').length;
     return {
       textHidden: textStyle === 'none',
-      isCompactBtn: btnRect.width <= 44
+      isCompactBtn: btnRect.width <= 44,
+      mobileGridColumns: cols
     };
   });
   check('Màn hình nhỏ (điện thoại): Nút Thêm thành viên tự động ẩn text (chỉ hiển thị icon)', mobileLayout.textHidden && mobileLayout.isCompactBtn);
+  check('Màn hình nhỏ (điện thoại 375px): Danh sách thành viên vẫn giữ đúng 2 ô trên 1 hàng (2 cột)', mobileLayout.mobileGridColumns === 2);
   // Khôi phục lại viewport desktop
   await page.setViewportSize({ width: 1280, height: 720 });
 

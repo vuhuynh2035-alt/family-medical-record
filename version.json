@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.102",
-  "updatedAt": "2026-10-29T09:49:45.240Z",
-  "releaseNotes": "Điều chỉnh giao diện & chức năng theo phản hồi: Danh sách thành viên tự động xếp thành 2 ô trên 1 hàng gọn gàng; nút Chuông thông báo hiển thị rõ số lượng thông báo thay vì chỉ là đốm đỏ; nút Tắt app hoạt động tin cậy và hiển thị màn hình đóng ứng dụng an toàn."
+  "version": "v2.9.103",
+  "updatedAt": "2026-10-29T09:58:03.452Z",
+  "releaseNotes": "Bổ sung mục chuyển nhanh 1-chạm sang Google Gemini cho người dùng ở các nước khác (Việt Nam/Quốc tế); Nâng cấp toàn bộ mô hình Gemini lên chuẩn 3.0 Flash (khuyên dùng) và Flash Latest để không bị lỗi do Google ngừng hỗ trợ các bản cũ."
 }

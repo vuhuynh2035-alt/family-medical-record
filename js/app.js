@@ -285,6 +285,36 @@ function setupPinLockListeners() {
 }
 
 
+function applyGooglePresetConfig() {
+    DataManager.saveSettings({
+        providerAssessment: 'gemini',
+        providerSearch: 'gemini',
+        providerTrend: 'gemini',
+        providerChat: 'gemini',
+        providerOcr: 'gemini',
+        activeProvider: 'gemini',
+        geminiModel: 'gemini-3.0-flash'
+    });
+    const selAssessment = document.getElementById('input-ai-provider-assessment');
+    const selSearch = document.getElementById('input-ai-provider-search');
+    const selTrend = document.getElementById('input-ai-provider-trend');
+    const selChat = document.getElementById('input-ai-provider-chat');
+    const selOcr = document.getElementById('input-ai-provider-ocr');
+    const selGeminiModel = document.getElementById('input-gemini-model');
+
+    if (selAssessment) selAssessment.value = 'gemini';
+    if (selSearch) selSearch.value = 'gemini';
+    if (selTrend) selTrend.value = 'gemini';
+    if (selChat) selChat.value = 'gemini';
+    if (selOcr) selOcr.value = 'gemini';
+    if (selGeminiModel) selGeminiModel.value = 'gemini-3.0-flash';
+
+    const wizOcr = document.getElementById('wizard-select-ocr');
+    const wizAssessment = document.getElementById('wizard-select-assessment');
+    if (wizOcr) wizOcr.value = 'gemini';
+    if (wizAssessment) wizAssessment.value = 'gemini';
+}
+
 function applyChinaPresetConfig() {
     DataManager.saveSettings({
         providerAssessment: 'deepseek',
@@ -371,13 +401,27 @@ const OnboardingWizard = {
             });
         }
 
-        // Step 4: AI Setup & China Preset
+        // Step 4: AI Setup & Global/China Presets
+        const googleBtn = document.getElementById('btn-wizard-enable-google-ai');
+        if (googleBtn) {
+            googleBtn.addEventListener('click', () => {
+                applyGooglePresetConfig();
+                const statusEl = document.getElementById('wizard-google-ai-status');
+                const chinaStatusEl = document.getElementById('wizard-china-ai-status');
+                if (statusEl) statusEl.classList.remove('hidden');
+                if (chinaStatusEl) chinaStatusEl.classList.add('hidden');
+                showToast('Đã chuyển toàn bộ dịch vụ AI sang Google Gemini (Flash 3.0)!', 'success');
+            });
+        }
+
         const chinaBtn = document.getElementById('btn-wizard-enable-china-ai');
         if (chinaBtn) {
             chinaBtn.addEventListener('click', () => {
                 applyChinaPresetConfig();
                 const statusEl = document.getElementById('wizard-china-ai-status');
+                const googleStatusEl = document.getElementById('wizard-google-ai-status');
                 if (statusEl) statusEl.classList.remove('hidden');
+                if (googleStatusEl) googleStatusEl.classList.add('hidden');
                 showToast('Đã kích hoạt Zhipu AI & DeepSeek cho người dùng Trung Quốc!');
             });
         }
@@ -626,8 +670,9 @@ const OnboardingWizard = {
     }
 };
 
-const CURRENT_APP_VERSION = 'v2.9.102';
+const CURRENT_APP_VERSION = 'v2.9.103';
 const APP_CHANGELOG = {
+    'v2.9.103': '• Bổ sung mục Bạn đang ở các nước khác (Việt Nam / Quốc tế) để chuyển nhanh 1-chạm toàn bộ dịch vụ AI sang Google Gemini.\n• Nâng cấp các model Google Gemini lên chuẩn tối thiểu 3.0 Flash (khuyên dùng) và Flash Latest để không bị báo lỗi do Google ngừng hỗ trợ các bản cũ.\n• Tự động nâng cấp các model Gemini cũ lên 3.0 Flash.',
     'v2.9.102': '• Danh sách thành viên tự động xếp thành 2 ô trên 1 hàng (2 cột) gọn gàng trên cả máy tính, máy tính bảng và điện thoại màn hình gập.\n• Nút Chuông thông báo hiển thị rõ ràng số lượng thông báo mới thay vì chỉ là đốm đỏ.\n• Nút Tắt app hoạt động tin cậy: tự động lưu dữ liệu an toàn, khóa bảo mật và hiển thị màn hình đóng ứng dụng hoàn chỉnh.',
     'v2.9.101': '• Đưa bộ chọn ngôn ngữ lên thanh tiêu đề trên cùng (Header).\n• Đưa nút Chuông thông báo và Tắt chương trình xuống cùng hàng với nút Thêm thành viên.\n• Màn hình nhỏ: Nút Thêm thành viên tự động rút gọn chỉ hiển thị icon (bỏ chữ) giúp giao diện tinh gọn, không tràn dòng.',
     'v2.9.100': '• Thêm nút Bỏ qua (Skip) ngay trên thanh tiêu đề và dưới chân quy trình cài đặt để vào thẳng chương trình.\n• Lưu trạng thái bỏ qua để không lặp lại khi tải lại trang.',
@@ -1029,77 +1074,108 @@ function updateSystemNotificationBadge() {
     }
 }
 
+function getSystemNotificationCount() {
+    let count = 0;
+    const runningVer = getRunningAppVersion();
+    if (localStorage.getItem('last_seen_changelog') !== runningVer && APP_CHANGELOG[runningVer]) {
+        count += 1;
+    }
+    try {
+        const reminders = DataManager.getReminders ? DataManager.getReminders() : [];
+        const now = new Date();
+        const todayStr = now.toISOString().slice(0, 10);
+        // Đếm lịch hẹn chưa hoàn thành hôm nay hoặc quá hạn
+        const pending = reminders.filter(r => !r.completed && r.date && r.date <= todayStr);
+        count += pending.length;
+    } catch (e) {}
+    return count;
+}
+
+function updateSystemNotificationBadge() {
+    const notifBadge = document.getElementById('notification-badge');
+    if (!notifBadge) return;
+    const count = getSystemNotificationCount();
+    if (count > 0) {
+        notifBadge.textContent = count > 9 ? '9+' : String(count);
+        notifBadge.classList.remove('hidden');
+    } else {
+        notifBadge.textContent = '';
+        notifBadge.classList.add('hidden');
+    }
+}
+
 function loadSystemNotifications() {
     const notifList = document.getElementById('notifications-list');
     if (!notifList) return;
     
     notifList.innerHTML = '';
-    let hasItems = false;
     const runningVer = getRunningAppVersion();
+    const isNewChangelog = localStorage.getItem('last_seen_changelog') !== runningVer;
     
-    // 1. Thông báo bản cập nhật hệ thống
-    if (localStorage.getItem('last_seen_changelog') !== runningVer && APP_CHANGELOG[runningVer]) {
-        hasItems = true;
-        const changelogText = APP_CHANGELOG[runningVer];
-        const updateDiv = document.createElement('div');
-        updateDiv.className = 'neumorphic-panel';
-        updateDiv.style.padding = '14px';
-        updateDiv.style.marginBottom = '12px';
-        updateDiv.style.borderLeft = '4px solid var(--primary-blue)';
-        updateDiv.style.background = 'rgba(41, 128, 185, 0.05)';
-        
-        const listHtml = '<ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-color); margin-bottom: 15px; line-height: 1.5;">' + changelogText.split('\n').map(line => '<li style="margin-bottom: 6px;">' + line.replace('• ', '') + '</li>').join('') + '</ul>';
+    // 1. Luôn hiển thị Bản tin Hệ thống / Bản cập nhật phiên bản hiện tại
+    const changelogText = APP_CHANGELOG[runningVer] || APP_CHANGELOG['v2.9.103'] || 'Cập nhật hệ thống tối ưu hóa giao diện và dịch vụ AI.';
+    const updateDiv = document.createElement('div');
+    updateDiv.className = 'neumorphic-panel';
+    updateDiv.style.padding = '14px';
+    updateDiv.style.marginBottom = '12px';
+    updateDiv.style.borderLeft = isNewChangelog ? '4px solid #e74c3c' : '4px solid var(--primary-blue)';
+    updateDiv.style.background = isNewChangelog ? 'rgba(231, 76, 60, 0.05)' : 'rgba(41, 128, 185, 0.05)';
+    
+    const listHtml = '<ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-color); margin-bottom: 12px; line-height: 1.5;">' + changelogText.split('\n').map(line => '<li style="margin-bottom: 6px;">' + line.replace('• ', '') + '</li>').join('') + '</ul>';
 
-        updateDiv.innerHTML = `
-            <h4 style="color: var(--primary-blue); margin: 0 0 10px 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-rounded">new_releases</span> Đã cập nhật lên ${runningVer}!
+    updateDiv.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="color: ${isNewChangelog ? '#e74c3c' : 'var(--primary-blue)'}; margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-rounded">${isNewChangelog ? 'campaign' : 'verified'}</span> Thông báo: Phiên bản ${runningVer}
             </h4>
-            ${listHtml}
-            <button id="btn-dismiss-changelog" class="primary-btn neumorphic-btn" style="font-size: 13px; padding: 8px 12px; width: 100%; justify-content: center;">Đã hiểu</button>
-        `;
-        
-        notifList.appendChild(updateDiv);
-        
-        updateDiv.querySelector('#btn-dismiss-changelog').addEventListener('click', () => {
-            updateDiv.remove();
-            localStorage.setItem('last_seen_changelog', runningVer);
-            updateSystemNotificationBadge();
-            if (notifList.children.length === 0) {
-                closeModal('modal-notifications');
-            }
-        });
-    }
+            <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: ${isNewChangelog ? '#e74c3c' : 'var(--primary-blue)'}; color: white; font-weight: 600;">
+                ${isNewChangelog ? 'Mới' : 'Hiện tại'}
+            </span>
+        </div>
+        ${listHtml}
+        <button id="btn-dismiss-changelog" class="primary-btn neumorphic-btn" style="font-size: 13px; padding: 7px 12px; width: 100%; justify-content: center;">
+            ${isNewChangelog ? 'Đã hiểu & Đánh dấu đã đọc' : 'Đã nắm rõ'}
+        </button>
+    `;
+    notifList.appendChild(updateDiv);
 
-    // 2. Danh sách lịch hẹn hôm nay hoặc quá hạn
+    updateDiv.querySelector('#btn-dismiss-changelog').addEventListener('click', () => {
+        localStorage.setItem('last_seen_changelog', runningVer);
+        updateSystemNotificationBadge();
+        showToast('Đã đánh dấu thông báo phiên bản là đã đọc!');
+        closeModal('modal-notifications');
+    });
+
+    // 2. Danh sách lịch hẹn cần chú ý
     try {
         const reminders = DataManager.getReminders ? DataManager.getReminders() : [];
         const members = DataManager.getMembers ? DataManager.getMembers() : [];
         const now = new Date();
         const todayStr = now.toISOString().slice(0, 10);
-        const pending = reminders.filter(r => !r.completed && r.date && r.date <= todayStr);
+        const pending = reminders.filter(r => !r.completed);
         
-        if (pending.length > 0) {
-            hasItems = true;
-            const remDiv = document.createElement('div');
-            remDiv.className = 'neumorphic-panel';
-            remDiv.style.padding = '14px';
-            remDiv.style.marginBottom = '12px';
-            remDiv.style.borderLeft = '4px solid #e67e22';
-            remDiv.style.background = 'rgba(230, 126, 34, 0.05)';
+        const remDiv = document.createElement('div');
+        remDiv.className = 'neumorphic-panel';
+        remDiv.style.padding = '14px';
+        remDiv.style.marginBottom = '12px';
+        remDiv.style.borderLeft = '4px solid #e67e22';
+        remDiv.style.background = 'rgba(230, 126, 34, 0.05)';
 
-            let remListHtml = pending.map(r => {
+        if (pending.length > 0) {
+            let remListHtml = pending.slice(0, 5).map(r => {
                 const member = members.find(m => m.id === r.memberId);
                 const memName = member ? member.name : 'Thành viên';
-                const isOverdue = r.date < todayStr;
+                const isOverdue = r.date && r.date < todayStr;
+                const isToday = r.date === todayStr;
                 return `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,0.1); font-size: 13px;">
                         <div>
                             <strong style="color: var(--primary-blue);">${memName}</strong>: ${r.title || 'Lịch nhắc'}
-                            <div style="font-size: 11px; color: ${isOverdue ? '#e74c3c' : '#7f8c8d'};">
-                                ${isOverdue ? '⚠️ Quá hạn' : '🔔 Hôm nay'}: ${r.date} ${r.time || ''}
+                            <div style="font-size: 11px; color: ${isOverdue ? '#e74c3c' : (isToday ? '#d97706' : '#64748b')}; font-weight: 500;">
+                                ${isOverdue ? '⚠️ Quá hạn: ' : (isToday ? '🔔 Hôm nay: ' : '📅 Sắp tới: ')}${r.date || ''} ${r.time || ''}
                             </div>
                         </div>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; white-space: nowrap;">
                             <input type="checkbox" class="chk-complete-reminder" data-id="${r.id}"> Xong
                         </label>
                     </div>
@@ -1108,19 +1184,50 @@ function loadSystemNotifications() {
 
             remDiv.innerHTML = `
                 <h4 style="color: #e67e22; margin: 0 0 10px 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-rounded">event_available</span> Lịch hẹn cần chú ý (${pending.length})
+                    <span class="material-symbols-rounded">event_available</span> Lịch khám & Uống thuốc (${pending.length})
                 </h4>
                 ${remListHtml}
             `;
-            notifList.appendChild(remDiv);
+        } else {
+            remDiv.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <div style="font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-rounded" style="color: #10b981;">task_alt</span> Không có lịch hẹn quá hạn nào.
+                    </div>
+                    <button type="button" onclick="closeModal('modal-notifications'); openModal('modal-reminder');" class="secondary-btn neumorphic-btn" style="font-size: 12px; padding: 5px 10px;">
+                        + Lịch mới
+                    </button>
+                </div>
+            `;
         }
+        notifList.appendChild(remDiv);
     } catch (e) {
         console.error(e);
     }
 
-    if (!hasItems) {
-        notifList.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 25px 0;"><span class="material-symbols-rounded" style="font-size: 36px; display: block; margin-bottom: 10px; opacity: 0.5;">notifications_paused</span>Không có thông báo nào từ hệ thống.</div>';
-    }
+    // 3. Nút thử kiểm tra chuông báo và thông báo hệ thống
+    const testDiv = document.createElement('div');
+    testDiv.style.textAlign = 'center';
+    testDiv.style.marginTop = '8px';
+    testDiv.innerHTML = `
+        <button id="btn-test-notification-bell" type="button" class="secondary-btn neumorphic-btn" style="width: 100%; font-size: 12.5px; padding: 9px 12px; justify-content: center; gap: 6px;">
+            <span class="material-symbols-rounded" style="font-size: 18px; color: var(--primary-blue);">notifications_active</span>
+            Bấm để kiểm tra chuông & thông báo
+        </button>
+    `;
+    notifList.appendChild(testDiv);
+
+    testDiv.querySelector('#btn-test-notification-bell')?.addEventListener('click', () => {
+        showToast('🔔 Chuông và hệ thống thông báo đang hoạt động tốt!', 'success');
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                new Notification('Health Care - Thông báo kiểm tra', {
+                    body: 'Hệ thống thông báo và chuông báo đang hoạt động hoàn hảo!',
+                    icon: './icon-192.png'
+                });
+            } catch(e) {}
+        }
+    });
 
     updateSystemNotificationBadge();
 }
@@ -1458,6 +1565,12 @@ function setupEventListeners() {
     });
 
     
+    // Nút kích hoạt nhanh AI Quốc tế (Google Gemini 3.0 Flash)
+    document.getElementById('btn-preset-global')?.addEventListener('click', () => {
+        applyGooglePresetConfig();
+        showToast('Đã chuyển nhanh toàn bộ tác vụ AI sang Google Gemini (Flash 3.0)!', 'success');
+    });
+
     // Nút kích hoạt nhanh AI Trung Quốc (DeepSeek + Zhipu AI)
     document.getElementById('btn-preset-china')?.addEventListener('click', () => {
         applyChinaPresetConfig();
@@ -1744,13 +1857,13 @@ function setupEventListeners() {
         btnConfirmExit.addEventListener('click', async (e) => {
             e.preventDefault();
             try {
-                // 1. Tự động sao lưu dữ liệu trước khi thoát
+                // 1. Tự động sao lưu dữ liệu trước khi đóng
                 if (DataManager.isDataChanged) {
                     try {
                         const exportData = await DataManager.exportData();
                         await AutoBackupStore.saveAutoBackup(exportData);
                     } catch (err) {
-                        console.error('Lỗi khi sao lưu tự động:', err);
+                        console.error('Lỗi sao lưu tự động:', err);
                     }
                 }
 
@@ -1760,7 +1873,7 @@ function setupEventListeners() {
                 // 3. Đóng modal xác nhận
                 closeModal('modal-exit-app');
 
-                // 4. Thử đóng ứng dụng trên môi trường hỗ trợ
+                // 4. Đóng app ngay lập tức như trước đây (không hiển thị màn hình thông báo trung gian)
                 if (window.electron && window.electron.close) {
                     window.electron.close();
                     return;
@@ -1770,24 +1883,19 @@ function setupEventListeners() {
                     return;
                 }
 
-                // Cố gắng đóng tab (tránh dùng window.open(location.href, '_self') vì sẽ làm reload lại trang)
-                window.close();
+                try {
+                    window.open('', '_self', '');
+                    window.close();
+                } catch(err) {}
 
-                // 5. Hiển thị màn hình thoát ứng dụng an toàn toàn màn hình
-                document.body.innerHTML = `
-                    <div style="display:flex; min-height:100vh; align-items:center; justify-content:center; flex-direction:column; background:var(--bg-body, #f0f2f5); font-family:'Outfit', sans-serif; color:var(--text-dark, #2d3436); text-align:center; padding: 24px; box-sizing: border-box;">
-                        <div style="width:76px; height:76px; border-radius:50%; background:#e74c3c; display:flex; align-items:center; justify-content:center; color:white; margin-bottom:20px; box-shadow:0 10px 25px rgba(231,76,60,0.35);">
-                            <span class="material-symbols-rounded" style="font-size:40px;">power_settings_new</span>
-                        </div>
-                        <h2 style="margin-bottom:12px; font-weight:700; font-size:22px;">Đã thoát ứng dụng an toàn</h2>
-                        <p style="color:var(--text-muted, #636e72); max-width:340px; line-height:1.6; margin-bottom:25px; font-size:14.5px;">
-                            Dữ liệu y tế của gia đình bạn đã được lưu an toàn và khóa bảo mật. Bạn có thể vuốt lên để đóng ứng dụng hoặc đóng tab này.
-                        </p>
-                        <button onclick="location.reload()" style="padding:12px 28px; border-radius:24px; border:none; background:var(--primary-color, #0984e3); color:white; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 4px 15px rgba(9,132,227,0.3); display:inline-flex; align-items:center; gap:8px;">
-                            <span class="material-symbols-rounded" style="font-size:18px;">refresh</span> Mở lại ứng dụng
-                        </button>
-                    </div>
-                `;
+                // Nếu trình duyệt chặn window.close(), đóng sạch tab bằng cách chuyển sang about:blank hoặc history.back
+                setTimeout(() => {
+                    try {
+                        window.location.href = 'about:blank';
+                    } catch(err) {
+                        window.history.back();
+                    }
+                }, 100);
             } catch (err) {
                 console.error('Lỗi khi thoát app:', err);
             }

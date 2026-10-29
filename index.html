@@ -282,6 +282,24 @@
                     </div>
                 </div>
 
+                    <!-- Nút kích hoạt nhanh Quốc tế / Google Gemini -->
+                    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(16, 185, 129, 0.08)); border: 1.5px solid rgba(59, 130, 246, 0.25); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; font-size: 13px; color: #1d4ed8; display: flex; align-items: center; gap: 5px;">
+                                <span>🌐</span> <span data-i18n="wizard_ai_global_switch_title">Ở các nước khác / Dùng Google Gemini</span>
+                            </div>
+                            <p style="font-size: 11.5px; color: var(--text-secondary); margin: 3px 0 0 0; line-height: 1.4;" data-i18n="wizard_ai_global_switch_desc">
+                                Tự động chuyển toàn bộ dịch vụ AI sang Google Gemini (Flash 3.0 / Pro).
+                            </p>
+                        </div>
+                        <button type="button" id="btn-wizard-enable-google-ai" class="primary-btn neumorphic-btn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; white-space: nowrap; font-size: 12px; padding: 7px 12px; border: none; font-weight: 600; border-radius: 8px;">
+                            <span class="material-symbols-rounded" style="font-size: 16px;">public</span> <span data-i18n="wizard_btn_activate_global_ai">Chuyển sang Google</span>
+                        </button>
+                    </div>
+                    <div id="wizard-google-ai-status" class="hidden" style="font-size: 11.5px; color: #059669; font-weight: 600; margin-bottom: 10px; text-align: center;">
+                        ✓ Đã chuyển toàn bộ dịch vụ AI sang Google Gemini (Flash 3.0)!
+                    </div>
+
                 <!-- Danh sách các dịch vụ AI kèm link lấy Key & ô nhập Key -->
                 <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
 
@@ -480,7 +498,7 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.102</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.103</span>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -977,19 +995,37 @@
                     </summary>
                     <div style="margin-top: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05), inset -2px -2px 5px rgba(255,255,255,0.5);">
                         <p class="modal-desc" style="margin-bottom: 12px;">Phân công tác vụ cho các nhà cung cấp AI khác nhau (Google, OpenAI, Anthropic, DeepSeek, Zhipu AI).</p>
-                        <!-- Phím tắt chuyển nhanh AI Trung Quốc -->
-                        <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(245, 158, 11, 0.08)); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; color: #b91c1c; font-size: 13px; display: flex; align-items: center; gap: 5px;">
-                                    <span>🇨🇳</span> Bạn đang ở Trung Quốc (hoặc không dùng VPN)?
+                        <!-- Phím tắt chuyển nhanh AI: Trung Quốc HOẶC Quốc tế / Google Gemini -->
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;">
+                            <!-- 1. Bạn đang ở các nước khác (Việt Nam / Quốc tế) -> Dùng Google Gemini -->
+                            <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(16, 185, 129, 0.08)); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 10px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #1d4ed8; font-size: 13px; display: flex; align-items: center; gap: 5px;">
+                                        <span>🌐</span> Bạn đang ở các nước khác (Việt Nam / Quốc tế)?
+                                    </div>
+                                    <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                                        Bấm nút bên cạnh để chuyển nhanh toàn bộ các mục AI sang Google Gemini (Flash 3.0 / Pro).
+                                    </div>
                                 </div>
-                                <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
-                                    Bấm nút bên cạnh để tự động chuyển tất cả các mục AI sang DeepSeek & Zhipu AI (GLM) không bị chặn mạng.
-                                </div>
+                                <button type="button" id="btn-preset-global" class="primary-btn neumorphic-btn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; white-space: nowrap; font-size: 12px; padding: 6px 12px; border: none; font-weight: 600; border-radius: 8px;">
+                                    Dùng Google
+                                </button>
                             </div>
-                            <button type="button" id="btn-preset-china" class="primary-btn neumorphic-btn" style="background: linear-gradient(135deg, #e11d48, #be123c); color: white; white-space: nowrap; font-size: 12px; padding: 6px 12px; border: none; font-weight: 600; border-radius: 8px;">
-                                Dùng AI TQ
-                            </button>
+
+                            <!-- 2. Bạn đang ở Trung Quốc (hoặc không dùng VPN) -> Dùng DeepSeek & Zhipu AI -->
+                            <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(245, 158, 11, 0.08)); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #b91c1c; font-size: 13px; display: flex; align-items: center; gap: 5px;">
+                                        <span>🇨🇳</span> Bạn đang ở Trung Quốc (hoặc không dùng VPN)?
+                                    </div>
+                                    <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                                        Bấm nút bên cạnh để tự động chuyển tất cả các mục AI sang DeepSeek & Zhipu AI (GLM) không bị chặn mạng.
+                                    </div>
+                                </div>
+                                <button type="button" id="btn-preset-china" class="primary-btn neumorphic-btn" style="background: linear-gradient(135deg, #e11d48, #be123c); color: white; white-space: nowrap; font-size: 12px; padding: 6px 12px; border: none; font-weight: 600; border-radius: 8px;">
+                                    Dùng AI TQ
+                                </button>
+                            </div>
                         </div>
 
                         
@@ -997,7 +1033,7 @@
                         <div class="form-group">
                             <label style="font-weight: bold; color: var(--primary-blue);">AI Quét thông minh & Đọc ảnh hồ sơ (OCR)</label>
                             <select id="input-ai-provider-ocr" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn AI Quét ảnh" data-help-desc="Hệ thống AI đọc ảnh phiếu xét nghiệm/hồ sơ. Khi ở Trung Quốc hoặc không có VPN, hãy chọn Zhipu AI GLM-4V (Miễn phí 100%).">
-                                <option value="gemini">Google Gemini 1.5/2.0 Flash (Mặc định)</option>
+                                <option value="gemini">Google Gemini 3.0 Flash / Latest (Mặc định)</option>
                                 <option value="zhipu">Zhipu AI GLM-4V-Flash (Trung Quốc / Miễn phí 100% / Không cần VPN)</option>
                                 <option value="openai">OpenAI ChatGPT (gpt-4o)</option>
                             </select>
@@ -1057,9 +1093,10 @@
                             <input type="password" id="input-api-key" class="neumorphic-input" placeholder="AIzaSy..." data-help-title="API Key của Google Gemini" data-help-desc="Nhập mã bí mật từ tài khoản Google AI Studio của bạn. Mã này được dùng để xử lý đọc ảnh và các tác vụ mặc định.">
                             <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
                                 <div style="flex: 1;">
-                                    <select id="input-gemini-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model Gemini" data-help-desc="Flash: Đọc ảnh và xử lý nhanh. Pro: Suy luận y khoa sâu sắc hơn nhưng chậm hơn.">
-                                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Dùng cho OCR)</option>
-                                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                    <select id="input-gemini-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model Gemini" data-help-desc="Flash 3.0: Đọc ảnh và xử lý nhanh. Latest: Bản mới nhất. Pro: Suy luận y khoa chuyên sâu.">
+                                        <option value="gemini-3.0-flash">Gemini 3.0 Flash (Mặc định - Khuyên dùng)</option>
+                                        <option value="gemini-flash-latest">Gemini Flash Latest (Bản Flash mới nhất)</option>
+                                        <option value="gemini-3.1-pro">Gemini 3.1 Pro (Chuyên sâu)</option>
                                     </select>
                                 </div>
                                 <button id="btn-fetch-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;" data-help-title="Tải Danh sách Model mới" data-help-desc="Kết nối tới máy chủ Google để tải về danh sách các phiên bản AI mới nhất vừa được phát hành.">
@@ -1194,7 +1231,7 @@
 
 
                 <div style="text-align: center; margin-top: 25px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                    Phiên bản <strong class="version-tag">v2.9.93</strong> (Hỗ trợ AI Trung Quốc DeepSeek & Zhipu GLM không cần VPN)
+                    Phiên bản <strong class="version-tag">v2.9.103</strong> (Hỗ trợ AI Trung Quốc DeepSeek & Zhipu GLM không cần VPN)
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">

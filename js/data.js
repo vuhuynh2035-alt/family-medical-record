@@ -46,7 +46,8 @@ const DataManager = {
     // lỗi khó hiểu mãi mãi. Cập nhật danh sách này nếu Google thông báo ngừng thêm model khác.
     DEPRECATED_GEMINI_MODELS: [
         'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash-8b',
-        'gemini-2.0-flash', 'gemini-2.0-flash-001', 'gemini-2.0-flash-lite', 'gemini-2.0-flash-lite-001'
+        'gemini-2.0-flash', 'gemini-2.0-flash-001', 'gemini-2.0-flash-lite', 'gemini-2.0-flash-lite-001',
+        'gemini-2.5-flash', 'gemini-2.5-pro'
     ],
 
     getSettings() {
@@ -59,7 +60,7 @@ const DataManager = {
             // LƯU Ý: Google ngừng hỗ trợ (decommission) các model Gemini theo chu kỳ ~1 năm. Nếu
             // giá trị này báo lỗi "model không tồn tại", vào Cài đặt > bấm "Tải danh sách" để lấy
             // model còn hoạt động từ chính tài khoản của bạn thay vì sửa cứng trong mã nguồn.
-            geminiModel: 'gemini-3.1-pro',
+            geminiModel: 'gemini-3.0-flash',
             geminiApiKey: '',
             openaiApiKey: '',
             anthropicApiKey: '',
@@ -133,10 +134,13 @@ const DataManager = {
      */
     migrateDeprecatedGeminiModel() {
         const settings = this.getSettings();
-        if (settings.geminiModel && this.DEPRECATED_GEMINI_MODELS.includes(settings.geminiModel)) {
+        const m = settings.geminiModel;
+        // Tự động nâng cấp nếu model nằm trong danh sách khai tử hoặc thuộc thế hệ cũ < 3.0 (1.x, 2.x)
+        const isOldVersion = m && (this.DEPRECATED_GEMINI_MODELS.includes(m) || /^gemini-[12]./.test(m));
+        if (isOldVersion) {
             const oldModel = settings.geminiModel;
-            this.saveSettings({ geminiModel: 'gemini-3.1-pro' });
-            console.warn(`Model Gemini "${oldModel}" đã ngừng hoạt động — đã tự động chuyển sang "gemini-3.1-pro".`);
+            this.saveSettings({ geminiModel: 'gemini-3.0-flash' });
+            console.warn(`Model Gemini "${oldModel}" đã ngừng hoạt động — đã tự động chuyển sang "gemini-3.0-flash".`);
             return true;
         }
         return false;
