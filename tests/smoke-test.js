@@ -534,28 +534,20 @@ function check(name, condition) {
   });
   check('Đồng bộ hóa: Dropdown #input-language trong Cài đặt khớp với ngôn ngữ hiện tại', syncSettingVal === 'vi');
 
-  console.log('\n[Bố cục mới v2.9.104: 2 cột thành viên trên mobile, Phím tắt Google Gemini, Gemini 3.0 Flash, Nút Đã nắm rõ]');
+  console.log('\n[Bố cục chuẩn v2.9.105: Header chứa Chuông/Trợ giúp/Cài đặt/Tắt app, Màn hình lớn 2 cột, Màn hình nhỏ 1 cột]');
   const desktopLayout = await page.evaluate(() => {
-    const langInHeader = !!document.querySelector('.glass-header #home-language-select');
-    const notifInDashboard = !!document.querySelector('.dashboard-header #btn-notifications');
-    const exitInDashboard = !!document.querySelector('.dashboard-header #btn-exit-app');
+    const notifInHeader = !!document.querySelector('.glass-header #btn-notifications');
+    const exitInHeader = !!document.querySelector('.glass-header #btn-exit-app');
     const addMemberText = document.querySelector('#btn-add-member .btn-text');
     const textStyle = addMemberText ? window.getComputedStyle(addMemberText).display : 'none';
-    const gridEl = document.querySelector('#members-grid');
-    const gridStyle = gridEl ? window.getComputedStyle(gridEl) : {};
-    const cols = (gridStyle.gridTemplateColumns || '').split(' ').length;
     return {
-      langInHeader,
-      notifInDashboard,
-      exitInDashboard,
-      textVisible: textStyle !== 'none',
-      gridColumns: cols
+      notifInHeader,
+      exitInHeader,
+      textVisible: textStyle !== 'none'
     };
   });
-  check('Màn hình lớn: Bộ chọn ngôn ngữ nằm trên thanh Header', desktopLayout.langInHeader);
-  check('Màn hình lớn: Nút Chuông & Tắt app nằm ở thanh Thành viên gia đình (Dashboard)', desktopLayout.notifInDashboard && desktopLayout.exitInDashboard);
-  check('Màn hình lớn: Nút Thêm thành viên hiển thị đầy đủ text', desktopLayout.textVisible);
-  check('Màn hình lớn: Danh sách thành viên tự động xếp thành 2 ô trên 1 hàng (2 cột)', desktopLayout.gridColumns === 2);
+  check('Thanh Header: Chứa đầy đủ nút Chuông thông báo & Tắt app gọn gàng', desktopLayout.notifInHeader && desktopLayout.exitInHeader);
+  check('Dashboard: Nút Thêm thành viên hiển thị đầy đủ text và icon', desktopLayout.textVisible);
 
   // Thử mở và đóng modal Tắt app
   await page.click('#btn-exit-app');
@@ -606,25 +598,32 @@ function check(name, condition) {
   });
   check('Phím tắt Google: Chuyển nhanh toàn bộ tác vụ AI về Google Gemini 3.0 Flash thành công', globalPresetWork);
 
-  // Thử chuyển sang viewport điện thoại (375x667)
+  // Kiểm tra trên màn hình lớn của điện thoại (foldable unfolded / tablet 768px)
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await page.waitForTimeout(100);
+  const largePhoneCols = await page.evaluate(() => {
+    const gridEl = document.querySelector('#members-grid');
+    const gridStyle = gridEl ? window.getComputedStyle(gridEl) : {};
+    return (gridStyle.gridTemplateColumns || '').split(' ').length;
+  });
+  check('Màn hình lớn (điện thoại gập mở/tablet 768px): Danh sách thành viên tự động xếp thành 2 cột', largePhoneCols === 2);
+
+  // Kiểm tra trên màn hình nhỏ (điện thoại 375x667)
   await page.setViewportSize({ width: 375, height: 667 });
   await page.waitForTimeout(100);
   const mobileLayout = await page.evaluate(() => {
     const addMemberText = document.querySelector('#btn-add-member .btn-text');
     const textStyle = addMemberText ? window.getComputedStyle(addMemberText).display : '';
-    const addBtn = document.querySelector('#btn-add-member');
-    const btnRect = addBtn ? addBtn.getBoundingClientRect() : { width: 0 };
     const gridEl = document.querySelector('#members-grid');
     const gridStyle = gridEl ? window.getComputedStyle(gridEl) : {};
     const cols = (gridStyle.gridTemplateColumns || '').split(' ').length;
     return {
-      textHidden: textStyle === 'none',
-      isCompactBtn: btnRect.width <= 44,
+      textVisible: textStyle !== 'none',
       mobileGridColumns: cols
     };
   });
-  check('Màn hình nhỏ (điện thoại): Nút Thêm thành viên tự động ẩn text (chỉ hiển thị icon)', mobileLayout.textHidden && mobileLayout.isCompactBtn);
-  check('Màn hình nhỏ (điện thoại 375px): Danh sách thành viên vẫn giữ đúng 2 ô trên 1 hàng (2 cột)', mobileLayout.mobileGridColumns === 2);
+  check('Màn hình nhỏ (điện thoại 375px): Nút Thêm thành viên vẫn hiển thị đầy đủ', mobileLayout.textVisible);
+  check('Màn hình nhỏ (điện thoại 375px): Danh sách thành viên hiển thị 1 cột rộng rãi, dễ nhìn', mobileLayout.mobileGridColumns === 1);
   // Khôi phục lại viewport desktop
   await page.setViewportSize({ width: 1280, height: 720 });
 

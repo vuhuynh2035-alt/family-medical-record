@@ -670,8 +670,9 @@ const OnboardingWizard = {
     }
 };
 
-const CURRENT_APP_VERSION = 'v2.9.104';
+const CURRENT_APP_VERSION = 'v2.9.105';
 const APP_CHANGELOG = {
+    'v2.9.105': '• Phục hồi giao diện chuẩn (v2.9.91): Màn hình nhỏ (điện thoại thông thường) hiển thị 1 cột rộng rãi, dễ nhìn; Màn hình lớn (máy tính bảng, PC, điện thoại màn hình gập mở rộng) tự động hiển thị 2 cột cân đối, đẹp mắt.\n• Phục hồi thanh Header với các nút Chuông, Trợ giúp, Cài đặt và Tắt app trên cùng 1 hàng gọn gàng, không bị tràn hay mất nút.',
     'v2.9.104': '• Khắc phục hoàn toàn sự cố nút "Đã nắm rõ" trong Thông báo hệ thống: Khi bấm "Đã nắm rõ", thông báo sẽ biến mất ngay lập tức và tự động thu gọn vào mục đã đọc, không còn hiển thị lặp lại.\n• Tối ưu hóa huy hiệu (badge) thông báo và đồng bộ trạng thái đọc trên mọi thiết bị.',
     'v2.9.103': '• Bổ sung mục Bạn đang ở các nước khác (Việt Nam / Quốc tế) để chuyển nhanh 1-chạm toàn bộ dịch vụ AI sang Google Gemini.\n• Nâng cấp các model Google Gemini lên chuẩn tối thiểu 3.0 Flash (khuyên dùng) và Flash Latest để không bị báo lỗi do Google ngừng hỗ trợ các bản cũ.\n• Tự động nâng cấp các model Gemini cũ lên 3.0 Flash.',
     'v2.9.102': '• Danh sách thành viên tự động xếp thành 2 ô trên 1 hàng (2 cột) gọn gàng trên cả máy tính, máy tính bảng và điện thoại màn hình gập.\n• Nút Chuông thông báo hiển thị rõ ràng số lượng thông báo mới thay vì chỉ là đốm đỏ.\n• Nút Tắt app hoạt động tin cậy: tự động lưu dữ liệu an toàn, khóa bảo mật và hiển thị màn hình đóng ứng dụng hoàn chỉnh.',

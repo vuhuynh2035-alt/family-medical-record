@@ -290,61 +290,39 @@ body {
     margin-bottom: 30px;
 }
 
-/* Danh sách thành viên: Luôn luôn xếp thành 2 ô trên 1 hàng (2 cột) gọn gàng trên mọi màn hình điện thoại, máy tính bảng và PC */
+/* Danh sách thành viên:
+   - Màn hình lớn (tablet, PC, điện thoại gập mở như hình 2): 2 cột (hoặc 3 cột trên PC rất rộng)
+   - Màn hình nhỏ (điện thoại thông thường / điện thoại gập khi gập lại): 1 cột */
 .members-grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+}
+
+@media (min-width: 1024px) {
+    .members-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+    }
+}
+
+@media (max-width: 520px) {
+    .members-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
 }
 
 .member-card {
     background: var(--bg-color);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-outer);
-    padding: 18px 8px !important;
+    padding: 30px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-}
-
-.member-avatar {
-    width: 72px !important;
-    height: 72px !important;
-    border-radius: 50% !important;
-    margin: 0 auto 10px !important;
-    object-fit: cover;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.member-name {
-    font-size: 15.5px !important;
-    font-weight: 700 !important;
-    margin-bottom: 6px !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.member-stats {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    flex-wrap: wrap;
-    margin-top: 8px !important;
-}
-
-.stat-badge {
-    background: var(--bg-color);
-    box-shadow: var(--shadow-inner);
-    padding: 3px 7px !important;
-    border-radius: var(--radius-lg);
-    font-size: 11px !important;
-    white-space: nowrap;
 }
 
 .member-card:hover {
@@ -1177,55 +1155,18 @@ input::placeholder {
     .header-btn .material-symbols-rounded {
         font-size: 20px !important;
     }
-    .header-lang-picker {
-        padding: 3px 6px !important;
-    }
-    .header-lang-picker .quick-lang-dropdown {
-        font-size: 11px !important;
-        max-width: 78px;
-    }
-
-    /* Đối với màn hình nhỏ, nút thêm thành viên chỉ cần để icon thôi bỏ chữ đi để thu gọn lại */
     .dashboard-header {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        gap: 8px !important;
-        margin-bottom: 20px !important;
+        gap: 10px !important;
+        margin-bottom: 24px !important;
+        flex-wrap: wrap !important;
     }
     .dashboard-header h2 {
-        font-size: 18px !important;
+        font-size: 20px !important;
         margin: 0 !important;
         white-space: nowrap !important;
-    }
-    .dashboard-actions {
-        gap: 6px !important;
-        flex-shrink: 0 !important;
-        flex-wrap: nowrap !important;
-    }
-    #btn-add-member {
-        padding: 0 !important;
-        width: 38px !important;
-        height: 38px !important;
-        min-width: 38px !important;
-        justify-content: center !important;
-        border-radius: var(--radius-sm) !important;
-    }
-    #btn-add-member .btn-text {
-        display: none !important;
-    }
-    #btn-add-member .material-symbols-rounded {
-        margin: 0 !important;
-        font-size: 22px !important;
-    }
-    .dashboard-icon-btn {
-        width: 38px !important;
-        height: 38px !important;
-        min-width: 38px !important;
-        min-height: 38px !important;
-    }
-    .dashboard-icon-btn .material-symbols-rounded {
-        font-size: 20px !important;
     }
 }
 

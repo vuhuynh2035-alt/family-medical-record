@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.104",
-  "updatedAt": "2026-10-29T11:35:00.000Z",
-  "releaseNotes": "Sửa triệt để sự cố thông báo lặp lại: Khi bấm 'Đã nắm rõ', thông báo cập nhật sẽ biến mất ngay lập tức và tự động thu gọn vào mục đã đọc."
+  "version": "v2.9.105",
+  "updatedAt": "2026-10-29T11:47:00.000Z",
+  "releaseNotes": "Phục hồi bố cục chuẩn: Màn hình nhỏ hiển thị 1 cột rộng rãi, màn hình lớn (điện thoại gập mở/tablet/PC) hiển thị 2 cột cân đối. Đưa nút Chuông, Trợ giúp, Cài đặt, Tắt app lên Header chuẩn đẹp."
 }
