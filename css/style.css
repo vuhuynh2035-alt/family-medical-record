@@ -55,23 +55,14 @@ body {
     margin: 0 auto;
 }
 
-/* Bố trí các icon trên header thành 2 hàng đôi (2x2 grid) cố định gọn gàng cho cả màn hình lớn và nhỏ */
+/* Header Actions: Ngôn ngữ, Trợ giúp AI và Cài đặt */
 .header-actions {
-    display: grid !important;
-    grid-template-columns: repeat(2, 40px) !important;
-    grid-auto-rows: 40px !important;
+    display: flex !important;
+    align-items: center !important;
     gap: 8px !important;
     width: auto !important;
     flex-shrink: 0 !important;
-    justify-content: end;
-    align-items: center;
-}
-
-.detail-header .header-actions {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-    width: auto !important;
+    justify-content: flex-end;
 }
 
 .header-btn {
@@ -90,23 +81,75 @@ body {
     transition: all 0.3s ease;
     position: relative;
     padding: 0 !important;
-    /* Nếu font "Material Symbols Rounded" chưa kịp tải, không để tràn chữ phá vỡ layout */
     overflow: hidden;
+}
+
+.header-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
 }
 
 .header-btn .material-symbols-rounded {
     font-size: 22px !important;
 }
 
-/* Sắp xếp vị trí 2 hàng đôi trên cả màn hình lớn và nhỏ:
-   Hàng trên: Trợ giúp AI (1), Cài đặt (2)
-   Hàng dưới: Chuông thông báo (3), Nút thoát (4) */
-#btn-ai-help-chat { order: 1; }
-#btn-settings { order: 2; }
-#btn-notifications { order: 3; }
-#btn-exit-app { order: 4; }
-#btn-help { order: 5; }
-#btn-install-app { order: 6; }
+/* Quick Language Picker trên Header */
+.header-lang-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 20px;
+    color: white;
+    box-shadow: none !important;
+    transition: all 0.2s ease;
+}
+.header-lang-picker:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+}
+.header-lang-picker .material-symbols-rounded {
+    color: white !important;
+    font-size: 18px !important;
+}
+.header-lang-picker .quick-lang-dropdown {
+    color: white !important;
+    font-size: 12.5px;
+    font-weight: 600;
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+.header-lang-picker .quick-lang-dropdown option {
+    background: #1e293b;
+    color: white;
+}
+
+/* Dashboard Actions (Nút Thêm thành viên, Chuông, Tắt) */
+.dashboard-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dashboard-icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.dashboard-icon-btn .material-symbols-rounded {
+    font-size: 22px;
+}
 
 .header-btn:hover {
     background: rgba(255, 255, 255, 0.2);
@@ -1094,21 +1137,67 @@ input::placeholder {
         opacity: 0.85;
     }
 
-    /* Tối ưu kích thước 2 hàng đôi trên điện thoại nhỏ */
+    /* Tối ưu trên điện thoại nhỏ */
     .header-actions {
-        grid-template-columns: repeat(2, 38px) !important;
-        grid-auto-rows: 38px !important;
-        gap: 8px !important;
+        gap: 6px !important;
+    }
+    .header-btn {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+    }
+    .header-btn .material-symbols-rounded {
+        font-size: 20px !important;
+    }
+    .header-lang-picker {
+        padding: 3px 6px !important;
+    }
+    .header-lang-picker .quick-lang-dropdown {
+        font-size: 11px !important;
+        max-width: 78px;
     }
 
-    .header-btn {
+    /* Đối với màn hình nhỏ, nút thêm thành viên chỉ cần để icon thôi bỏ chữ đi để thu gọn lại */
+    .dashboard-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-bottom: 20px !important;
+    }
+    .dashboard-header h2 {
+        font-size: 18px !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+    }
+    .dashboard-actions {
+        gap: 6px !important;
+        flex-shrink: 0 !important;
+        flex-wrap: nowrap !important;
+    }
+    #btn-add-member {
+        padding: 0 !important;
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        justify-content: center !important;
+        border-radius: var(--radius-sm) !important;
+    }
+    #btn-add-member .btn-text {
+        display: none !important;
+    }
+    #btn-add-member .material-symbols-rounded {
+        margin: 0 !important;
+        font-size: 22px !important;
+    }
+    .dashboard-icon-btn {
         width: 38px !important;
         height: 38px !important;
         min-width: 38px !important;
         min-height: 38px !important;
     }
-
-    .header-btn .material-symbols-rounded {
+    .dashboard-icon-btn .material-symbols-rounded {
         font-size: 20px !important;
     }
 }

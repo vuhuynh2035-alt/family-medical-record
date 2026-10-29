@@ -534,29 +534,38 @@ function check(name, condition) {
   });
   check('Đồng bộ hóa: Dropdown #input-language trong Cài đặt khớp với ngôn ngữ hiện tại', syncSettingVal === 'vi');
 
-  console.log('\n[Bố cục 2 hàng đôi các icon trên thanh Header]');
-  const desktopHeaderGrid = await page.evaluate(() => {
-    const el = document.querySelector('.glass-header .header-actions');
-    const style = window.getComputedStyle(el);
+  console.log('\n[Bố cục mới v2.9.101: Ngôn ngữ trên Header, Chuông & Tắt cạnh Thêm thành viên, Thu gọn mobile]');
+  const desktopLayout = await page.evaluate(() => {
+    const langInHeader = !!document.querySelector('.glass-header #home-language-select');
+    const notifInDashboard = !!document.querySelector('.dashboard-header #btn-notifications');
+    const exitInDashboard = !!document.querySelector('.dashboard-header #btn-exit-app');
+    const addMemberText = document.querySelector('#btn-add-member .btn-text');
+    const textStyle = addMemberText ? window.getComputedStyle(addMemberText).display : 'none';
     return {
-      display: style.display,
-      columns: style.gridTemplateColumns.split(' ').length
+      langInHeader,
+      notifInDashboard,
+      exitInDashboard,
+      textVisible: textStyle !== 'none'
     };
   });
-  check('Màn hình lớn: Các icon trên header xếp thành 2 cột / 2 hàng đôi', desktopHeaderGrid.display === 'grid' && desktopHeaderGrid.columns === 2);
+  check('Màn hình lớn: Bộ chọn ngôn ngữ nằm trên thanh Header', desktopLayout.langInHeader);
+  check('Màn hình lớn: Nút Chuông & Tắt app nằm ở thanh Thành viên gia đình (Dashboard)', desktopLayout.notifInDashboard && desktopLayout.exitInDashboard);
+  check('Màn hình lớn: Nút Thêm thành viên hiển thị đầy đủ text', desktopLayout.textVisible);
 
   // Thử chuyển sang viewport điện thoại (375x667)
   await page.setViewportSize({ width: 375, height: 667 });
   await page.waitForTimeout(100);
-  const mobileHeaderGrid = await page.evaluate(() => {
-    const el = document.querySelector('.glass-header .header-actions');
-    const style = window.getComputedStyle(el);
+  const mobileLayout = await page.evaluate(() => {
+    const addMemberText = document.querySelector('#btn-add-member .btn-text');
+    const textStyle = addMemberText ? window.getComputedStyle(addMemberText).display : '';
+    const addBtn = document.querySelector('#btn-add-member');
+    const btnRect = addBtn ? addBtn.getBoundingClientRect() : { width: 0 };
     return {
-      display: style.display,
-      columns: style.gridTemplateColumns.split(' ').length
+      textHidden: textStyle === 'none',
+      isCompactBtn: btnRect.width <= 44
     };
   });
-  check('Màn hình nhỏ (điện thoại): Các icon trên header vẫn xếp thành 2 cột / 2 hàng đôi', mobileHeaderGrid.display === 'grid' && mobileHeaderGrid.columns === 2);
+  check('Màn hình nhỏ (điện thoại): Nút Thêm thành viên tự động ẩn text (chỉ hiển thị icon)', mobileLayout.textHidden && mobileLayout.isCompactBtn);
   // Khôi phục lại viewport desktop
   await page.setViewportSize({ width: 1280, height: 720 });
 

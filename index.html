@@ -480,19 +480,23 @@
                     </div>
                     <div class="logo-text-group" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;">
                         <h1 style="color: white; margin: 0; white-space: nowrap;">Health Care</h1>
-                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.100</span>
+                        <span class="version-tag" style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">v2.9.101</span>
                     </div>
                 </div>
                 <div class="header-actions">
-
+                    <!-- Nút chọn ngôn ngữ đưa lên thanh trên -->
+                    <div class="quick-lang-picker header-lang-picker" title="Chọn ngôn ngữ / Select Language">
+                        <span class="material-symbols-rounded" style="color: white; font-size: 18px;">language</span>
+                        <select id="home-language-select" class="quick-lang-dropdown" aria-label="Select Language">
+                            <option value="vi">🇻🇳 Tiếng Việt</option>
+                            <option value="en">🇬🇧 English</option>
+                            <option value="ja">🇯🇵 日本語</option>
+                            <option value="zh">🇨🇳 中文</option>
+                        </select>
+                    </div>
 
                     <button id="btn-install-app" class="icon-btn header-btn hidden" title="Cài đặt Ứng dụng">
                         <span class="material-symbols-rounded">install_mobile</span>
-                    </button>
-
-                    <button id="btn-notifications" class="icon-btn header-btn" title="Thông báo hệ thống" data-help-title="Thông báo Hệ thống" data-help-desc="Nơi hiển thị các thông báo chung (ví dụ: thông tin bản cập nhật ứng dụng mới). Lịch hẹn riêng của từng người sẽ nằm trong trang hồ sơ của người đó.">
-                        <span class="material-symbols-rounded">notifications</span>
-                        <span id="notification-badge" class="badge hidden"></span>
                     </button>
                     <button id="btn-help" class="icon-btn header-btn hidden" title="Giải thích giao diện" data-help-title="Giải thích giao diện" data-help-desc="Bật chế độ giải thích để tìm hiểu cách sử dụng các nút bấm trên màn hình.">
                         <span class="material-symbols-rounded">ads_click</span>
@@ -502,9 +506,6 @@
                     </button>
                     <button id="btn-settings" class="icon-btn header-btn" title="Cài đặt" data-help-title="Bảng Cài đặt" data-help-desc="Thiết lập bảo mật (Mã PIN) và cấu hình Trí tuệ Nhân tạo.">
                         <span class="material-symbols-rounded">settings</span>
-                    </button>
-                    <button id="btn-exit-app" class="icon-btn header-btn" title="Đóng chương trình" data-help-title="Thoát ứng dụng" data-help-desc="Đóng an toàn chương trình để bảo mật dữ liệu.">
-                        <span class="material-symbols-rounded" style="color: #e74c3c;">power_settings_new</span>
                     </button>
                 </div>
             </div>
@@ -516,19 +517,18 @@
             <section id="view-dashboard" class="view active">
                 <div class="dashboard-header">
                     <h2 data-i18n="dashboard_family_members">Thành viên gia đình</h2>
-                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <!-- Quick Language Picker on Home Screen -->
-                        <div class="quick-lang-picker" title="Chọn ngôn ngữ / Select Language">
-                            <span class="material-symbols-rounded" style="color: var(--primary-blue); font-size: 20px;">language</span>
-                            <select id="home-language-select" class="quick-lang-dropdown" aria-label="Select Language">
-                                <option value="vi">🇻🇳 Tiếng Việt</option>
-                                <option value="en">🇬🇧 English</option>
-                                <option value="ja">🇯🇵 日本語</option>
-                                <option value="zh">🇨🇳 中文</option>
-                            </select>
-                        </div>
+                    <div class="dashboard-actions">
                         <button id="btn-add-member" class="primary-btn neumorphic-btn" data-help-title="Thêm thành viên" data-help-desc="Tạo hồ sơ mới cho người thân trong gia đình">
-                            <span class="material-symbols-rounded">person_add</span> <span data-i18n="btn_add_member">Thêm thành viên</span>
+                            <span class="material-symbols-rounded">person_add</span> <span class="btn-text" data-i18n="btn_add_member">Thêm thành viên</span>
+                        </button>
+                        <!-- Nút chuông thông báo đưa xuống cùng hàng với Thêm thành viên -->
+                        <button id="btn-notifications" class="icon-btn neumorphic-btn dashboard-icon-btn" title="Thông báo hệ thống" data-help-title="Thông báo Hệ thống" data-help-desc="Nơi hiển thị các thông báo chung (ví dụ: thông tin bản cập nhật ứng dụng mới). Lịch hẹn riêng của từng người sẽ nằm trong trang hồ sơ của người đó.">
+                            <span class="material-symbols-rounded">notifications</span>
+                            <span id="notification-badge" class="badge hidden"></span>
+                        </button>
+                        <!-- Nút tắt chương trình đưa xuống cùng hàng với Thêm thành viên -->
+                        <button id="btn-exit-app" class="icon-btn neumorphic-btn dashboard-icon-btn danger" title="Đóng chương trình" data-help-title="Thoát ứng dụng" data-help-desc="Đóng an toàn chương trình để bảo mật dữ liệu.">
+                            <span class="material-symbols-rounded" style="color: #e74c3c;">power_settings_new</span>
                         </button>
                     </div>
                 </div>

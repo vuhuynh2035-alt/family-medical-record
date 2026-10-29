@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.100",
-  "updatedAt": "2026-10-29T09:21:44.918Z",
-  "releaseNotes": "Bổ sung nút Bỏ qua (Skip) trên thanh tiêu đề và dưới chân quy trình thiết lập lần đầu (Onboarding Wizard), cho phép người dùng thoát nhanh quy trình và vào thẳng giao diện chính bất cứ lúc nào."
+  "version": "v2.9.101",
+  "updatedAt": "2026-10-29T09:29:39.053Z",
+  "releaseNotes": "Điều chỉnh bố cục theo yêu cầu: Đưa bộ chọn ngôn ngữ lên thanh tiêu đề trên cùng; đưa nút Chuông thông báo và Tắt chương trình xuống cùng hàng với nút Thêm thành viên; trên màn hình nhỏ nút Thêm thành viên tự động rút gọn chỉ hiển thị icon để tối ưu không gian."
 }

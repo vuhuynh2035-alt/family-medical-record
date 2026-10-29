@@ -626,8 +626,9 @@ const OnboardingWizard = {
     }
 };
 
-const CURRENT_APP_VERSION = 'v2.9.100';
+const CURRENT_APP_VERSION = 'v2.9.101';
 const APP_CHANGELOG = {
+    'v2.9.101': '• Đưa bộ chọn ngôn ngữ lên thanh tiêu đề trên cùng (Header).\n• Đưa nút Chuông thông báo và Tắt chương trình xuống cùng hàng với nút Thêm thành viên.\n• Màn hình nhỏ: Nút Thêm thành viên tự động rút gọn chỉ hiển thị icon (bỏ chữ) giúp giao diện tinh gọn, không tràn dòng.',
     'v2.9.100': '• Thêm nút Bỏ qua (Skip) ngay trên thanh tiêu đề và dưới chân quy trình cài đặt để vào thẳng chương trình.\n• Lưu trạng thái bỏ qua để không lặp lại khi tải lại trang.',
     'v2.9.99': '• Bố trí các icon trên thanh tiêu đề thành 2 hàng đôi (2x2 grid) gọn gàng trên cả màn hình lớn (PC/tablet) và điện thoại.\n• Sửa lỗi icon bị dàn ngang 1 hàng dài trên màn hình rộng.',
     'v2.9.98': '• Khắc phục hoàn toàn lỗi 404 khi mở ứng dụng đã cài đặt trên điện thoại (PWA start_url & root redirect).\n• Bổ sung 404.html tự động chuyển hướng về trang chủ.\n• Hoàn thiện màn hình Cài đặt AI lần đầu với link lấy API Key và phân công hoạt động.',
