@@ -670,8 +670,9 @@ const OnboardingWizard = {
     }
 };
 
-const CURRENT_APP_VERSION = 'v2.9.105';
+const CURRENT_APP_VERSION = 'v2.9.107';
 const APP_CHANGELOG = {
+    'v2.9.107': '• Sửa lỗi ứng dụng tự tải lại liên tục khi mở (Service Worker chiếm quyền điều khiển rồi bắt trình duyệt reload).\n• Tải mã nguồn từ mạng trước, chỉ dùng bản nhớ tạm khi mất mạng — tránh kẹt một bản JavaScript cũ làm trang không chạy.\n• Thanh báo có bản cập nhật không còn che nút Lưu ở các hộp thoại.',
     'v2.9.105': '• Phục hồi giao diện chuẩn (v2.9.91): Màn hình nhỏ (điện thoại thông thường) hiển thị 1 cột rộng rãi, dễ nhìn; Màn hình lớn (máy tính bảng, PC, điện thoại màn hình gập mở rộng) tự động hiển thị 2 cột cân đối, đẹp mắt.\n• Phục hồi thanh Header với các nút Chuông, Trợ giúp, Cài đặt và Tắt app trên cùng 1 hàng gọn gàng, không bị tràn hay mất nút.',
     'v2.9.104': '• Khắc phục hoàn toàn sự cố nút "Đã nắm rõ" trong Thông báo hệ thống: Khi bấm "Đã nắm rõ", thông báo sẽ biến mất ngay lập tức và tự động thu gọn vào mục đã đọc, không còn hiển thị lặp lại.\n• Tối ưu hóa huy hiệu (badge) thông báo và đồng bộ trạng thái đọc trên mọi thiết bị.',
     'v2.9.103': '• Bổ sung mục Bạn đang ở các nước khác (Việt Nam / Quốc tế) để chuyển nhanh 1-chạm toàn bộ dịch vụ AI sang Google Gemini.\n• Nâng cấp các model Google Gemini lên chuẩn tối thiểu 3.0 Flash (khuyên dùng) và Flash Latest để không bị báo lỗi do Google ngừng hỗ trợ các bản cũ.\n• Tự động nâng cấp các model Gemini cũ lên 3.0 Flash.',
@@ -771,38 +772,43 @@ document.addEventListener('DOMContentLoaded', checkForRemoteUpdate);
 
 // PWA Service Worker Registration & Reliable Update Detection
 if ('serviceWorker' in navigator) {
+    // Lần đầu cài Service Worker, trình duyệt chuyển controller từ "không có" sang worker mới.
+    // Không được reload trong trường hợp đó — nếu reload, trang vừa mở đã bị làm mới ngay,
+    // và khi worker cũ còn lỗi thì có thể lặp lại tới mức ứng dụng không ở yên để dùng.
+    let hadController = !!navigator.serviceWorker.controller;
+    let isRefreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hadController) {
+            hadController = true;
+            return;
+        }
+        if (isRefreshing) return;
+        isRefreshing = true;
+        window.location.reload();
+    });
+
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
             console.log('Service Worker registered', reg);
 
-            // Tự động kiểm tra bản cập nhật mới
-            try { reg.update(); } catch(e){}
+            try { reg.update(); } catch (e) {}
 
-            // Tự động kiểm tra cập nhật mỗi 3 phút
             checkReminders();
-    loadSystemNotifications();
-    setInterval(() => {
-                try { reg.update(); } catch(e){}
+            loadSystemNotifications();
+            setInterval(() => {
+                try { reg.update(); } catch (e) {}
                 checkForRemoteUpdate();
             }, 3 * 60 * 1000);
 
-            // Kiểm tra cập nhật mỗi khi người dùng chuyển lại tab ứng dụng
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
-                    try { reg.update(); } catch(e){}
+                    try { reg.update(); } catch (e) {}
                     checkForRemoteUpdate();
                 }
             });
         }).catch(err => {
             console.log('Service Worker registration error: ', err);
         });
-    });
-
-    let isRefreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (isRefreshing) return;
-        isRefreshing = true;
-        window.location.reload();
     });
 }
 
@@ -4897,50 +4903,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// --- AI Medication Analysis & Chatbot Events ---
-document.addEventListener('click', async (e) => {
-    // 1. Phân tích thuốc chuyên sâu
-    const btnAnalyzeMeds = e.target.closest('.btn-analyze-meds');
-    if (btnAnalyzeMeds) {
-        const id = btnAnalyzeMeds.dataset.id;
-        const record = currentRecords.find(r => r.id === id);
-        if (record && record.treatment) {
-            btnAnalyzeMeds.innerHTML = `<span class="loading-spinner" style="width: 14px; height: 14px; border-width: 2px; margin-right: 5px;"></span> Đang phân tích...`;
-            btnAnalyzeMeds.disabled = true;
-            try {
-                const analysis = await AIService.analyzeMedications(record.treatment);
-                record.medicationAnalysis = analysis;
-                DataManager.saveRecord(currentMemberId, record); // Lưu vào DB
-                await UI.renderRecordDetailModal(record); // Render lại form
-            } catch (err) {
-                alert("Lỗi khi phân tích thuốc: " + err.message);
-                btnAnalyzeMeds.innerHTML = `<span class="material-symbols-rounded ai-sparkle" style="font-size: 16px;">medication</span> Phân tích đơn thuốc chuyên sâu (AI)`;
-                btnAnalyzeMeds.disabled = false;
-            }
-        }
-        return;
-    }
-
-    // 2. Toggle Chat
-    const btnToggleChat = e.target.closest('#btn-toggle-chat');
-    if (btnToggleChat) {
-        const chatContainer = document.getElementById('view-record-chat-container');
-        chatContainer.classList.toggle('hidden');
-        if (!chatContainer.classList.contains('hidden')) {
-            // Scroll to chat
-            chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            document.getElementById('chat-input').focus();
-        }
-        return;
-    }
-
-    // 3. Send Chat
-    const btnChatSend = e.target.closest('#btn-chat-send');
-    if (btnChatSend) {
-        handleSendChat();
-        return;
-    }
-});
+// (Đã dọn dẹp listener trùng lặp & lỗi thời)
 
 // Handle Enter key for Deep Chat Input
 document.addEventListener('keypress', (e) => {
@@ -5492,6 +5455,37 @@ document.getElementById('btn-save-smart-reminders')?.addEventListener('click', (
     const tabReminders = document.querySelector('.tab-btn[data-target="tab-reminders"]');
     if (tabReminders) tabReminders.click();
 });
+
+/**
+ * Mở modal Cẩm nang Tiêm chủng & gọi AI tư vấn thông tin chi tiết
+ */
+async function openVaccineConsultation(vaccineText, date) {
+    const modal = document.getElementById('modal-vaccine-consultation');
+    if (!modal) return;
+    modal.dataset.vaccineText = vaccineText || 'Tiêm chủng';
+    modal.dataset.date = date || '';
+
+    openModal('modal-vaccine-consultation');
+
+    const loadingEl = document.getElementById('vaccine-consultation-loading');
+    const contentEl = document.getElementById('vaccine-consultation-content');
+
+    if (loadingEl) loadingEl.classList.remove('hidden');
+    if (contentEl) contentEl.innerHTML = '';
+
+    try {
+        const result = await AIService.getVaccineConsultation(vaccineText, date);
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (contentEl) {
+            contentEl.innerHTML = UI.renderMarkdown(result);
+        }
+    } catch (err) {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (contentEl) {
+            contentEl.innerHTML = `<div style="color: var(--danger); padding: 15px; text-align: center;">Lỗi khi tra cứu cẩm nang vắc xin: ${UI.escapeHtml(err.message)}</div>`;
+        }
+    }
+}
 
 // Xử lý nút "Cẩm nang Vắc xin" trong Chi tiết Hồ sơ
 document.getElementById('btn-view-vaccine-guide')?.addEventListener('click', (e) => {

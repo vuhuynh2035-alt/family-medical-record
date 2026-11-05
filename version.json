@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.105",
-  "updatedAt": "2026-10-29T11:47:00.000Z",
-  "releaseNotes": "Phục hồi bố cục chuẩn: Màn hình nhỏ hiển thị 1 cột rộng rãi, màn hình lớn (điện thoại gập mở/tablet/PC) hiển thị 2 cột cân đối. Đưa nút Chuông, Trợ giúp, Cài đặt, Tắt app lên Header chuẩn đẹp."
+  "version": "v2.9.107",
+  "updatedAt": "2026-11-05T15:45:00.000Z",
+  "releaseNotes": "Sửa lỗi ứng dụng tự tải lại khi vừa mở do Service Worker. Mã nguồn được tải từ mạng trước, bản nhớ tạm chỉ dùng khi mất mạng."
 }

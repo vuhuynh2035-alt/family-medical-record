@@ -1,6 +1,16 @@
 {
+  "name": "family-health-manager",
+  "version": "2.9.106",
+  "description": "Family Health Manager self-hosted web app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/smoke-test.js"
+  },
   "dependencies": {
-    "express": "^5.2.1",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
     "playwright": "^1.62.1"
   }
 }

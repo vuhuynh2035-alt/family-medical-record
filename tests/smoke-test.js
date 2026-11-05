@@ -103,8 +103,22 @@ function check(name, condition) {
 
 (async () => {
   const server = await startStaticServer();
-  const executablePath = process.env.PLAYWRIGHT_CHROMIUM_PATH; // tùy chọn: chỉ định thủ công nếu cần
-  const browser = await chromium.launch(executablePath ? { executablePath } : {});
+  let executablePath = process.env.PLAYWRIGHT_CHROMIUM_PATH;
+  if (!executablePath) {
+    const defaultPaths = [
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+    ];
+    for (const p of defaultPaths) {
+      if (fs.existsSync(p)) { executablePath = p; break; }
+    }
+  }
+  const launchOptions = {
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--headless=new']
+  };
+  if (executablePath) launchOptions.executablePath = executablePath;
+  const browser = await chromium.launch(launchOptions);
   const page = await browser.newPage();
 
   const consoleErrors = [];

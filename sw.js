@@ -1,57 +1,90 @@
-const SW_VERSION = 'v2.9.105';
-const BUILD_TIME = '2026-10-29_09-58';
+const SW_VERSION = 'v2.9.107';
+const CACHE_NAME = `family-health-static-${SW_VERSION}`;
+const BUILD_TIME = '2026-11-05_22-45';
 
-self.addEventListener('install', (e) => {
-  self.skipWaiting();
+const STATIC_ASSETS = [
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './js/data.js',
+  './js/ai.js',
+  './js/components.js',
+  './js/help.js',
+  './js/i18n.js',
+  './js/speech.js',
+  './manifest.json',
+  './version.json',
+  './favicon.jpg',
+  './favicon.png'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await Promise.allSettled(
+        STATIC_ASSETS.map((url) => cache.add(url).catch((err) => {
+          console.warn('[SW] Cache asset failed:', url, err);
+        }))
+      );
+    }).then(() => self.skipWaiting())
+  );
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(self.clients.claim());
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => Promise.all(
+      keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+    )).then(() => self.clients.claim())
+  );
 });
 
-// Xử lý thông điệp yêu cầu cập nhật bản mới (Service Worker chờ -> kích hoạt ngay)
 self.addEventListener('message', (event) => {
-  if (event.data === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
 
-// Xử lý khi người dùng chạm vào thông báo hệ thống
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if (client.url && 'focus' in client) {
-          return client.focus();
-        }
+        if (client.url && 'focus' in client) return client.focus();
       }
-      if (self.clients.openWindow) {
-        return self.clients.openWindow('./index.html');
-      }
+      if (self.clients.openWindow) return self.clients.openWindow('./index.html');
     })
   );
 });
 
-self.addEventListener('fetch', (e) => {
-  // CHỈ can thiệp vào yêu cầu điều hướng trang (document navigation).
-  // Trước đây SW bắt TOÀN BỘ request (kể cả gọi API AI, tải ảnh, script CDN...) và
-  // trả về một response văn bản giả khi mạng lỗi -> gây lỗi khó hiểu (vd: script CDN
-  // tải thất bại lại nhận về text thay vì JS nên vỡ trang, hoặc lời gọi API AI nhận
-  // "response" giả thay vì báo lỗi mạng rõ ràng). Giới hạn lại đúng phạm vi fallback.
-  if (e.request.mode !== 'navigate') {
-    return; // Để trình duyệt xử lý request bình thường (không respondWith)
-  }
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
 
-  e.respondWith(
-    fetch(e.request).catch(() => {
-      return new Response(
-        '<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>Ngoại tuyến</title></head>' +
-        '<body style="font-family:sans-serif;text-align:center;padding:40px;">' +
-        '<h2>Bạn đang ngoại tuyến</h2><p>Không thể tải trang. Vui lòng kiểm tra kết nối mạng và thử lại.</p>' +
-        '</body></html>',
-        { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-      );
-    })
-  );
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.endsWith('/sw.js') || url.pathname.endsWith('/version.json')) return;
+
+  event.respondWith((async () => {
+    try {
+      const response = await fetch(event.request);
+      if (response && response.ok && response.type === 'basic') {
+        const copy = response.clone();
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(event.request, copy).catch(() => {});
+      }
+      return response;
+    } catch (err) {
+      const cached = await caches.match(event.request, { ignoreSearch: true })
+        || (event.request.mode === 'navigate' ? await caches.match('./index.html') : null);
+      if (cached) return cached;
+      if (event.request.mode === 'navigate') {
+        return new Response(
+          '<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>Ngoại tuyến</title></head>' +
+          '<body style="font-family:sans-serif;text-align:center;padding:40px;">' +
+          '<h2>Bạn đang ngoại tuyến</h2><p>Không thể tải trang. Hãy kiểm tra mạng rồi mở lại.</p>' +
+          '</body></html>',
+          { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 503 }
+        );
+      }
+      throw err;
+    }
+  })());
 });
