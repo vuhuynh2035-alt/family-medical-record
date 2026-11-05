@@ -6,4 +6,4 @@ git pull origin master
 docker compose down
 docker compose up -d --build
 echo "=== TRIEN KHAI THANH CONG! ==="
-echo "Truy cap tren trinh duyet: http://10.201.1.6:8080"
+echo "Truy cap tren trinh duyet: http://$(hostname -I | awk '{print $1}'):8082"

@@ -4,6 +4,6 @@ services:
     container_name: family-health-app
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "8082:80"
     environment:
       - TZ=Asia/Ho_Chi_Minh
