@@ -1,0 +1,16 @@
+# Hướng dẫn cho AI agent
+
+<!-- cong-cu-phat-hanh:begin -->
+## Quy tắc phiên bản (bắt buộc)
+
+- Không tự tăng version khi sửa code; việc tăng version/deploy/APK do chương trình phát hành («Công cụ phát hành», repo vuhuynh2035-alt/cong-cu-phat-hanh) làm.
+- KHÔNG sửa tay `version` trong package.json, version.ts, version.json, sw.js, build.gradle; KHÔNG chạy `npm run bump-version`, `npm run deploy`, `npm run release` theo cách cũ.
+- Nguồn sự thật của version là tag `vX.Y.Z` trên GitHub (+ `versionFloor` trong `.release.json`). Mỗi lần phát hành công cụ tự lấy số lớn nhất ở mọi nơi rồi +1, giữ chỗ bằng commit «release vX.Y.Z» + tag push nguyên tử, sau đó mới build/deploy.
+- Có thể thêm nội dung thay đổi cho bản sắp tới vào changelog, nhưng để công cụ tự gắn số version.
+- Nếu bắt buộc phát hành từ Cursor/Antigravity thì chạy (cùng cơ chế giữ chỗ version):
+  - `node "<thư mục Công cụ phát hành>/cli.js" release --project . --action <hành động> --dry-run` để xem trước, bỏ `--dry-run` để chạy thật;
+  - hoặc `npx --yes github:vuhuynh2035-alt/cong-cu-phat-hanh release --project . --action <hành động>`;
+  - hoặc script tương đương trong dự án: `npm run release` / `npm run deploy` (đã chuyển sang gọi công cụ).
+  - Các hành động có tăng version trong dự án này: `deploy-firebase`.
+- Không force-push, không `reset --hard`, không xoá/đổi tag phiên bản.
+<!-- cong-cu-phat-hanh:end -->

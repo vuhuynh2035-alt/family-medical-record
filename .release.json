@@ -1,0 +1,67 @@
+{
+  "name": "Hồ sơ sức khỏe gia đình (Medical Record)",
+  "branch": "master",
+  "remote": "origin",
+  "tagPrefix": "v",
+  "versionFloor": "2.9.107",
+  "version": {
+    "source": {
+      "path": "version.json",
+      "type": "json",
+      "key": "version"
+    },
+    "files": [
+      {
+        "path": "version.json",
+        "type": "json",
+        "key": "version"
+      },
+      {
+        "path": "package.json",
+        "type": "json",
+        "key": "version"
+      },
+      {
+        "path": "sw.js",
+        "type": "regex",
+        "pattern": "SW_VERSION = 'v?(\\d+\\.\\d+\\.\\d+)'"
+      },
+      {
+        "path": "js/app.js",
+        "type": "regex",
+        "pattern": "CURRENT_APP_VERSION = 'v?(\\d+\\.\\d+\\.\\d+)'"
+      },
+      {
+        "path": "index.html",
+        "type": "regex",
+        "pattern": "(?:\\?v=|version-tag\"[^>]*>v)(\\d+\\.\\d+\\.\\d+)",
+        "replaceAll": true
+      }
+    ]
+  },
+  "liveVersions": [],
+  "actions": {
+    "deploy-firebase": {
+      "label": "Deploy Firebase Hosting",
+      "kind": "deploy",
+      "bump": true,
+      "checks": [
+        {
+          "type": "file",
+          "path": ".firebaserc",
+          "hint": "Chạy «npx firebase use --add» (đúng tài khoản Google sở hữu project) để chọn project Firebase, rồi commit .firebaserc."
+        },
+        {
+          "type": "firebase-login"
+        }
+      ],
+      "steps": [
+        {
+          "cwd": ".",
+          "run": "npx firebase deploy --only hosting"
+        }
+      ]
+    }
+  },
+  "releaseAction": "deploy-firebase"
+}
