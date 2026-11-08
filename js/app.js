@@ -1957,11 +1957,45 @@ function setupEventListeners() {
     }
 
     // Backup Reminder Banner
-    document.getElementById('btn-backup-reminder-now').addEventListener('click', () => {
-        updatePinUIState();
-        openModal('modal-settings');
+    document.getElementById('btn-backup-reminder-now')?.addEventListener('click', async () => {
+        const btn = document.getElementById('btn-backup-reminder-now');
+        const origText = btn ? btn.innerHTML : '';
+        try {
+            if (btn) {
+                btn.innerHTML = '<span class="material-symbols-rounded" style="vertical-align: text-bottom; font-size: 16px;">hourglass_empty</span> Đang sao lưu...';
+                btn.disabled = true;
+            }
+            // 1. Xuất dữ liệu và kích hoạt tải file về máy
+            const jsonData = await DataManager.exportData();
+            const fileName = generateBackupFileName();
+            triggerDownloadBackup(jsonData, fileName);
+
+            // 2. Lưu bản sao lưu tự động vào bộ nhớ dự phòng
+            try {
+                await AutoBackupStore.saveAutoBackup(jsonData);
+            } catch (err) {}
+
+            // 3. Ghi nhận thời điểm sao lưu thành công (tắt nhắc nhở định kỳ)
+            DataManager.saveSettings({ lastBackupAt: Date.now(), backupReminderSnoozeUntil: null });
+
+            // 4. Đóng banner nhắc nhở ngay lập tức
+            hideBackupReminder();
+            showToast('Đã tải file sao lưu dữ liệu về máy thành công!', 'success');
+        } catch (err) {
+            console.error('Lỗi khi sao lưu dữ liệu:', err);
+            hideBackupReminder();
+            updatePinUIState();
+            openModal('modal-settings');
+            showToast('Vui lòng kiểm tra lại sao lưu trong Cài đặt.');
+        } finally {
+            if (btn) {
+                btn.innerHTML = origText;
+                btn.disabled = false;
+            }
+        }
     });
-    document.getElementById('btn-backup-reminder-later').addEventListener('click', () => {
+
+    document.getElementById('btn-backup-reminder-later')?.addEventListener('click', () => {
         DataManager.saveSettings({ backupReminderSnoozeUntil: Date.now() + BACKUP_REMINDER_SNOOZE_MS });
         hideBackupReminder();
     });

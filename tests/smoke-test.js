@@ -641,6 +641,24 @@ function check(name, condition) {
   // Khôi phục lại viewport desktop
   await page.setViewportSize({ width: 1280, height: 720 });
 
+  // Kiểm tra banner Nhắc nhở sao lưu & nút Sao lưu ngay
+  console.log('\n[Nhắc nhở sao lưu: Bấm Sao lưu ngay đóng banner và cập nhật mốc sao lưu]');
+  await page.evaluate(() => {
+    document.getElementById('backup-reminder-toast').classList.remove('hidden');
+  });
+  await page.waitForTimeout(100);
+  const bannerShown = await page.evaluate(() => !document.getElementById('backup-reminder-toast').classList.contains('hidden'));
+  check('Banner nhắc nhở sao lưu hiển thị thành công', bannerShown);
+
+  await page.click('#btn-backup-reminder-now');
+  await page.waitForTimeout(300);
+  const bannerHiddenAfterBackup = await page.evaluate(() => {
+    const isHidden = document.getElementById('backup-reminder-toast').classList.contains('hidden');
+    const lastBackup = DataManager.getSettings().lastBackupAt;
+    return isHidden && (Date.now() - lastBackup < 5000);
+  });
+  check('Bấm "Sao lưu ngay": Banner tự động ẩn và ghi nhận thời điểm sao lưu thành công', bannerHiddenAfterBackup);
+
   console.log(`\n[Lỗi console/pageerror bắt được: ${consoleErrors.length}]`);
   consoleErrors.forEach(e => console.log('  ! ' + e));
 
