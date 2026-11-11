@@ -670,7 +670,7 @@ const OnboardingWizard = {
     }
 };
 
-const CURRENT_APP_VERSION = 'v2.9.107';
+const CURRENT_APP_VERSION = 'v2.9.108';
 const APP_CHANGELOG = {
     'v2.9.107': '• Sửa lỗi ứng dụng tự tải lại liên tục khi mở (Service Worker chiếm quyền điều khiển rồi bắt trình duyệt reload).\n• Tải mã nguồn từ mạng trước, chỉ dùng bản nhớ tạm khi mất mạng — tránh kẹt một bản JavaScript cũ làm trang không chạy.\n• Thanh báo có bản cập nhật không còn che nút Lưu ở các hộp thoại.',
     'v2.9.105': '• Phục hồi giao diện chuẩn (v2.9.91): Màn hình nhỏ (điện thoại thông thường) hiển thị 1 cột rộng rãi, dễ nhìn; Màn hình lớn (máy tính bảng, PC, điện thoại màn hình gập mở rộng) tự động hiển thị 2 cột cân đối, đẹp mắt.\n• Phục hồi thanh Header với các nút Chuông, Trợ giúp, Cài đặt và Tắt app trên cùng 1 hàng gọn gàng, không bị tràn hay mất nút.',

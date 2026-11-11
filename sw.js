@@ -1,4 +1,4 @@
-const SW_VERSION = 'v2.9.107';
+const SW_VERSION = 'v2.9.108';
 const CACHE_NAME = `family-health-static-${SW_VERSION}`;
 const BUILD_TIME = '2026-11-05_22-45';
 

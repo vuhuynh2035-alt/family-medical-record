@@ -1,6 +1,6 @@
 {
   "name": "family-health-manager",
-  "version": "2.9.106",
+  "version": "2.9.108",
   "description": "Family Health Manager self-hosted web app",
   "main": "server.js",
   "scripts": {

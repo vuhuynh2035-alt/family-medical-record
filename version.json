@@ -1,5 +1,5 @@
 {
-  "version": "v2.9.107",
+  "version": "v2.9.108",
   "updatedAt": "2026-11-05T15:45:00.000Z",
   "releaseNotes": "Sửa lỗi ứng dụng tự tải lại khi vừa mở do Service Worker. Mã nguồn được tải từ mạng trước, bản nhớ tạm chỉ dùng khi mất mạng."
 }
