@@ -376,12 +376,13 @@ const OnboardingWizard = {
                     I18n.setLanguage(lang);
                 }
                 this.updateLanguageCards(lang);
+                // Chọn ngôn ngữ xong tự sang bước 2 (trễ ngắn để người dùng thấy thẻ vừa chọn)
+                clearTimeout(this._langAdvanceTimer);
+                this._langAdvanceTimer = setTimeout(() => {
+                    if (this.currentStep === 1) this.goToStep(2);
+                }, 350);
             });
         });
-
-        // Step 1: Next button
-        const next1 = document.getElementById('btn-wizard-next-1');
-        if (next1) next1.addEventListener('click', () => this.goToStep(2));
 
         // Step 2: PWA Install & Navigation
         const pwaBtn = document.getElementById('btn-wizard-pwa-install');

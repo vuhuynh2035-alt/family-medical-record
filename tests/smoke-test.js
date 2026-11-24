@@ -145,11 +145,11 @@ function check(name, condition) {
   const step1EnTitle = await page.$eval('#wizard-pane-1 h2', el => el.innerText);
   check('Bước 1: Đổi ngôn ngữ tức thì trong wizard sang English', step1EnTitle.includes('Welcome'));
 
-  // Đổi lại Tiếng Việt và tiếp tục qua Bước 2
+  // Đổi lại Tiếng Việt, tự qua Bước 2
   await page.click('.wizard-lang-btn[data-lang="vi"]');
   await page.waitForTimeout(100);
-  await page.click('#btn-wizard-next-1');
-  await page.waitForTimeout(150);
+  // Chọn ngôn ngữ xong tự chuyển sang Bước 2 (không còn nút Tiếp tục)
+  await page.waitForTimeout(600);
   check('Chuyển qua Bước 2: Hướng dẫn cài đặt ứng dụng vào máy', await page.isVisible('#wizard-pane-2:not(.hidden)'));
   check('Bước 2: Có nút cài đặt PWA và hướng dẫn Safari/Chrome', await page.isVisible('#btn-wizard-pwa-install'));
 
