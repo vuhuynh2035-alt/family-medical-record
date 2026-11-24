@@ -46,66 +46,141 @@ const AIService = {
         }
     },
 
+    // ======================================================================
+    // ĐIỀU PHỐI AI THEO CHÍNH SÁCH (xem js/ai-policy.js)
+    // ======================================================================
+
     /**
-     * Gọi Gemini API.
-     * @param {number} temperature - Độ "ngẫu nhiên" khi sinh nội dung (0 = luôn chọn phương án
-     * khả dĩ nhất, ổn định nhất giữa các lần gọi; càng cao càng đa dạng nhưng càng dễ cho kết quả
-     * khác nhau giữa các lần gọi dù cùng 1 đầu vào). Mặc định thấp (0.2) vì đây là ứng dụng y tế,
-     * ưu tiên tính nhất quán hơn là văn phong sáng tạo.
+     * Chạy 1 tác vụ AI theo chính sách: dùng API MIỄN PHÍ trước; chỉ dùng API TRẢ PHÍ khi (a) hết hạn
+     * mức miễn phí hoặc (b) mô hình đang chọn chỉ có ở bản trả phí — và khi đó phải được người dùng
+     * xác nhận (1 lần/phiên) và chưa chạm hạn mức trần.
+     * @param {string} task - 'ocr' | 'assessment' | 'search' | 'trend' | 'chat'
+     * @param {(ctx:{provider:string,model:string,apiKey:string,tier:string,usage:?object})=>Promise<string>} fn
      */
-    async callGeminiAPI(prompt, base64Images = null, isJson = false, overrideModel = null, temperature = 0.2) {
-        const apiKey = DataManager.getGeminiApiKey();
+    async _run(task, fn) {
+        const plan = AIConfig.resolve(task);
+        const prov = AIConfig.PROVIDERS[plan.provider];
+        const keys = AIConfig.getKeys(plan.provider);
+        const modelLabel = AIConfig.modelLabel(plan.provider, plan.model);
+        const mk = (tier, apiKey) => ({ provider: plan.provider, model: plan.model, apiKey, tier, usage: null });
+        let reason = 'model';
+
+        if (!plan.paidOnly && keys.free) {
+            try {
+                return await fn(mk('free', keys.free));
+            } catch (e) {
+                if (!(e && e.isQuota && keys.paid)) {
+                    if (e && e.isQuota && !keys.paid) {
+                        e.message += ' (Bạn có thể thêm API Key trả phí trong Cài đặt > Trí tuệ nhân tạo để app tự chuyển sang khi hết hạn mức miễn phí.)';
+                    }
+                    throw e;
+                }
+                console.warn(`[AI] Hết hạn mức miễn phí của ${prov.name}, chuyển sang API trả phí (cần xác nhận).`);
+                reason = 'quota';
+            }
+        } else if (!keys.paid) {
+            if (plan.paidOnly && keys.free) {
+                throw new Error(`Mô hình "${modelLabel}" (${prov.name}) chỉ có ở API trả phí. Hãy nhập API Key trả phí trong Cài đặt > Trí tuệ nhân tạo, hoặc chọn mô hình miễn phí cho tác vụ này.`);
+            }
+            throw new Error(`Vui lòng thiết lập ${prov.name} API Key trong Cài đặt > Trí tuệ nhân tạo trước khi dùng tính năng này.`);
+        }
+
+        await AIConfig.authorizePaid({ reason, providerName: prov.name, modelLabel });
+        const ctx = mk('paid', keys.paid);
+        const text = await fn(ctx);
+        AIConfig.recordUsage(plan.provider, plan.model, ctx.usage);
+        return text;
+    },
+
+    /**
+     * Gửi prompt (và ảnh nếu có) tới nhà cung cấp/mô hình đang được chọn cho tác vụ.
+     * @param {string} task
+     * @param {string} prompt
+     * @param {{temperature?:number,json?:boolean,images?:string[]|string|null}} [opts]
+     */
+    async route(task, prompt, opts = {}) {
+        const { temperature = 0.3, json = false, images = null } = opts;
+        const hasImages = !!images && (!Array.isArray(images) || images.length > 0);
+        return this._run(task, async (ctx) => {
+            let text;
+            switch (ctx.provider) {
+                case 'openai':
+                    text = hasImages ? await this.callOpenAIVision(prompt, images, json, ctx) : await this.callOpenAI(prompt, temperature, json, ctx);
+                    break;
+                case 'anthropic':
+                    text = await this.callAnthropic(prompt, temperature, ctx);
+                    break;
+                case 'deepseek':
+                    text = await this.callDeepSeek(prompt, temperature, json, ctx);
+                    break;
+                case 'zhipu':
+                    text = hasImages ? await this.callZhipuVision(prompt, images, json, ctx) : await this.callZhipu(prompt, temperature, json, ctx);
+                    break;
+                default:
+                    text = await this.callGeminiAPI(prompt, hasImages ? images : null, json, ctx.model, temperature, ctx);
+            }
+            if (!ctx.usage) {
+                // Nhà cung cấp không trả số token: ước tính thô theo số ký tự (≈3 ký tự/token) + ~1500 token/ảnh.
+                const nImg = hasImages ? (Array.isArray(images) ? images.length : 1) : 0;
+                ctx.usage = { in: Math.ceil(prompt.length / 3) + nImg * 1500, out: Math.ceil(String(text || '').length / 3), estimated: true };
+            }
+            return text;
+        });
+    },
+
+    /** Gắn cờ lỗi "hết hạn mức" để _run biết cần chuyển sang API trả phí. */
+    _quotaError(message) {
+        const e = new Error(message);
+        e.isQuota = true;
+        return e;
+    },
+    _isQuotaResponse(response, apiMsg, code) {
+        return response.status === 429 && (/quota|balance|exceed|insufficient|billing|limit/i.test(apiMsg || '') || /quota|balance/i.test(String(code || '')));
+    },
+
+    // ======================================================================
+    // CÁC HÀM GỌI API TỪNG NHÀ CUNG CẤP (nhận ctx = {model, apiKey, usage})
+    // ======================================================================
+
+    /**
+     * Gọi Gemini API. Khóa API gửi qua header (không đưa vào URL để tránh lọt vào log/lịch sử).
+     * @param {number} temperature - 0 = ổn định nhất; ứng dụng y tế ưu tiên tính nhất quán.
+     */
+    async callGeminiAPI(prompt, base64Images = null, isJson = false, overrideModel = null, temperature = 0.2, ctx = null) {
+        const geminiKeys = AIConfig.getKeys('gemini');
+        const apiKey = ctx ? ctx.apiKey : (geminiKeys.free || geminiKeys.paid);
         if (!apiKey) {
             throw new Error("Vui lòng thiết lập API Key trong phần Cài đặt trước khi sử dụng tính năng này.");
         }
 
-        let model = overrideModel || DataManager.getGeminiModel();
-        // Kiểm tra an toàn: nếu model để trống hoặc thuộc thế hệ cũ < 3.0, tự động dùng gemini-3.0-flash
-        if (!model || (DataManager.DEPRECATED_GEMINI_MODELS && DataManager.DEPRECATED_GEMINI_MODELS.includes(model)) || /^gemini-[12]./.test(model)) {
+        let model = overrideModel || (ctx && ctx.model) || 'gemini-3.0-flash';
+        // Nếu model thuộc thế hệ cũ đã bị Google ngừng hỗ trợ, tự dùng gemini-3.0-flash
+        if (!model || (DataManager.DEPRECATED_GEMINI_MODELS && DataManager.DEPRECATED_GEMINI_MODELS.includes(model)) || /^gemini-[12]\./.test(model)) {
             model = 'gemini-3.0-flash';
         }
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
 
         let parts = [{ text: prompt }];
-        
+
         if (base64Images) {
             const imagesArray = Array.isArray(base64Images) ? base64Images : [base64Images];
             imagesArray.forEach(img => {
                 if (img.includes('base64,')) {
                     const base64Data = img.split(',')[1];
-                    
-                    // Lấy chính xác mimeType từ data URI (hỗ trợ image/jpeg, image/png, application/pdf...)
+                    // Lấy chính xác mimeType từ data URI (image/jpeg, image/png, application/pdf...)
                     const mimeTypeMatches = img.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,/);
                     let mimeType = 'image/jpeg';
-                    if (mimeTypeMatches) {
-                        mimeType = mimeTypeMatches[1];
-                    }
-                    
-                    parts.push({
-                        inlineData: {
-                            data: base64Data,
-                            mimeType: mimeType
-                        }
-                    });
+                    if (mimeTypeMatches) mimeType = mimeTypeMatches[1];
+                    parts.push({ inlineData: { data: base64Data, mimeType: mimeType } });
                 }
             });
         }
-        
-        let contents = [{
-            role: "user",
-            parts: parts
-        }];
 
         const body = {
-            contents: contents,
-            generationConfig: {
-                temperature: temperature,
-            }
+            contents: [{ role: "user", parts: parts }],
+            generationConfig: { temperature: temperature }
         };
-
-        if (isJson) {
-            body.generationConfig.responseMimeType = "application/json";
-        }
+        if (isJson) body.generationConfig.responseMimeType = "application/json";
 
         let attempts = 0;
         const maxAttempts = 2;
@@ -114,9 +189,7 @@ const AIService = {
             try {
                 const response = await this._fetchWithTimeout(url, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
                     body: JSON.stringify(body)
                 });
 
@@ -124,34 +197,37 @@ const AIService = {
 
                 if (!response.ok) {
                     const apiMsg = data.error?.message || "Lỗi khi gọi Google Gemini API.";
-                    // Google ngừng hỗ trợ (decommission) các model Gemini theo chu kỳ ~1 năm.
-                    // Nếu model đã lưu trong Cài đặt bị ngừng, lỗi trả về thường là 404/NOT_FOUND
-                    // với thông điệp chung chung "model not found" — rất khó hiểu với người dùng
-                    // thường. Bắt đúng trường hợp này để đưa ra hướng dẫn cụ thể thay vì để lỗi thô.
+                    // Model bị Google ngừng hỗ trợ thường trả 404/NOT_FOUND với thông điệp chung chung.
                     const isModelNotFound = response.status === 404 || data.error?.status === 'NOT_FOUND' || (/model/i.test(apiMsg) && /not found|not supported|does not exist/i.test(apiMsg));
                     if (isModelNotFound) {
-                        throw new Error(`Model AI "${model}" hiện không khả dụng (có thể đã bị Google ngừng hỗ trợ). Vào Cài đặt > mục Gemini > bấm "Tải danh sách" để chọn lại 1 model đang hoạt động từ chính tài khoản của bạn. (Chi tiết lỗi gốc: ${apiMsg})`);
+                        throw new Error(`Model AI "${model}" hiện không khả dụng (có thể đã bị Google ngừng hỗ trợ). Hãy vào Cài đặt > Trí tuệ nhân tạo > "Cập nhật danh sách mô hình" hoặc chọn mô hình khác. (Chi tiết lỗi gốc: ${apiMsg})`);
                     }
 
-                    // Bắt lỗi Hết hạn mức / Quá giới hạn request (429 RESOURCE_EXHAUSTED)
+                    // Hết hạn mức / quá giới hạn request (429 RESOURCE_EXHAUSTED)
                     const isQuotaExceeded = response.status === 429 || data.error?.status === 'RESOURCE_EXHAUSTED' || /quota|rate limit|resource_exhausted/i.test(apiMsg);
                     if (isQuotaExceeded) {
                         const isPerMinute = /minute|rpm|per minute/i.test(apiMsg);
                         if (isPerMinute) {
                             throw new Error(`Đã đạt giới hạn gửi yêu cầu/phút của Google Gemini (Rate Limit). Vui lòng đợi khoảng 1 phút rồi thử lại.`);
                         }
-                        throw new Error(`Hết hạn mức sử dụng (Quota Exceeded) từ tài khoản Google Gemini. Vui lòng tạo API Key mới từ tài khoản Google khác và dán vào Cài đặt > "Lưu cài đặt", hoặc chuyển sang ChatGPT/Claude để dự phòng.`);
+                        throw this._quotaError(`Hết hạn mức sử dụng (Quota Exceeded) của API Key Gemini hiện tại.`);
                     }
 
-                    // Bắt lỗi Quá tải máy chủ (503 / High Demand)
+                    // Quá tải máy chủ (503 / High Demand)
                     const isOverloadStatus = response.status === 503 || /high demand|overloaded|unavailable/i.test(apiMsg);
                     if (isOverloadStatus) {
-                        throw new Error(`Hệ thống AI của Google hiện đang bị quá tải tạm thời (503 High Demand). Vui lòng đợi 1-2 phút rồi thử lại, hoặc vào Cài đặt để đổi sang ChatGPT/Claude.`);
+                        throw new Error(`Hệ thống AI của Google hiện đang bị quá tải tạm thời (503 High Demand). Vui lòng đợi 1-2 phút rồi thử lại.`);
                     }
 
                     throw new Error(apiMsg);
                 }
 
+                if (ctx && data.usageMetadata) {
+                    ctx.usage = {
+                        in: data.usageMetadata.promptTokenCount || 0,
+                        out: (data.usageMetadata.candidatesTokenCount || 0) + (data.usageMetadata.thoughtsTokenCount || 0)
+                    };
+                }
                 if (data.candidates && data.candidates.length > 0) {
                     return data.candidates[0].content.parts[0].text;
                 } else {
@@ -164,185 +240,107 @@ const AIService = {
                     console.warn(`Gemini API overloaded. Retrying in 2 seconds... (Attempt ${attempts}/${maxAttempts})`);
                     await new Promise(r => setTimeout(r, 2000));
                 } else {
-                    console.error("Gemini API Error:", error);
+                    if (!error.isQuota) console.error("Gemini API Error:", error); // hết hạn mức là tình huống bình thường (sẽ chuyển sang key trả phí)
                     throw error;
                 }
             }
         }
     },
 
-    async callOpenAI(prompt, temperature = 0.3) {
-        const apiKey = DataManager.getOpenAIApiKey();
-        if (!apiKey) throw new Error("Vui lòng thiết lập OpenAI API Key trong Cài đặt.");
-        const model = DataManager.getOpenAIModel();
-        
-        let bodyObj = {
-            model: model.trim(),
-            messages: [{ role: "user", content: prompt }]
-        };
-        
-        // Các model dòng o1/o3 của OpenAI không hỗ trợ tùy chỉnh temperature
-        const lowerModel = bodyObj.model.toLowerCase();
-        if (!lowerModel.startsWith('o1') && !lowerModel.startsWith('o3')) {
-            bodyObj.temperature = temperature;
+    /** Gọi các API tương thích OpenAI (OpenAI, DeepSeek, Zhipu) và chuẩn hóa lỗi/usage. */
+    async _callChatCompletions(url, ctx, payload, label) {
+        const response = await this._fetchWithTimeout(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ctx.apiKey}` },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        return { response, data, label };
+    },
+    _finishChat({ response, data, label }, ctx) {
+        if (!response.ok) {
+            const msg = data.error?.message || `Lỗi khi gọi ${label} API.`;
+            if (this._isQuotaResponse(response, msg, data.error?.code)) throw this._quotaError(`Hết hạn mức sử dụng của API Key ${label}. ${msg}`);
+            throw new Error(msg);
         }
-
-        const callApi = async (bodyPayload) => {
-            const response = await this._fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${apiKey}`
-                },
-                body: JSON.stringify(bodyPayload)
-            });
-            const data = await response.json();
-            return { response, data };
-        };
-
-        let { response, data } = await callApi(bodyObj);
-
-        // Fallback tự động nếu API từ chối tham số temperature (ví dụ model là o1 nhưng tên bị đặt khác đi hoặc API thay đổi chính sách)
-        if (!response.ok && data.error && data.error.message && data.error.message.includes('temperature') && data.error.message.includes('supported')) {
-            console.warn("OpenAI API rejected the temperature parameter. Retrying without temperature...");
-            delete bodyObj.temperature;
-            const retry = await callApi(bodyObj);
-            response = retry.response;
-            data = retry.data;
-        }
-
-        if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi OpenAI API.");
+        if (data.usage) ctx.usage = { in: data.usage.prompt_tokens || 0, out: data.usage.completion_tokens || 0 };
         return data.choices[0].message.content;
     },
 
-    async callAnthropic(prompt, temperature = 0.3) {
-        const apiKey = DataManager.getAnthropicApiKey();
-        if (!apiKey) throw new Error("Vui lòng thiết lập Anthropic API Key trong Cài đặt.");
-        // Xem ghi chú tương tự ở callOpenAI() — model có thể được người dùng ghi đè trong Cài đặt.
-        const model = DataManager.getAnthropicModel();
+    async callOpenAI(prompt, temperature = 0.3, isJson = false, ctx) {
+        const model = (ctx.model || 'gpt-4o').trim();
+        const bodyObj = { model, messages: [{ role: "user", content: prompt }] };
+        // Các model dòng o1/o3 của OpenAI không hỗ trợ tùy chỉnh temperature
+        const lowerModel = model.toLowerCase();
+        if (!lowerModel.startsWith('o1') && !lowerModel.startsWith('o3')) bodyObj.temperature = temperature;
+
+        const url = "https://api.openai.com/v1/chat/completions";
+        let res = await this._callChatCompletions(url, ctx, bodyObj, 'OpenAI');
+        // Fallback tự động nếu API từ chối tham số temperature
+        if (!res.response.ok && res.data.error?.message?.includes('temperature') && res.data.error.message.includes('supported')) {
+            delete bodyObj.temperature;
+            res = await this._callChatCompletions(url, ctx, bodyObj, 'OpenAI');
+        }
+        return this._finishChat(res, ctx);
+    },
+
+    async callAnthropic(prompt, temperature = 0.3, ctx) {
         const response = await this._fetchWithTimeout("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "x-api-key": apiKey,
+                "x-api-key": ctx.apiKey,
                 "anthropic-version": "2023-06-01",
                 "anthropic-dangerous-direct-browser-access": "true"
             },
             body: JSON.stringify({
-                model: model,
-                max_tokens: 2048,
+                model: ctx.model,
+                max_tokens: 4096,
                 temperature: temperature,
                 messages: [{ role: "user", content: prompt }]
             })
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi Anthropic API.");
+        if (!response.ok) {
+            const msg = data.error?.message || "Lỗi khi gọi Anthropic API.";
+            if (this._isQuotaResponse(response, msg)) throw this._quotaError(`Hết hạn mức sử dụng của API Key Claude. ${msg}`);
+            throw new Error(msg);
+        }
+        if (data.usage) ctx.usage = { in: data.usage.input_tokens || 0, out: data.usage.output_tokens || 0 };
         return data.content[0].text;
     },
-    async callDeepSeek(prompt, temperature = 0.3, isJson = false) {
-        const apiKey = DataManager.getDeepSeekApiKey();
-        if (!apiKey) throw new Error("Vui lòng thiết lập DeepSeek API Key trong Cài đặt.");
-        const model = DataManager.getDeepSeekModel();
-        const payload = {
-            model: model || 'deepseek-chat',
-            temperature: temperature,
-            messages: [{ role: "user", content: prompt }]
-        };
-        if (isJson) {
-            payload.response_format = { type: "json_object" };
-        }
-        const response = await this._fetchWithTimeout("https://api.deepseek.com/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
-            },
-            body: JSON.stringify(payload)
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi DeepSeek API.");
-        return data.choices[0].message.content;
+
+    async callDeepSeek(prompt, temperature = 0.3, isJson = false, ctx) {
+        const payload = { model: ctx.model || 'deepseek-chat', temperature, messages: [{ role: "user", content: prompt }] };
+        if (isJson) payload.response_format = { type: "json_object" };
+        return this._finishChat(await this._callChatCompletions("https://api.deepseek.com/chat/completions", ctx, payload, 'DeepSeek'), ctx);
     },
 
-    async callZhipu(prompt, temperature = 0.3, isJson = false) {
-        const apiKey = DataManager.getZhipuApiKey();
-        if (!apiKey) throw new Error("Vui lòng thiết lập Zhipu AI API Key trong Cài đặt.");
-        const model = DataManager.getZhipuModel();
-        const payload = {
-            model: model || 'glm-4-flash',
-            temperature: temperature,
-            messages: [{ role: "user", content: prompt }]
-        };
-        const response = await this._fetchWithTimeout("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
-            },
-            body: JSON.stringify(payload)
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi Zhipu AI API.");
-        return data.choices[0].message.content;
+    async callZhipu(prompt, temperature = 0.3, isJson = false, ctx) {
+        const payload = { model: ctx.model || 'glm-4-flash', temperature, messages: [{ role: "user", content: prompt }] };
+        return this._finishChat(await this._callChatCompletions("https://open.bigmodel.cn/api/paas/v4/chat/completions", ctx, payload, 'Zhipu AI'), ctx);
     },
 
-    async callZhipuVision(prompt, base64Images, isJson = false) {
-        const apiKey = DataManager.getZhipuApiKey();
-        if (!apiKey) throw new Error("Vui lòng thiết lập Zhipu AI API Key trong Cài đặt.");
+    _visionContent(prompt, base64Images) {
         const imagesArray = Array.isArray(base64Images) ? base64Images : [base64Images];
-        const content = [
+        return [
             { type: "text", text: prompt },
             ...imagesArray.map(img => ({
                 type: "image_url",
                 image_url: { url: img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}` }
             }))
         ];
-        const response = await this._fetchWithTimeout("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: 'glm-4v-flash',
-                temperature: 0.1,
-                messages: [{ role: "user", content: content }]
-            })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi Zhipu AI Vision API.");
-        return data.choices[0].message.content;
     },
 
-    async callOpenAIVision(prompt, base64Images, isJson = false) {
-        const apiKey = DataManager.getOpenAIApiKey();
-        if (!apiKey) throw new Error("Vui lòng thiết lập OpenAI API Key trong Cài đặt.");
-        const model = DataManager.getOpenAIModel() || 'gpt-4o';
-        const imagesArray = Array.isArray(base64Images) ? base64Images : [base64Images];
-        const content = [
-            { type: "text", text: prompt },
-            ...imagesArray.map(img => ({
-                type: "image_url",
-                image_url: { url: img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}` }
-            }))
-        ];
-        const response = await this._fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: model,
-                temperature: 0.1,
-                messages: [{ role: "user", content: content }]
-            })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || "Lỗi khi gọi OpenAI Vision API.");
-        return data.choices[0].message.content;
+    async callZhipuVision(prompt, base64Images, isJson = false, ctx) {
+        const payload = { model: ctx.model || 'glm-4v-flash', temperature: 0.1, messages: [{ role: "user", content: this._visionContent(prompt, base64Images) }] };
+        return this._finishChat(await this._callChatCompletions("https://open.bigmodel.cn/api/paas/v4/chat/completions", ctx, payload, 'Zhipu AI Vision'), ctx);
     },
 
+    async callOpenAIVision(prompt, base64Images, isJson = false, ctx) {
+        const payload = { model: ctx.model || 'gpt-4o', temperature: 0.1, messages: [{ role: "user", content: this._visionContent(prompt, base64Images) }] };
+        return this._finishChat(await this._callChatCompletions("https://api.openai.com/v1/chat/completions", ctx, payload, 'OpenAI Vision'), ctx);
+    },
 
     /**
      * 1. OCR & Trích xuất dữ liệu: đọc ảnh/PDF phiếu khám và trả về object dữ liệu hồ sơ dạng JSON.
@@ -375,15 +373,7 @@ Nếu bất kỳ thông tin nào không thể tìm thấy trong ảnh, hãy đ�
         // temperature = 0: đây là tác vụ trích xuất/phân loại dữ liệu (không phải viết văn), nên
         // ưu tiên tuyệt đối tính nhất quán — cùng 1 ảnh đọc nhiều lần nên ra cùng 1 kết quả, thay
         // vì "sáng tạo" ra các cách diễn đạt/phân loại khác nhau mỗi lần gọi.
-        const ocrProvider = DataManager.getProviderOcr();
-        let result = "";
-        if (ocrProvider === 'zhipu') {
-            result = await this.callZhipuVision(prompt, base64Images, true);
-        } else if (ocrProvider === 'openai') {
-            result = await this.callOpenAIVision(prompt, base64Images, true);
-        } else {
-            result = await this.callGeminiAPI(prompt, base64Images, true, null, 0);
-        }
+        const result = await this.route('ocr', prompt, { temperature: 0, json: true, images: base64Images });
         try {
             let cleanResult = result.trim();
             // Try parsing directly first
@@ -444,18 +434,9 @@ Yêu cầu định dạng báo cáo (Sử dụng Markdown rõ ràng, đẹp mắ
 
 Chú ý: Trình bày nội dung cực kỳ chuyên nghiệp, dễ hiểu cho bệnh nhân, xuống dòng rõ ràng, sử dụng bullet points \`-\` hoặc in đậm \`**\` để làm nổi bật thông tin quan trọng.`;
 
-        let result = "";
-        if (overrideModel === 'chatgpt') {
-            throw new Error("ChatGPT hiện chưa được hỗ trợ đọc tệp đính kèm trong tính năng này. Vui lòng chọn Gemini.");
-        } else if (overrideModel === 'claude') {
-            throw new Error("Claude hiện chưa được hỗ trợ đọc tệp đính kèm trong tính năng này. Vui lòng chọn Gemini.");
-        } else {
-            // overrideModel is 'gemini', use default model from settings.
-            // temperature thấp (0.1) thay vì mặc định: đây là báo cáo tổng hợp SỐ LIỆU y khoa từ
-            // tài liệu thật, cần ưu tiên tính nhất quán/trung thực với dữ liệu gốc hơn là văn phong
-            // đa dạng — đọc lại đúng 1 bộ ảnh nên luôn ra kết luận giống nhau về mặt nội dung.
-            result = await this.callGeminiAPI(prompt, base64Files, false, null, 0.1);
-        }
+        // overrideModel được giữ lại để tương thích cũ; nhà cung cấp/mô hình thực tế do Cài đặt AI (tác vụ "Quét thông minh") quyết định.
+        // temperature thấp (0.1): báo cáo tổng hợp SỐ LIỆU y khoa cần nhất quán/trung thực với dữ liệu gốc.
+        const result = await this.route('ocr', prompt, { temperature: 0.1, images: base64Files });
         // Clean markdown block wrapper if AI mistakenly wraps standard text in ```markdown
         let cleanResult = result.trim();
         if (cleanResult.startsWith("```")) {
@@ -500,22 +481,7 @@ Vui lòng phân tích và đưa ra nhận xét:
 3. Lời khuyên cụ thể về cách sinh hoạt, chế độ dinh dưỡng, vận động để cải thiện tình trạng.
 4. Những dấu hiệu nguy hiểm cần theo dõi thêm và khi nào cần đi tái khám.`;
 
-        const provider = DataManager.getProviderAssessment();
-        if (provider === 'openai') {
-            return await this.callOpenAI(prompt + this.getLanguagePromptInstruction());
-        } else if (provider === 'anthropic') {
-            return await this.callAnthropic(prompt + this.getLanguagePromptInstruction());
-        } else if (provider === 'deepseek') {
-            return await this.callDeepSeek(prompt + this.getLanguagePromptInstruction());
-        } else if (provider === 'zhipu') {
-            return await this.callZhipu(prompt + this.getLanguagePromptInstruction());
-        } else {
-            // BUG ĐÃ SỬA: trước đây gọi callGeminiAPI(prompt, null, false, true) — tham số thứ 4
-            // (overrideModel) bị truyền nhầm giá trị boolean `true` thay vì tên model/`null`.
-            // Hệ quả: URL gọi API trở thành ".../models/true:generateContent" và luôn lỗi 404
-            // mỗi khi dùng Gemini (nhà cung cấp mặc định) cho tính năng Nhận xét AI / Tra cứu bệnh.
-            return await this.callGeminiAPI(prompt, null, false);
-        }
+        return await this.route('assessment', prompt + this.getLanguagePromptInstruction(), { temperature: 0.2 });
     },
 
     // Đánh giá xu hướng sức khỏe từ toàn bộ hồ sơ
@@ -561,18 +527,7 @@ Vui lòng phân tích và xuất Báo cáo Đánh giá Xu hướng Sức khỏe 
 3. **Phân tích bệnh lý:** Các bệnh lý nào thường xuyên lặp lại hoặc có xu hướng tiến triển? Nguyên nhân có thể do đâu?
 4. **Kế hoạch hành động:** Đưa ra lời khuyên thiết thực về cách theo dõi sức khỏe tại nhà, thay đổi chế độ dinh dưỡng, vận động, và lịch tái khám định kỳ để cải thiện tình hình sức khỏe hiện tại, tập trung vào việc ổn định huyết áp và đường huyết nếu bệnh nhân có tiền sử bất thường.`;
 
-        const provider = DataManager.getProviderTrend();
-        if (provider === 'openai') {
-            return await this.callOpenAI(prompt);
-        } else if (provider === 'anthropic') {
-            return await this.callAnthropic(prompt);
-        } else if (provider === 'deepseek') {
-            return await this.callDeepSeek(prompt);
-        } else if (provider === 'zhipu') {
-            return await this.callZhipu(prompt);
-        } else {
-            return await this.callGeminiAPI(prompt, null, false);
-        }
+        return await this.route('trend', prompt, { temperature: 0.2 });
     },
 
     // 3. Tra cứu chuyên sâu về bệnh
@@ -593,22 +548,7 @@ Vui lòng cung cấp một bài viết tham khảo y khoa chi tiết, sử dụn
 
 Hãy viết với văn phong đồng cảm, khoa học, chính xác, nhưng dễ hiểu đối với người không có chuyên môn y tế. Nếu thông tin đầu vào chưa đủ để kết luận chắc chắn, hãy nói rõ đây chỉ là tham khảo và khuyên bệnh nhân gặp bác sĩ để có chẩn đoán chính xác.`;
 
-        const provider = DataManager.getProviderSearch();
-        if (provider === 'openai') {
-            return await this.callOpenAI(prompt);
-        } else if (provider === 'anthropic') {
-            return await this.callAnthropic(prompt);
-        } else if (provider === 'deepseek') {
-            return await this.callDeepSeek(prompt);
-        } else if (provider === 'zhipu') {
-            return await this.callZhipu(prompt);
-        } else {
-            // BUG ĐÃ SỬA: trước đây gọi callGeminiAPI(prompt, null, false, true) — tham số thứ 4
-            // (overrideModel) bị truyền nhầm giá trị boolean `true` thay vì tên model/`null`.
-            // Hệ quả: URL gọi API trở thành ".../models/true:generateContent" và luôn lỗi 404
-            // mỗi khi dùng Gemini (nhà cung cấp mặc định) cho tính năng Nhận xét AI / Tra cứu bệnh.
-            return await this.callGeminiAPI(prompt, null, false);
-        }
+        return await this.route('search', prompt, { temperature: 0.2 });
     },
 
     /**
@@ -633,18 +573,7 @@ Các tính năng chính và nâng cấp mới nhất:
 Hãy trả lời câu hỏi của người dùng một cách ngắn gọn, dễ hiểu, thân thiện, và định dạng bằng Markdown (in đậm, danh sách) để dễ đọc:
 Câu hỏi của người dùng: "${userQuestion}"${langInstruction}`;
 
-        const provider = DataManager.getProviderSearch();
-        if (provider === 'openai') {
-            return await this.callOpenAI(systemInstruction);
-        } else if (provider === 'anthropic') {
-            return await this.callAnthropic(systemInstruction);
-        } else if (provider === 'deepseek') {
-            return await this.callDeepSeek(systemInstruction);
-        } else if (provider === 'zhipu') {
-            return await this.callZhipu(systemInstruction);
-        } else {
-            return await this.callGeminiAPI(systemInstruction, null, false);
-        }
+        return await this.route('search', systemInstruction, { temperature: 0.2 });
     },
 
     // 5. Phân tích thuốc chuyên sâu
@@ -660,18 +589,7 @@ Hãy phân tích chuyên sâu về các loại thuốc (nếu có) trong nội d
 Nếu văn bản trên không chứa tên thuốc rõ ràng hoặc chỉ là lời khuyên chung chung, hãy giải thích ngắn gọn ý nghĩa của lời khuyên đó.
 *LƯU Ý QUAN TRỌNG:* Cuối bài, luôn thêm dòng cảnh báo in nghiêng: "*Lưu ý: Thông tin trên chỉ mang tính chất tham khảo. Vui lòng luôn tuân thủ chính xác liều lượng và chỉ định của Bác sĩ điều trị. Không tự ý ngưng thuốc.*"`;
 
-        const provider = DataManager.getProviderChat();
-        if (provider === 'openai') {
-            return await this.callOpenAI(prompt);
-        } else if (provider === 'anthropic') {
-            return await this.callAnthropic(prompt);
-        } else if (provider === 'deepseek') {
-            return await this.callDeepSeek(prompt);
-        } else if (provider === 'zhipu') {
-            return await this.callZhipu(prompt);
-        } else {
-            return await this.callGeminiAPI(prompt, null, false);
-        }
+        return await this.route('chat', prompt, { temperature: 0.2 });
     },
 
     // 6. Hỏi đáp AI với Hồ sơ bệnh án
@@ -715,18 +633,7 @@ ${recordContext}
         
         fullPrompt += `\nBệnh nhân vừa hỏi: "${userMessage}"\nHãy đóng vai Trợ lý AI để trả lời câu hỏi trên ngay lập tức. Đừng lặp lại câu hỏi.`;
 
-        const provider = DataManager.getProviderChat();
-        if (provider === 'openai') {
-            return await this.callOpenAI(fullPrompt, 0.4);
-        } else if (provider === 'anthropic') {
-            return await this.callAnthropic(fullPrompt, 0.4);
-        } else if (provider === 'deepseek') {
-            return await this.callDeepSeek(fullPrompt, 0.4);
-        } else if (provider === 'zhipu') {
-            return await this.callZhipu(fullPrompt, 0.4);
-        } else {
-            return await this.callGeminiAPI(fullPrompt, null, false, null, 0.4);
-        }
+        return await this.route('chat', fullPrompt, { temperature: 0.4 });
     },
 
     async getShortExplanation(keyword, disease, treatment) {
@@ -735,18 +642,7 @@ ${recordContext}
 Hãy giải thích SIÊU NGẮN GỌN (chỉ 2-3 câu) về chỉ số/thuật ngữ y khoa sau: "${keyword}".
 Không cần lời chào hỏi, đi thẳng vào giải thích ý nghĩa.`;
 
-        const provider = DataManager.getProviderChat();
-        if (provider === 'openai') {
-            return await this.callOpenAI(prompt, 0.2);
-        } else if (provider === 'anthropic') {
-            return await this.callAnthropic(prompt, 0.2);
-        } else if (provider === 'deepseek') {
-            return await this.callDeepSeek(prompt, 0.2);
-        } else if (provider === 'zhipu') {
-            return await this.callZhipu(prompt, 0.2);
-        } else {
-            return await this.callGeminiAPI(prompt, null, false, null, 0.2);
-        }
+        return await this.route('chat', prompt, { temperature: 0.2 });
     },
 
     async extractSmartReminders(recordData) {
@@ -795,18 +691,7 @@ Chú ý:
 
         try {
             let resText = '';
-            const provider = DataManager.getProviderAssessment();
-            if (provider === 'openai') {
-                resText = await this.callOpenAI(prompt, 0.1, true);
-            } else if (provider === 'anthropic') {
-                resText = await this.callAnthropic(prompt, 0.1);
-            } else if (provider === 'deepseek') {
-                resText = await this.callDeepSeek(prompt, 0.1, true);
-            } else if (provider === 'zhipu') {
-                resText = await this.callZhipu(prompt, 0.1);
-            } else {
-                resText = await this.callGeminiAPI(prompt, null, true, null, 0.1);
-            }
+            resText = await this.route('assessment', prompt, { temperature: 0.1, json: true });
 
             let cleanResult = resText.trim();
             if (cleanResult.startsWith("```json")) cleanResult = cleanResult.replace(/^```json/, "");
@@ -1170,18 +1055,7 @@ Hãy cung cấp một bài viết hướng dẫn chuyên sâu chi tiết bằng 
 
 Viết với văn phong khoa học, chuẩn y khoa, ân cần và dễ hiểu.`;
 
-        const provider = DataManager.getProviderSearch();
-        if (provider === 'openai') {
-            return await this.callOpenAI(prompt, 0.2);
-        } else if (provider === 'anthropic') {
-            return await this.callAnthropic(prompt, 0.2);
-        } else if (provider === 'deepseek') {
-            return await this.callDeepSeek(prompt, 0.2);
-        } else if (provider === 'zhipu') {
-            return await this.callZhipu(prompt, 0.2);
-        } else {
-            return await this.callGeminiAPI(prompt, null, false, null, 0.2);
-        }
+        return await this.route('search', prompt, { temperature: 0.2 });
     }
 };
 

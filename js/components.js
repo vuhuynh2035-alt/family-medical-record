@@ -56,8 +56,9 @@ const UI = {
         if (typeof DOMPurify !== 'undefined') {
             return DOMPurify.sanitize(raw);
         }
-        console.warn('Thư viện DOMPurify chưa tải được — nội dung AI KHÔNG được khử trùng trước khi hiển thị.');
-        return raw;
+        // Fail-closed: không có DOMPurify thì TUYỆT ĐỐI không chèn HTML thô do AI/Markdown sinh ra — chỉ hiện văn bản đã escape.
+        console.warn('Thư viện DOMPurify chưa tải được — hiển thị văn bản thô (đã escape) thay vì HTML.');
+        return this.nl2br(text);
     },
 
     /**
@@ -69,8 +70,16 @@ const UI = {
      */
     getAvatarUrl(member) {
         if (member && member.avatar) return member.avatar;
-        const label = (member && (member.nickname || member.name)) || '?';
-        return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(label) + '&background=random';
+        // Tự vẽ ảnh chữ cái đầu bằng SVG nội tuyến — không gửi tên thành viên tới dịch vụ bên thứ ba.
+        const label = ((member && (member.nickname || member.name)) || '?').trim();
+        const initials = (label.split(/s+/).filter(Boolean).slice(-2).map(w => Array.from(w)[0]).join('') || '?').toUpperCase();
+        let h = 0;
+        for (const ch of label) h = (h * 31 + ch.codePointAt(0)) % 360;
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">' +
+            '<rect width="128" height="128" fill="hsl(' + h + ',55%,48%)"/>' +
+            '<text x="64" y="64" dy=".35em" text-anchor="middle" font-family="Arial,sans-serif" font-size="52" font-weight="600" fill="#fff">' +
+            initials.replace(/[<>&"']/g, '') + '</text></svg>';
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     },
 
     /**

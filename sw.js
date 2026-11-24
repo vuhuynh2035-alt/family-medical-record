@@ -1,5 +1,6 @@
 const SW_VERSION = 'v2.9.108';
 const CACHE_NAME = `family-health-static-${SW_VERSION}`;
+const NETWORK_TIMEOUT_MS = 4000;
 const BUILD_TIME = '2026-11-05_22-45';
 
 const STATIC_ASSETS = [
@@ -8,11 +9,20 @@ const STATIC_ASSETS = [
   './css/style.css',
   './js/app.js',
   './js/data.js',
+  './js/ai-policy.js',
   './js/ai.js',
+  './js/ai-settings-ui.js',
   './js/components.js',
   './js/help.js',
   './js/i18n.js',
   './js/speech.js',
+  './js/vendor/cropper.min.js',
+  './js/vendor/marked.min.js',
+  './js/vendor/purify.min.js',
+  './js/vendor/html2pdf.bundle.min.js',
+  './js/vendor/pdf.min.js',
+  './js/vendor/pdf.worker.min.js',
+  './css/vendor/cropper.min.css',
   './manifest.json',
   './version.json',
   './favicon.jpg',
@@ -63,19 +73,28 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.endsWith('/sw.js') || url.pathname.endsWith('/version.json')) return;
 
   event.respondWith((async () => {
-    try {
-      const response = await fetch(event.request);
+    const isNavigate = event.request.mode === 'navigate';
+    const fromCache = async () => (await caches.match(event.request, { ignoreSearch: true }))
+      || (isNavigate ? await caches.match('./index.html') : null);
+    // Luôn thử MẠNG trước để nhận bản mới nhất; riêng khi mạng yếu/treo quá NETWORK_TIMEOUT_MS thì dùng bản nhớ tạm (nếu có)
+    const network = fetch(event.request).then(async (response) => {
       if (response && response.ok && response.type === 'basic') {
         const copy = response.clone();
         const cache = await caches.open(CACHE_NAME);
         cache.put(event.request, copy).catch(() => {});
       }
       return response;
+    });
+    network.catch(() => {}); // tránh cảnh báo promise bị từ chối khi đã dùng bản nhớ tạm
+    try {
+      const cachedNow = await fromCache();
+      if (!cachedNow) return await network;
+      const timeout = new Promise((resolve) => setTimeout(() => resolve(cachedNow), NETWORK_TIMEOUT_MS));
+      return await Promise.race([network, timeout]);
     } catch (err) {
-      const cached = await caches.match(event.request, { ignoreSearch: true })
-        || (event.request.mode === 'navigate' ? await caches.match('./index.html') : null);
+      const cached = await fromCache();
       if (cached) return cached;
-      if (event.request.mode === 'navigate') {
+      if (isNavigate) {
         return new Response(
           '<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>Ngoại tuyến</title></head>' +
           '<body style="font-family:sans-serif;text-align:center;padding:40px;">' +

@@ -18,7 +18,7 @@ RUN rm -rf /usr/share/nginx/html/node_modules \
            /usr/share/nginx/html/*.bat \
            /usr/share/nginx/html/*.vbs \
            /usr/share/nginx/html/*.py \
-           /usr/share/nginx/html/*.sh
+           /usr/share/nginx/html/*.sh            /usr/share/nginx/html/*.md            /usr/share/nginx/html/.cursor            /usr/share/nginx/html/.firebase            /usr/share/nginx/html/.release.json            /usr/share/nginx/html/.dockerignore            /usr/share/nginx/html/.gitignore            /usr/share/nginx/html/server.js            /usr/share/nginx/html/package.json            /usr/share/nginx/html/package-lock.json            /usr/share/nginx/html/firebase.json            /usr/share/nginx/html/scripts
 
 EXPOSE 80
 

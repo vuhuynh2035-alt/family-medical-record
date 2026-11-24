@@ -6,10 +6,31 @@
 const express = require('express');
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const HOST = process.env.HOST || '0.0.0.0'; // đặt HOST=127.0.0.1 nếu chỉ dùng trên chính máy này
 const PUBLIC_DIR = __dirname;
+
+// HTTPS (tùy chọn): đặt SSL_KEY và SSL_CERT là đường dẫn file khóa/chứng chỉ. Cần thiết để dùng khóa PIN
+// (Web Crypto) khi mở app từ điện thoại qua địa chỉ IP trong mạng nội bộ, vì trình duyệt chỉ cho phép
+// Web Crypto ở HTTPS hoặc localhost.
+const USE_HTTPS = !!(process.env.SSL_KEY && process.env.SSL_CERT);
+
+// CHỈ những tệp/thư mục này được phục vụ ra ngoài — không lộ server.js, package.json, .release.json, *.md, v.v.
+const PUBLIC_FILES = ['index.html', '404.html', 'sw.js', 'manifest.json', 'version.json', 'favicon.jpg', 'favicon.png'];
+const PUBLIC_DIRS = ['css', 'js'];
+
+app.disable('x-powered-by');
+app.use((req, res, next) => {
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.set('Referrer-Policy', 'no-referrer');
+    res.set('X-Frame-Options', 'DENY');
+    next();
+});
 
 // Thiết lập header kiểm soát bộ nhớ đệm (Cache-Control) tương tự chuẩn PWA
 app.use((req, res, next) => {
@@ -27,14 +48,19 @@ app.use((req, res, next) => {
     next();
 });
 
-// Phục vụ toàn bộ tệp tĩnh từ thư mục hiện tại
-app.use(express.static(PUBLIC_DIR, {
-    index: 'index.html',
-    dotfiles: 'ignore'
-}));
+// Phục vụ tệp tĩnh theo danh sách trắng
+PUBLIC_FILES.forEach(f => {
+    app.get('/' + f, (req, res) => res.sendFile(path.join(PUBLIC_DIR, f), { dotfiles: 'deny' }));
+});
+PUBLIC_DIRS.forEach(d => {
+    app.use('/' + d, express.static(path.join(PUBLIC_DIR, d), { dotfiles: 'ignore', index: false }));
+});
 
-// Fallback: mọi đường dẫn không tồn tại đều chuyển hướng về index.html (hỗ trợ PWA)
+// Fallback PWA: đường dẫn "trang" (không có đuôi tệp) chuyển về index.html; yêu cầu tệp không tồn tại trả 404 thật.
 app.use((req, res) => {
+    if (path.extname(req.path)) {
+        return res.status(404).type('text/plain').send('Not found');
+    }
     res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
@@ -54,7 +80,11 @@ function getLocalIpAddresses() {
     return addresses;
 }
 
-const server = app.listen(PORT, '0.0.0.0', () => {
+const server = (USE_HTTPS
+    ? https.createServer({ key: fs.readFileSync(process.env.SSL_KEY), cert: fs.readFileSync(process.env.SSL_CERT) }, app)
+    : http.createServer(app)
+).listen(PORT, HOST, () => {
+    const SCHEME = USE_HTTPS ? 'https' : 'http';
     const ips = getLocalIpAddresses();
 
     console.clear();
@@ -67,17 +97,21 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     console.log('  ĐƯỜNG LINK TRUY CẬP ỨNG DỤNG:');
     console.log('----------------------------------------------------------------');
     console.log(`  * Mở trên máy tính này (HP):`);
-    console.log(`    👉 http://localhost:${PORT}`);
+    console.log(`    👉 ${SCHEME}://localhost:${PORT}`);
     console.log('');
     console.log(`  * Mở trên Điện thoại / Máy tính bảng / Laptop cùng mạng Wi-Fi:`);
     if (ips.length > 0) {
         ips.forEach(ip => {
-            console.log(`    👉 http://${ip}:${PORT}`);
+            console.log(`    👉 ${SCHEME}://${ip}:${PORT}`);
         });
     } else {
-        console.log(`    👉 http://<IP_MÁY_HP>:${PORT}`);
+        console.log(`    👉 ${SCHEME}://<IP_MÁY_HP>:${PORT}`);
     }
     console.log('----------------------------------------------------------------');
+    if (!USE_HTTPS) {
+        console.log('  * Lưu ý: dùng HTTP nên khóa PIN chỉ hoạt động trên chính máy này (localhost). Muốn dùng PIN từ điện thoại,');
+        console.log('    hãy đặt biến môi trường SSL_KEY và SSL_CERT để bật HTTPS.');
+    }
     console.log('  * Ghi chú: GitHub hiện chỉ đóng vai trò lưu trữ bản sao lưu (backup).');
     console.log('  * Nhấn Ctrl + C để dừng máy chủ.\n');
     console.log('================================================================');

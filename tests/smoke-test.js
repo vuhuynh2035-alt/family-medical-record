@@ -188,12 +188,12 @@ function check(name, condition) {
   // Kiểm tra đổi hoạt động AI
   await page.selectOption('#wizard-select-ocr', 'zhipu');
   await page.waitForTimeout(100);
-  const savedOcrZhipu = await page.evaluate(() => DataManager.getSettings().providerOcr);
-  check('Bước 4: Phân công AI đọc ảnh (OCR) sang Zhipu thành công', savedOcrZhipu === 'zhipu');
+  const savedOcrZhipu = await page.evaluate(() => (DataManager.getSettings().aiTasks || {}).ocr || '');
+  check('Bước 4: Phân công AI đọc ảnh (OCR) sang Zhipu thành công', savedOcrZhipu.startsWith('zhipu|'));
 
   await page.selectOption('#wizard-select-ocr', 'gemini');
   await page.waitForTimeout(100);
-  const savedOcrGemini = await page.evaluate(() => DataManager.getSettings().providerOcr);
+  const savedOcrGemini = await page.evaluate(() => DataManager.getProviderOcr());
   check('Bước 4: Đổi lại AI đọc ảnh sang Gemini thành công', savedOcrGemini === 'gemini');
 
   await page.click('#btn-wizard-enable-china-ai');
@@ -269,7 +269,8 @@ function check(name, condition) {
   await page.evaluate(() => {
     const s = DataManager.getSettings();
     s.geminiApiKey = 'test-fake-key';
-    s.providerOcr = 'gemini';
+    s.aiRegion = 'vn';
+    s.aiTasks = { ocr: 'auto', assessment: 'auto', search: 'auto', trend: 'auto', chat: 'auto' };
     DataManager.saveSettings(s);
   });
   await page.click('#btn-add-record');
@@ -372,9 +373,11 @@ function check(name, condition) {
 
   console.log('\n[Cấu hình AI: tự nâng cấp model cũ, ghi đè model OpenAI/Anthropic]');
   await page.evaluate(() => {
-    const s = DataManager.getSettings();
-    s.geminiModel = 'gemini-1.5-flash'; // model cũ đã bị Google ngừng hỗ trợ (decommissioned)
-    DataManager.saveSettings(s);
+    // Giả lập cấu hình kiểu cũ (nhà cung cấp theo từng tác vụ, chưa có aiTasks/aiRegion)
+    const s = JSON.parse(localStorage.getItem('family_settings'));
+    delete s.aiTasks; delete s.aiRegion;
+    s.providerAssessment = 'deepseek'; s.providerSearch = 'deepseek'; s.providerTrend = 'deepseek'; s.providerChat = 'deepseek'; s.providerOcr = 'zhipu';
+    localStorage.setItem('family_settings', JSON.stringify(s));
   });
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForTimeout(250);
@@ -382,8 +385,8 @@ function check(name, condition) {
   await page.fill('#input-unlock-pin', '1234');
   await page.click('#form-unlock button[type=submit]');
   await page.waitForTimeout(200);
-  const migratedModel = await page.evaluate(() => DataManager.getSettings().geminiModel);
-  check('Model Gemini đã ngừng hoạt động được tự động nâng cấp khi tải lại trang', migratedModel === 'gemini-3.0-flash');
+  const migrated = await page.evaluate(() => ({ t: DataManager.getSettings().aiTasks, region: AIConfig.getRegion() }));
+  check('Cấu hình AI kiểu cũ (DeepSeek/Zhipu) được tự chuyển sang kiểu mới (aiTasks) khi mở app', migrated.t && migrated.t.assessment.startsWith('deepseek|') && migrated.t.ocr.startsWith('zhipu|') && migrated.region === 'cn');
 
   await page.evaluate(() => document.getElementById('btn-settings').click());
   await page.waitForTimeout(150);
@@ -394,42 +397,41 @@ function check(name, condition) {
   // Mở rộng phần cấu hình AI (vì nó nằm trong thẻ <details>)
   await page.evaluate(() => document.querySelector('details[data-help-title="Cấu hình AI"]').open = true);
   await page.waitForTimeout(150);
-  await page.selectOption('#input-openai-model', 'gpt-4o-mini');
-  await page.selectOption('#input-anthropic-model', 'claude-3-haiku-20240307');
+  await page.selectOption('#input-ai-region', 'vn');
+  await page.waitForTimeout(100);
+  const hiddenChinaKeys = await page.evaluate(() => !document.getElementById('ai-key-deepseek-paid') && !document.getElementById('ai-key-zhipu-free') && !!document.getElementById('ai-key-gemini-free') && !!document.getElementById('ai-key-gemini-paid'));
+  check('Chọn Việt Nam: ẩn AI Trung Quốc, hiện ô key Gemini miễn phí + trả phí', hiddenChinaKeys);
+  await page.fill('#ai-key-openai-paid', 'sk-test-openai');
+  await page.selectOption('#ai-task-chat', 'openai|gpt-4o-mini');
   await page.click('#btn-save-settings');
   await page.waitForTimeout(150);
-  const savedModels = await page.evaluate(() => {
-    const s = DataManager.getSettings();
-    return { openai: s.openaiModel, anthropic: s.anthropicModel };
-  });
-  check('Lưu lựa chọn model OpenAI thành công', savedModels.openai === 'gpt-4o-mini');
-  check('Lưu lựa chọn model Anthropic thành công', savedModels.anthropic === 'claude-3-haiku-20240307');
-
-  // Test cấu hình AI Trung Quốc (DeepSeek & Zhipu)
+  const savedAi = await page.evaluate(() => { const s = DataManager.getSettings(); return { chat: s.aiTasks.chat, key: s.openaiApiKeyPaid, region: s.aiRegion }; });
+  check('Lưu quốc gia + mô hình tác vụ Trò chuyện (ChatGPT mini) + key OpenAI trả phí', savedAi.chat === 'openai|gpt-4o-mini' && savedAi.key === 'sk-test-openai' && savedAi.region === 'vn');
+    // Test cấu hình AI Trung Quốc (DeepSeek & Zhipu)
   await page.evaluate(() => document.getElementById('btn-settings').click());
   await page.waitForTimeout(150);
   await page.evaluate(() => document.querySelector('details[data-help-title="Cấu hình AI"]').open = true);
   await page.waitForTimeout(150);
-  await page.click('#btn-preset-china');
-  await page.waitForTimeout(150);
-  await page.fill('#input-deepseek-key', 'sk-test-deepseek-key');
-  await page.selectOption('#input-deepseek-model', 'deepseek-reasoner');
-  await page.fill('#input-zhipu-key', 'test-zhipu-key.123');
+  await page.selectOption('#input-ai-region', 'cn');
+  await page.waitForTimeout(100);
+  const hiddenGlobalKeys = await page.evaluate(() => !document.getElementById('ai-key-gemini-free') && !document.getElementById('ai-key-openai-paid') && !!document.getElementById('ai-key-deepseek-paid') && !!document.getElementById('ai-key-zhipu-free'));
+  check('Chọn Trung Quốc: ẩn Gemini/ChatGPT/Claude, chỉ hiện DeepSeek & Zhipu', hiddenGlobalKeys);
+  await page.fill('#ai-key-deepseek-paid', 'sk-test-deepseek-key');
+  await page.fill('#ai-key-zhipu-free', 'test-zhipu-key.123');
   await page.click('#btn-save-settings');
   await page.waitForTimeout(150);
 
   const chinaSettings = await page.evaluate(() => {
     const s = DataManager.getSettings();
     return {
-      assessment: s.providerAssessment,
-      ocr: s.providerOcr,
-      deepseekKey: s.deepseekApiKey,
-      deepseekModel: s.deepseekModel,
+      assessment: DataManager.getProviderAssessment(),
+      ocr: DataManager.getProviderOcr(),
+      deepseekKey: s.deepseekApiKeyPaid,
       zhipuKey: s.zhipuApiKey
     };
   });
-  check('Bật chế độ AI Trung Quốc chuyển nhà cung cấp sang DeepSeek & Zhipu', chinaSettings.assessment === 'deepseek' && chinaSettings.ocr === 'zhipu');
-  check('Lưu cài đặt API Key DeepSeek & Zhipu AI thành công', chinaSettings.deepseekKey === 'sk-test-deepseek-key' && chinaSettings.deepseekModel === 'deepseek-reasoner' && chinaSettings.zhipuKey === 'test-zhipu-key.123');
+  check('Chọn Trung Quốc: tác vụ tự động chuyển sang DeepSeek & Zhipu', chinaSettings.assessment === 'deepseek' && chinaSettings.ocr === 'zhipu');
+  check('Lưu API Key DeepSeek (trả phí) & Zhipu (miễn phí) thành công', chinaSettings.deepseekKey === 'sk-test-deepseek-key' && chinaSettings.zhipuKey === 'test-zhipu-key.123');
   // #btn-save-settings tự đóng modal-settings (gọi closeModal('modal-settings') trong app.js).
 
   // Kiểm tra nút Xem lại Hướng dẫn cài đặt lần đầu từ Settings
@@ -585,7 +587,7 @@ function check(name, condition) {
   check('Nút chuông: Mở bảng thông báo thành công và hiển thị bản tin cập nhật mới', notifModalOpen);
 
   // Bấm nút "Đã nắm rõ" -> Thẻ thông báo biến mất ngay lập tức và thu gọn
-  await page.click('#btn-dismiss-changelog');
+  if (await page.$('#btn-dismiss-changelog')) await page.click('#btn-dismiss-changelog'); // (bản tin cập nhật chỉ có khi version mới chưa được xem)
   await page.waitForTimeout(150);
   const changelogDismissed = await page.evaluate(() => {
     const hasNewCard = !!document.getElementById('panel-new-changelog');
@@ -607,8 +609,8 @@ function check(name, condition) {
     applyGooglePresetConfig();
     const isGoogle = DataManager.getProviderAssessment() === 'gemini';
     const model = DataManager.getGeminiModel();
-    const modelOpts = Array.from(document.getElementById('input-gemini-model')?.options || []).map(o => o.value);
-    return isChina && isGoogle && model === 'gemini-3.0-flash' && modelOpts.includes('gemini-3.0-flash') && modelOpts.includes('gemini-flash-latest');
+    const modelOpts = Array.from(document.querySelectorAll('#ai-task-chat option')).map(o => o.value);
+    return isChina && isGoogle && model === 'gemini-3.0-flash' && modelOpts.includes('gemini|gemini-3.0-flash') && modelOpts.includes('gemini|gemini-flash-latest');
   });
   check('Phím tắt Google: Chuyển nhanh toàn bộ tác vụ AI về Google Gemini 3.0 Flash thành công', globalPresetWork);
 
@@ -651,6 +653,8 @@ function check(name, condition) {
   check('Banner nhắc nhở sao lưu hiển thị thành công', bannerShown);
 
   await page.click('#btn-backup-reminder-now');
+  await page.waitForTimeout(150);
+  await page.click('#btn-backup-options-ok');
   await page.waitForTimeout(300);
   const bannerHiddenAfterBackup = await page.evaluate(() => {
     const isHidden = document.getElementById('backup-reminder-toast').classList.contains('hidden');
@@ -658,6 +662,187 @@ function check(name, condition) {
     return isHidden && (Date.now() - lastBackup < 5000);
   });
   check('Bấm "Sao lưu ngay": Banner tự động ẩn và ghi nhận thời điểm sao lưu thành công', bannerHiddenAfterBackup);
+
+  console.log('\n[Chính sách AI: key miễn phí/trả phí, xác nhận trả phí, hạn mức trần]');
+  const policy = await page.evaluate(async () => {
+    const out = {};
+    const keep = JSON.stringify(DataManager.getSettings());
+    const reset = (patch) => { localStorage.setItem('family_settings', keep); DataManager.saveSettings(patch); AIConfig.sessionApproved = false; };
+    const realFetch = window.fetch;
+    const calls = [];
+    window.fetch = async (url, opt) => {
+      calls.push({ url: String(url), key: opt && opt.headers && (opt.headers['x-goog-api-key'] || '') });
+      const free = (opt.headers['x-goog-api-key'] || '').startsWith('FREE');
+      if (free && window.__freeQuota) {
+        return { ok: false, status: 429, json: async () => ({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Quota exceeded for requests per day' } }) };
+      }
+      return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ text: 'ok' }] } }], usageMetadata: { promptTokenCount: 1000000, candidatesTokenCount: 0 } }) };
+    };
+    // Tự bấm "Đồng ý"/"Không đồng ý" khi hộp thoại xác nhận xuất hiện
+    const autoAnswer = (yes) => new Promise(r => setTimeout(() => { const b = [...document.querySelectorAll('.modal-overlay button')].find(x => x.textContent.includes(yes ? 'Đồng ý dùng' : 'Không đồng ý')); if (b) b.click(); r(!!b); }, 50));
+    try {
+      // a) Key miễn phí được ưu tiên, không hỏi
+      reset({ aiRegion: 'vn', aiTasks: { chat: 'auto', assessment: 'auto', search: 'auto', trend: 'auto', ocr: 'auto' }, geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCapUsd: 5, aiSpend: null });
+      window.__freeQuota = false; calls.length = 0;
+      await AIService.route('chat', 'xin chao');
+      out.freeFirst = calls.length === 1 && calls[0].key === 'FREE-1' && !document.querySelector('.modal-overlay[role=alertdialog]');
+      // b) Hết hạn mức miễn phí -> hỏi xác nhận -> đồng ý -> dùng key trả phí
+      window.__freeQuota = true; calls.length = 0;
+      const ans = autoAnswer(true);
+      const t = await AIService.route('chat', 'xin chao');
+      out.askedOnQuota = await ans;
+      out.paidAfterConsent = t === 'ok' && calls.map(c => c.key).join() === 'FREE-1,PAID-1';
+      out.spendRecorded = AIConfig.getSpend().usd > 0.2; // 1M token vào x $0.3
+      // c) Đã đồng ý trong phiên: lần sau không hỏi lại
+      calls.length = 0;
+      await AIService.route('chat', 'lan 2');
+      out.noAskTwice = calls.length === 2 && !document.querySelector('.modal-overlay[role=alertdialog]');
+      // d) Không đồng ý -> từ chối, không gọi key trả phí
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiSpend: null }); calls.length = 0;
+      const ans2 = autoAnswer(false);
+      let declined = false;
+      try { await AIService.route('chat', 'x'); } catch (e) { declined = !!e.isDeclined; }
+      await ans2;
+      out.declined = declined && !calls.some(c => c.key === 'PAID-1');
+      // e) Chạm hạn mức trần -> chặn, không gọi API trả phí
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCapUsd: 0.1, aiSpend: { month: AIConfig.monthKey(), usd: 0.5, calls: 3 } });
+      AIConfig.sessionApproved = true; calls.length = 0;
+      let capped = false;
+      try { await AIService.route('chat', 'x'); } catch (e) { capped = !!e.isCap; }
+      out.capBlocks = capped && !calls.some(c => c.key === 'PAID-1');
+      // f) Mô hình Pro chỉ có ở trả phí: chọn tay Gemini Pro khi chỉ có key miễn phí -> báo lỗi rõ ràng
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: '', aiTasks: { chat: 'gemini|gemini-3.1-pro' }, aiSpend: null });
+      let proErr = '';
+      try { await AIService.route('chat', 'x'); } catch (e) { proErr = e.message; }
+      out.proNeedsPaidKey = /chỉ có ở API trả phí/.test(proErr);
+      // g) Tự động: có key trả phí thì tác vụ "sâu" (phân tích) chọn Pro, tác vụ thường chọn Flash
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiTasks: { chat: 'auto', assessment: 'auto' } });
+      out.autoPick = AIConfig.resolve('assessment').model === 'gemini-3.1-pro' && AIConfig.resolve('chat').model === 'gemini-3.0-flash';
+      // h) Trung Quốc: chỉ chọn nhà cung cấp Trung Quốc
+      reset({ aiRegion: 'cn', aiTasks: { chat: 'gemini|gemini-3.0-flash' } });
+      out.cnOnly = ['zhipu', 'deepseek'].includes(AIConfig.resolve('chat').provider) && AIConfig.visibleProviders().every(p => AIConfig.PROVIDERS[p].group === 'cn');
+    } finally {
+      window.fetch = realFetch;
+      localStorage.setItem('family_settings', keep);
+      AIConfig.sessionApproved = false;
+    }
+    return out;
+  });
+  check('Key miễn phí được ưu tiên dùng trước và không hỏi gì', policy.freeFirst);
+  check('Hết hạn mức miễn phí: app hiện hộp thoại xác nhận dùng API trả phí', policy.askedOnQuota);
+  check('Đồng ý: app chuyển sang key trả phí và ghi nhận chi phí ước tính', policy.paidAfterConsent && policy.spendRecorded);
+  check('Đã đồng ý trong phiên: không hỏi lại ở các lần gọi sau', policy.noAskTwice);
+  check('Không đồng ý: app không dùng key trả phí', policy.declined);
+  check('Chạm hạn mức trần: app chặn API trả phí', policy.capBlocks);
+  check('Chọn mô hình chỉ có bản trả phí mà thiếu key trả phí: báo lỗi rõ ràng', policy.proNeedsPaidKey);
+  check('Chế độ Tự động: tác vụ sâu dùng Pro khi có key trả phí, tác vụ thường dùng Flash', policy.autoPick);
+  check('Quốc gia Trung Quốc: chỉ dùng AI Trung Quốc', policy.cnOnly);
+
+  console.log('\n[Sao lưu chọn lọc: dữ liệu / cài đặt / API Key]');
+  const backup = await page.evaluate(async () => {
+    const out = {};
+    const keep = {};
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('family_')) keep[k] = localStorage.getItem(k); }
+    try {
+      DataManager.saveSettings({ geminiApiKey: 'KEY-GEMINI', openaiApiKeyPaid: 'KEY-OPENAI', pinHash: 'HASH-PIN', medTimeMorning: '07:15' });
+      const noKeys = JSON.parse(await DataManager.exportData({ data: true, settings: true, apiKeys: false }));
+      const st = JSON.parse(noKeys.localStorage.family_settings);
+      out.noKeysClean = !JSON.stringify(st).includes('KEY-GEMINI') && !JSON.stringify(st).includes('KEY-OPENAI') && !st.pinHash && st.medTimeMorning === '07:15' && !!noKeys.localStorage.family_members;
+      const keysOnly = JSON.parse(await DataManager.exportData({ data: false, settings: false, apiKeys: true }));
+      const ko = JSON.parse(keysOnly.localStorage.family_settings);
+      out.keysOnly = ko.geminiApiKey === 'KEY-GEMINI' && ko.openaiApiKeyPaid === 'KEY-OPENAI' && !('medTimeMorning' in ko) && !keysOnly.localStorage.family_members && keysOnly.meta.contains.data === false;
+      // Nhập file KHÔNG có key: key hiện tại trên máy phải được giữ nguyên, cài đặt được áp dụng
+      DataManager.saveSettings({ medTimeMorning: '09:00' });
+      await DataManager.importData(JSON.stringify(noKeys));
+      const after = DataManager.getSettings();
+      out.importKeepsKeys = after.geminiApiKey === 'KEY-GEMINI' && after.medTimeMorning === '07:15';
+      // File lỗi không được làm mất dữ liệu hiện tại
+      const before = localStorage.getItem('family_members');
+      let rejected = false;
+      try { await DataManager.importData('{"localStorage":{"family_members":"{hong"}}'); } catch (e) { rejected = true; }
+      out.badFileSafe = rejected && localStorage.getItem('family_members') === before;
+    } finally {
+      Object.keys(localStorage).filter(k => k.startsWith('family_')).forEach(k => localStorage.removeItem(k));
+      Object.keys(keep).forEach(k => localStorage.setItem(k, keep[k]));
+    }
+    return out;
+  });
+  check('Sao lưu KHÔNG chọn API Key: file không chứa key/PIN nhưng vẫn có cài đặt + dữ liệu', backup.noKeysClean);
+  check('Sao lưu CHỈ chọn API Key: file chỉ chứa key/PIN', backup.keysOnly);
+  check('Khôi phục file không có key: key hiện có trên máy được giữ nguyên', backup.importKeepsKeys);
+  check('Khôi phục file lỗi: bị từ chối và dữ liệu hiện tại không bị mất', backup.badFileSafe);
+
+  console.log('\n[Chuông nhắc: hàng đợi nhiều báo thức, giờ không chuẩn]');
+  const alarm = await page.evaluate(async () => {
+    const out = {};
+    const keepR = localStorage.getItem('family_reminders');
+    try {
+      out.timeParse = !isNaN(parseTimeToday('2026-01-01', '8:05').getTime()) && !isNaN(parseTimeToday('2026-01-01', '08:05').getTime()) && isNaN(parseTimeToday('2026-01-01', 'abc').getTime());
+      const now = new Date(Date.now() - 60000);
+      const pad = (n) => String(n).padStart(2, '0');
+      const today = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+      const t = now.getHours() + ':' + pad(now.getMinutes()); // cố ý KHÔNG đệm số 0 ở giờ (vd "8:05")
+      const mk = (id, mem) => ({ id, type: 'medication_plan', memberId: mem, title: 'Thuốc ' + id, startDate: today, endDate: today, times: [t], datetime: today + 'T00:00', medications: [{ name: 'Thuốc ' + id, times: [t] }] });
+      localStorage.setItem('family_reminders', JSON.stringify([mk('a1', 'm1'), mk('a2', 'm2')]));
+      closeModal('modal-alarm');
+      pendingAlarmQueue.length = 0;
+      checkReminders();
+      const modal = document.getElementById('modal-alarm');
+      out.firstShown = !modal.classList.contains('hidden') && pendingAlarmQueue.length === 1;
+      stopLoudBell(); closeModal('modal-alarm');
+      await new Promise(r => setTimeout(r, 700));
+      out.secondShown = !modal.classList.contains('hidden') && pendingAlarmQueue.length === 0;
+      stopLoudBell(); closeModal('modal-alarm');
+    } finally {
+      localStorage.setItem('family_reminders', keepR === null ? '[]' : keepR);
+      stopLoudBell();
+    }
+    return out;
+  });
+  check('Giờ dạng "8:05" (không đệm số 0) được đọc đúng, giờ sai không làm hỏng', alarm.timeParse);
+  check('2 báo thức cùng giờ: hiện cái đầu và giữ cái thứ hai trong hàng đợi', alarm.firstShown);
+  check('Tắt báo thức đầu: báo thức thứ hai tự hiện (không bị mất)', alarm.secondShown);
+
+  console.log('\n[Đọc báo cáo (TTS): chọn mục đọc không bị im lặng/đọc chồng]');
+  const tts = await page.evaluate(async () => {
+    const out = {};
+    const chunks = TTSService.splitIntoChunks(TTSService.cleanTextForSpeech('Kết luận chung.\nUống đủ nước\nNgủ sớm đúng giờ'));
+    out.keepsTail = chunks.join(' ').includes('Ngủ sớm đúng giờ') && chunks.join(' ').includes('Uống đủ nước');
+    out.noTextRejected = (() => { let toasted = false; const orig = window.showToast; window.showToast = () => { toasted = true; }; TTSService.speak('   ', 't'); window.showToast = orig; return toasted && !TTSService.isPlaying; })();
+
+    // Giả lập speechSynthesis để kiểm tra lỗi "canceled" của đoạn cũ không được kích hoạt giọng dự phòng
+    const captured = [];
+    const fake = { speak(u) { captured.push(u); }, cancel() {}, resume() {}, pause() {}, getVoices() { return []; }, speaking: false, pending: false };
+    Object.defineProperty(window, 'speechSynthesis', { value: fake, configurable: true });
+    let fallbackCalls = 0;
+    const origFailure = TTSService.handleChunkFailure;
+    TTSService.handleChunkFailure = function () { fallbackCalls++; };
+    try {
+      const b1 = document.createElement('button'), b2 = document.createElement('button');
+      TTSService.speak('Phần một. Nội dung của phần một.', 'Phần 1', b1, 'section', null);
+      await new Promise(r => setTimeout(r, 400));
+      const u1 = captured[captured.length - 1];
+      TTSService.speak('Phần hai. Nội dung của phần hai.', 'Phần 2', b2, 'section', null); // chuyển mục: app cancel() đoạn cũ
+      await new Promise(r => setTimeout(r, 400));
+      if (u1 && u1.onerror) u1.onerror({ error: 'canceled' }); // trình duyệt báo lỗi "bị hủy" của đoạn cũ
+      if (u1 && u1.onerror) u1.onerror({ error: 'interrupted' });
+      out.staleErrorIgnored = fallbackCalls === 0;
+      const u2 = captured[captured.length - 1];
+      out.newChunkQueued = !!u2 && u2 !== u1 && TTSService.isPlaying;
+      if (u2 && u2.onerror) u2.onerror({ error: 'synthesis-failed' }); // lỗi thật của đoạn đang đọc -> phải được xử lý (thử lại/báo lỗi)
+      out.realErrorFallsBack = fallbackCalls === 1;
+    } finally {
+      TTSService.stop();
+      TTSService.handleChunkFailure = origFailure;
+      delete window.speechSynthesis;
+    }
+    return out;
+  });
+  check('Tách đoạn đọc không làm rơi phần cuối/dòng không có dấu chấm', tts.keepsTail);
+  check('Nội dung rỗng: báo rõ ràng thay vì im lặng', tts.noTextRejected);
+  check('Chuyển mục: lỗi "canceled" của đoạn cũ KHÔNG bị coi là lỗi (không đọc chồng/không báo lỗi giả)', tts.staleErrorIgnored);
+  check('Chuyển mục: đoạn mới được đưa vào hàng đọc', tts.newChunkQueued);
+  check('Lỗi thật của giọng đọc máy vẫn được xử lý (thử lại rồi báo rõ nguyên nhân)', tts.realErrorFallsBack);
 
   console.log(`\n[Lỗi console/pageerror bắt được: ${consoleErrors.length}]`);
   consoleErrors.forEach(e => console.log('  ! ' + e));

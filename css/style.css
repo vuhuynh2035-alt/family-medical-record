@@ -1967,3 +1967,6 @@ body.help-mode-active #btn-help-mobile {
         font-size: 12px;
     }
 }
+
+/* Nút xóa dòng chỉ số: hiệu ứng hover bằng CSS (không dùng thuộc tính onmouseover nội tuyến vì CSP chặn script nội tuyến) */
+.btn-remove-dynamic-field:hover { opacity: 1 !important; }

@@ -20,7 +20,12 @@ const DataManager = {
     isDataChanged: false,
 
     generateId() {
-        return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+        if (window.crypto && window.crypto.getRandomValues) {
+            const a = new Uint32Array(2);
+            window.crypto.getRandomValues(a);
+            return a[0].toString(36) + a[1].toString(36) + Date.now().toString(36);
+        }
+        return Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
     },
 
     /**
@@ -40,6 +45,60 @@ const DataManager = {
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     },
 
+    // ---- MÃ PIN (PBKDF2 + muối + chống dò) ----
+    PIN_ITERATIONS: 150000,
+    _hex(buf) { return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''); },
+    async _pbkdf2(pin, saltBytes, iterations) {
+        if (!window.crypto || !window.crypto.subtle) {
+            throw new Error('Trình duyệt/kết nối hiện tại không hỗ trợ mã hóa an toàn (cần HTTPS).');
+        }
+        const key = await window.crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
+        return window.crypto.subtle.deriveBits({ name: 'PBKDF2', salt: saltBytes, iterations, hash: 'SHA-256' }, key, 256);
+    },
+    /** Băm mã PIN để lưu: "pbkdf2$<số vòng>$<muối hex>$<băm hex>" (mỗi lần có muối ngẫu nhiên khác nhau). */
+    async hashPin(pin) {
+        const salt = window.crypto.getRandomValues(new Uint8Array(16));
+        const bits = await this._pbkdf2(pin, salt, this.PIN_ITERATIONS);
+        return 'pbkdf2$' + this.PIN_ITERATIONS + '$' + this._hex(salt) + '$' + this._hex(bits);
+    },
+    _pinThrottleGet() {
+        try { return JSON.parse(localStorage.getItem('pin_throttle') || '{}'); } catch (e) { return {}; }
+    },
+    /**
+     * Kiểm tra mã PIN. Sai liên tiếp từ lần thứ 5 sẽ bị khóa tạm thời (30 giây, tăng gấp đôi mỗi lần, tối đa 15 phút).
+     * Tự nâng cấp mã PIN cũ (SHA-256 không muối) lên PBKDF2 khi nhập đúng.
+     * @returns {Promise<boolean>}
+     * @throws {Error} khi đang bị khóa tạm thời hoặc trình duyệt không hỗ trợ mã hóa
+     */
+    async verifyPin(pin) {
+        const th = this._pinThrottleGet();
+        const wait = (th.until || 0) - Date.now();
+        if (wait > 0) {
+            throw new Error('Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau ' + Math.ceil(wait / 1000) + ' giây.');
+        }
+        const stored = this.getSettings().pinHash;
+        if (!stored) return false;
+        let ok = false;
+        const legacy = !stored.startsWith('pbkdf2$');
+        if (!legacy) {
+            const [, iter, saltHex, hashHex] = stored.split('$');
+            const salt = new Uint8Array((saltHex.match(/../g) || []).map(h => parseInt(h, 16)));
+            ok = this._hex(await this._pbkdf2(pin, salt, parseInt(iter, 10) || this.PIN_ITERATIONS)) === hashHex;
+        } else {
+            ok = (await this.sha256Hex(pin)) === stored;
+        }
+        if (ok) {
+            try { localStorage.removeItem('pin_throttle'); } catch (e) { /* bỏ qua */ }
+            if (legacy) this.saveSettings({ pinHash: await this.hashPin(pin) });
+            return true;
+        }
+        const fails = (th.fails || 0) + 1;
+        const next = { fails };
+        if (fails >= 5) next.until = Date.now() + Math.min(900000, 30000 * Math.pow(2, fails - 5));
+        try { localStorage.setItem('pin_throttle', JSON.stringify(next)); } catch (e) { /* bỏ qua */ }
+        return false;
+    },
+
     // ---- SETTINGS ----
     // Các model Gemini đã ngừng hoạt động (Google decommission định kỳ ~1 năm/lần) — dùng để tự
     // động nâng cấp cho người dùng cũ đang kẹt ở model chết mà không hề biết, thay vì để họ nhận
@@ -52,29 +111,21 @@ const DataManager = {
 
     getSettings() {
         const defaultSettings = {
-            activeProvider: 'gemini', // kept for backwards compatibility
-            providerAssessment: 'gemini',
-            providerSearch: 'gemini',
-            providerTrend: 'gemini',
-            providerChat: 'gemini',
-            // LƯU Ý: Google ngừng hỗ trợ (decommission) các model Gemini theo chu kỳ ~1 năm. Nếu
-            // giá trị này báo lỗi "model không tồn tại", vào Cài đặt > bấm "Tải danh sách" để lấy
-            // model còn hoạt động từ chính tài khoản của bạn thay vì sửa cứng trong mã nguồn.
-            geminiModel: 'gemini-3.0-flash',
-            geminiApiKey: '',
-            openaiApiKey: '',
-            anthropicApiKey: '',
-            deepseekApiKey: '',
-            deepseekModel: 'deepseek-chat',
-            zhipuApiKey: '',
-            zhipuModel: 'glm-4-flash',
-            providerOcr: 'gemini',
-            // Cho phép ghi đè tên model của ChatGPT/Claude (mặc định dùng model khá cũ do OpenAI/
-            // Cho phép ghi đè tên model của ChatGPT/Claude (mặc định dùng model khá cũ do OpenAI/
-            // Anthropic cũng thường xuyên ra bản mới) — để trống thì dùng giá trị mặc định bên dưới.
-            openaiModel: '',
-            anthropicModel: '',
-            
+            // ---- Trí tuệ nhân tạo (xem js/ai-policy.js) ----
+            // Quốc gia quyết định nhóm nhà cung cấp AI hiển thị. Rỗng = tự suy ra (xem AIConfig.getRegion).
+            aiRegion: '',
+            // Mỗi tác vụ: 'auto' (app tự chọn) hoặc 'nhàCungCấp|môHình'.
+            aiTasks: { ocr: 'auto', assessment: 'auto', search: 'auto', trend: 'auto', chat: 'auto' },
+            // Mỗi nhà cung cấp tối đa 2 khóa: '<p>ApiKey' (MIỄN PHÍ) và '<p>ApiKeyPaid' (TRẢ PHÍ).
+            geminiApiKey: '', geminiApiKeyPaid: '',
+            zhipuApiKey: '', zhipuApiKeyPaid: '',
+            openaiApiKeyPaid: '', anthropicApiKeyPaid: '', deepseekApiKeyPaid: '',
+            openaiApiKey: '', anthropicApiKey: '', deepseekApiKey: '', // khóa cũ (đọc như khóa trả phí)
+            customModels: {}, // mô hình tải thêm từ tài khoản: { provider: [id, ...] }
+            // Hạn mức trần chi phí API trả phí (USD / tháng) và mức đã dùng (ước tính).
+            aiCapUsd: 5,
+            aiSpend: null,
+
             // Giờ nhắc uống thuốc mặc định
             medTimeMorning: '08:00',
             medTimeNoon: '12:00',
@@ -104,27 +155,41 @@ const DataManager = {
     },
     getLanguage() { return this.getSettings().language || 'vi'; },
     setLanguage(lang) { this.saveSettings({ language: lang }); },
-    getGeminiApiKey() { return this.getSettings().geminiApiKey; },
-    getOpenAIApiKey() { return this.getSettings().openaiApiKey; },
-    getAnthropicApiKey() { return this.getSettings().anthropicApiKey; },
-    getActiveProvider() { return this.getSettings().activeProvider || 'gemini'; },
-    getProviderAssessment() { return this.getSettings().providerAssessment || this.getActiveProvider(); },
-    getProviderSearch() { return this.getSettings().providerSearch || this.getActiveProvider(); },
-    getProviderTrend() { return this.getSettings().providerTrend || this.getActiveProvider(); },
-    getProviderChat() { return this.getSettings().providerChat || this.getActiveProvider(); },
-    getGeminiModel() {
-        return this.getSettings().geminiModel;
+    // Khóa/nhà cung cấp/mô hình đều do AIConfig (js/ai-policy.js) quyết định; các hàm dưới đây giữ lại để tương thích.
+    getGeminiApiKey() { const k = AIConfig.getKeys('gemini'); return k.free || k.paid; },
+    getOpenAIApiKey() { const k = AIConfig.getKeys('openai'); return k.free || k.paid; },
+    getAnthropicApiKey() { const k = AIConfig.getKeys('anthropic'); return k.free || k.paid; },
+    getDeepSeekApiKey() { const k = AIConfig.getKeys('deepseek'); return k.free || k.paid; },
+    getZhipuApiKey() { const k = AIConfig.getKeys('zhipu'); return k.free || k.paid; },
+    getProviderAssessment() { return AIConfig.resolve('assessment').provider; },
+    getProviderSearch() { return AIConfig.resolve('search').provider; },
+    getProviderTrend() { return AIConfig.resolve('trend').provider; },
+    getProviderChat() { return AIConfig.resolve('chat').provider; },
+    getProviderOcr() { return AIConfig.resolve('ocr').provider; },
+    getGeminiModel() { const r = AIConfig.resolve('assessment'); return r.provider === 'gemini' ? r.model : 'gemini-3.0-flash'; },
+
+    /**
+     * Chuyển cấu hình AI kiểu cũ (providerX + geminiModel + 1 khóa/nhà cung cấp) sang kiểu mới
+     * (aiTasks). Chỉ chạy 1 lần cho người dùng cũ chưa có 'aiTasks' trong dữ liệu đã lưu.
+     */
+    migrateAiSettings() {
+        let stored;
+        try { stored = JSON.parse(localStorage.getItem('family_settings') || 'null'); } catch (e) { stored = null; }
+        if (!stored || stored.aiTasks) return;
+        const map = { ocr: 'providerOcr', assessment: 'providerAssessment', search: 'providerSearch', trend: 'providerTrend', chat: 'providerChat' };
+        const tasks = {};
+        Object.keys(map).forEach(t => {
+            const p = stored[map[t]] || stored.activeProvider;
+            if (!p || !AIConfig.PROVIDERS[p]) { tasks[t] = 'auto'; return; }
+            if (p === 'gemini') { tasks[t] = /pro/i.test(stored.geminiModel || '') ? 'gemini|gemini-3.1-pro' : 'auto'; return; }
+            const def = AIConfig.TASKS.find(x => x.id === t);
+            const models = AIConfig.getModelsOf(p, def.vision);
+            const custom = stored[p + 'Model'];
+            const pick = (custom && models.find(m => m.id === custom)) || models[0];
+            tasks[t] = pick ? p + '|' + pick.id : 'auto';
+        });
+        this.saveSettings({ aiTasks: tasks });
     },
-    // Nếu người dùng không tự nhập model riêng, dùng giá trị mặc định (có thể lỗi thời theo
-    // thời gian vì OpenAI/Anthropic cũng thường xuyên ra bản mới — người dùng có thể tự ghi đè
-    // trong Cài đặt khi biết tên model mới hơn).
-    getOpenAIModel() { return this.getSettings().openaiModel || 'gpt-4o'; },
-    getAnthropicModel() { return this.getSettings().anthropicModel || 'claude-3-5-sonnet-20240620'; },
-    getDeepSeekApiKey() { return this.getSettings().deepseekApiKey; },
-    getDeepSeekModel() { return this.getSettings().deepseekModel || 'deepseek-chat'; },
-    getZhipuApiKey() { return this.getSettings().zhipuApiKey; },
-    getZhipuModel() { return this.getSettings().zhipuModel || 'glm-4-flash'; },
-    getProviderOcr() { return this.getSettings().providerOcr || 'gemini'; },
 
     /**
      * Tự động nâng cấp model Gemini đã ngừng hoạt động lên model mặc định hiện tại, cho những
@@ -391,30 +456,65 @@ const DataManager = {
     },
 
     // ---- EXPORT / IMPORT ----
-    async exportData() {
-        const data = {
+    // Các trường trong family_settings thuộc nhóm "API Key & bảo mật" (nhạy cảm — người dùng chọn có sao lưu hay không).
+    isSensitiveSettingField(name) {
+        return /ApiKey(Paid)?$/.test(name) || name === 'apiKey' || name === 'pinHash' || name === 'pinEnabled';
+    },
+    // Dữ liệu chỉ có ý nghĩa trên từng máy (mức dùng API ước tính) — không bao giờ đưa vào file sao lưu.
+    isDeviceLocalSettingField(name) {
+        return name === 'aiSpend';
+    },
+
+    /**
+     * Xuất dữ liệu thành chuỗi JSON.
+     * @param {{data?:boolean, settings?:boolean, apiKeys?:boolean}} [options] mặc định: tất cả (dùng cho bản lưu tự động nội bộ)
+     *   - data: thành viên, hồ sơ khám, nhắc hẹn, ảnh
+     *   - settings: cài đặt ứng dụng (ngôn ngữ, giờ uống thuốc, chuông, cấu hình AI...) — không gồm API Key/PIN
+     *   - apiKeys: API Key các nhà cung cấp AI và mã PIN (đã băm)
+     */
+    async exportData(options = {}) {
+        const opt = { data: true, settings: true, apiKeys: true, ...options };
+        const out = {
+            version: 2,
+            meta: { exportedAt: new Date().toISOString(), contains: { data: !!opt.data, settings: !!opt.settings, apiKeys: !!opt.apiKeys } },
             localStorage: {},
-            indexedDB: {
-                images: []
-            }
+            indexedDB: { images: [] }
         };
 
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key.startsWith('family_')) {
-                data.localStorage[key] = localStorage.getItem(key);
+            if (!key || !key.startsWith('family_') || key === 'family_settings') continue;
+            if (opt.data) out.localStorage[key] = localStorage.getItem(key);
+        }
+
+        if (opt.settings || opt.apiKeys) {
+            const all = this.getSettings();
+            const picked = {};
+            Object.keys(all).forEach(f => {
+                if (this.isDeviceLocalSettingField(f)) return;
+                const sensitive = this.isSensitiveSettingField(f);
+                if ((sensitive && opt.apiKeys) || (!sensitive && opt.settings)) picked[f] = all[f];
+            });
+            out.localStorage['family_settings'] = JSON.stringify(picked);
+        }
+
+        if (opt.data) {
+            try {
+                out.indexedDB.images = await ImageStore.getAllImages();
+            } catch (e) {
+                console.error("Error exporting images", e);
             }
         }
 
-        try {
-            data.indexedDB.images = await ImageStore.getAllImages();
-        } catch (e) {
-            console.error("Error exporting images", e);
-        }
-
-        return JSON.stringify(data);
+        return JSON.stringify(out);
     },
 
+    /**
+     * Nhập dữ liệu từ file sao lưu. Chỉ thay thế những nhóm CÓ trong file (file cũ = có tất cả).
+     * An toàn: kiểm tra toàn bộ file trước khi đụng tới dữ liệu hiện tại; nếu ghi lỗi giữa chừng
+     * (ví dụ hết dung lượng) sẽ khôi phục lại nguyên trạng cũ.
+     * @returns {Promise<{data:boolean,settings:boolean,apiKeys:boolean}>} nhóm đã được khôi phục
+     */
     async importData(jsonData) {
         let data;
         try {
@@ -423,31 +523,77 @@ const DataManager = {
             console.error("Lỗi khi nạp dữ liệu:", e);
             throw new Error("File không hợp lệ hoặc bị lỗi.");
         }
-
-        if (!data || typeof data !== 'object' || Array.isArray(data)) {
-            throw new Error("File không hợp lệ hoặc bị lỗi.");
+        if (!data || typeof data !== 'object' || Array.isArray(data)
+            || !data.localStorage || typeof data.localStorage !== 'object' || Array.isArray(data.localStorage)) {
+            throw new Error("File không hợp lệ hoặc bị lỗi (không phải file sao lưu của ứng dụng).");
         }
 
-        const keysToRemove = [];
+        // 1. Kiểm tra hợp lệ trước khi thay đổi bất cứ thứ gì
+        const incoming = {};
+        for (const key of Object.keys(data.localStorage)) {
+            if (!key.startsWith('family_')) continue; // bỏ qua khóa lạ, không ghi vào máy
+            const val = data.localStorage[key];
+            if (typeof val !== 'string') throw new Error(`File sao lưu bị lỗi ở mục "${key}".`);
+            try { JSON.parse(val); } catch (e) { throw new Error(`File sao lưu bị lỗi ở mục "${key}".`); }
+            incoming[key] = val;
+        }
+        const images = data.indexedDB && Array.isArray(data.indexedDB.images) ? data.indexedDB.images : null;
+        if (images && images.some(im => !im || typeof im !== 'object' || im.id === undefined)) {
+            throw new Error("File sao lưu bị lỗi ở phần ảnh đính kèm.");
+        }
+
+        const legacy = !data.meta || !data.meta.contains;
+        const contains = legacy
+            ? { data: true, settings: true, apiKeys: true }
+            : { data: !!data.meta.contains.data, settings: !!data.meta.contains.settings, apiKeys: !!data.meta.contains.apiKeys };
+        if (legacy && !incoming['family_settings']) { contains.settings = false; contains.apiKeys = false; }
+
+        // 2. Chụp lại trạng thái hiện tại để khôi phục nếu lỗi
+        const snapshot = {};
         for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.startsWith('family_')) {
-                keysToRemove.push(key);
+            const k = localStorage.key(i);
+            if (k && k.startsWith('family_')) snapshot[k] = localStorage.getItem(k);
+        }
+        let oldImages = null;
+        if (contains.data && images) {
+            try { oldImages = await ImageStore.getAllImages(); } catch (e) { oldImages = null; }
+        }
+
+        const rollback = () => {
+            Object.keys(localStorage).filter(k => k.startsWith('family_')).forEach(k => localStorage.removeItem(k));
+            Object.keys(snapshot).forEach(k => { try { localStorage.setItem(k, snapshot[k]); } catch (e) { /* bỏ qua */ } });
+        };
+
+        try {
+            if (contains.data) {
+                Object.keys(snapshot).filter(k => k !== 'family_settings').forEach(k => localStorage.removeItem(k));
+                Object.keys(incoming).filter(k => k !== 'family_settings').forEach(k => localStorage.setItem(k, incoming[k]));
             }
-        }
-        keysToRemove.forEach(k => localStorage.removeItem(k));
-
-        if (data.localStorage) {
-            for (const key in data.localStorage) {
-                localStorage.setItem(key, data.localStorage[key]);
+            if ((contains.settings || contains.apiKeys) && incoming['family_settings']) {
+                const current = snapshot['family_settings'] ? JSON.parse(snapshot['family_settings']) : {};
+                const fromFile = JSON.parse(incoming['family_settings']);
+                const merged = { ...current };
+                Object.keys(fromFile).forEach(f => {
+                    if (this.isDeviceLocalSettingField(f)) return;
+                    const sensitive = this.isSensitiveSettingField(f);
+                    if ((sensitive && contains.apiKeys) || (!sensitive && contains.settings)) merged[f] = fromFile[f];
+                });
+                localStorage.setItem('family_settings', JSON.stringify(merged));
             }
+            if (contains.data && images) {
+                await ImageStore.importImages(images);
+            }
+        } catch (e) {
+            console.error('Lỗi khi khôi phục, đang hoàn tác:', e);
+            rollback();
+            if (oldImages) { try { await ImageStore.importImages(oldImages); } catch (e2) { /* bỏ qua */ } }
+            const quota = e && (e.name === 'QuotaExceededError' || /quota/i.test(String(e.message)));
+            throw new Error(quota
+                ? 'Không đủ dung lượng lưu trữ trên máy để khôi phục. Dữ liệu cũ của bạn vẫn được giữ nguyên.'
+                : 'Khôi phục thất bại, dữ liệu cũ của bạn vẫn được giữ nguyên. (' + (e && e.message ? e.message : e) + ')');
         }
 
-        if (data.indexedDB && data.indexedDB.images) {
-            await ImageStore.importImages(data.indexedDB.images);
-        }
-
-        return true;
+        return contains;
     },
 
     // ---- WIPE ALL DATA (KEEP SETTINGS) ----
@@ -492,7 +638,7 @@ const ImageStore = {
     async saveImage(base64) {
         await this.init();
         return new Promise((resolve, reject) => {
-            const id = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            const id = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
             const transaction = this.db.transaction([this.storeName], 'readwrite');
             const store = transaction.objectStore(this.storeName);
             const request = store.put({ id: id, data: base64 });
@@ -541,6 +687,8 @@ const ImageStore = {
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction([this.storeName], 'readwrite');
             const store = transaction.objectStore(this.storeName);
+            transaction.onerror = (e) => reject(e.target.error);
+            transaction.onabort = (e) => reject(e.target.error || new Error('Giao dịch ảnh bị hủy'));
             store.clear().onsuccess = () => {
                 let count = 0;
                 if (imagesList.length === 0) {

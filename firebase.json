@@ -4,7 +4,22 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "AGENTS.md",
+      "GEMINI.md",
+      "BAO_CAO_NANG_CAP.md",
+      "*.bat",
+      "*.vbs",
+      "*.sh",
+      "server.js",
+      "package.json",
+      "package-lock.json",
+      "Dockerfile",
+      "docker-compose.yml",
+      "nginx.conf",
+      "tests/**",
+      "test-results/**",
+      "scripts/**"
     ],
     "headers": [
       {

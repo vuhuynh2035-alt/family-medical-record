@@ -8,15 +8,15 @@
     <!-- Content-Security-Policy: phòng thủ thêm một lớp chống XSS, giới hạn nguồn script/style/ảnh/
          kết nối mạng được phép chỉ còn: chính trang này + các CDN/API thực sự được dùng trong app.
          style-src cần 'unsafe-inline' vì giao diện dùng nhiều thuộc tính style="" nội tuyến;
-         script-src KHÔNG có 'unsafe-inline' — mọi xử lý sự kiện đã chuyển hết sang addEventListener. -->
+         script-src chỉ cho phép script cùng gốc (không inline, không eval) — mọi xử lý sự kiện đã chuyển hết sang addEventListener. -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+        script-src 'self';
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         font-src 'self' https://fonts.gstatic.com;
-        img-src 'self' data: blob: https://ui-avatars.com https://upload.wikimedia.org;
-        media-src 'self' https://actions.google.com https://translate.google.com blob: data:;
-        connect-src 'self' https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.deepseek.com https://open.bigmodel.cn https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        img-src 'self' data: blob: https://upload.wikimedia.org;
+        media-src 'self' https://actions.google.com blob: data:;
+        connect-src 'self' https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.deepseek.com https://open.bigmodel.cn;
         object-src 'none';
         base-uri 'self';
         form-action 'self';
@@ -34,20 +34,22 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css?v=2.9.108">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+    <link rel="stylesheet" href="css/vendor/cropper.min.css" />
 
     <!-- Scripts (Tải bất đồng bộ với defer để tăng tốc độ load trang tối đa) -->
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script defer src="js/vendor/cropper.min.js"></script>
+    <script defer src="js/vendor/marked.min.js"></script>
     <!-- DOMPurify: khử trùng (sanitize) HTML sinh ra từ Markdown của AI trước khi chèn vào trang -->
-    <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script defer src="js/vendor/purify.min.js"></script>
+    <script defer src="js/vendor/html2pdf.bundle.min.js"></script>
+    <script defer src="js/vendor/pdf.min.js"></script>
     
     <!-- Local scripts -->
     <script defer src="js/i18n.js?v=2.9.108"></script>
     <script defer src="js/data.js?v=2.9.108"></script>
+    <script defer src="js/ai-policy.js?v=2.9.108"></script>
     <script defer src="js/ai.js?v=2.9.108"></script>
+    <script defer src="js/ai-settings-ui.js?v=2.9.108"></script>
     <script defer src="js/components.js?v=2.9.108"></script>
     <script defer src="js/help.js?v=2.9.108"></script>
     <script defer src="js/speech.js?v=2.9.108"></script>
@@ -895,7 +897,7 @@
                 </div>
 
 <div class="help-text" style="margin-top: 10px; margin-bottom: 20px; color: var(--danger);">
-                    Lưu ý: Khôi phục dữ liệu sẽ ghi đè toàn bộ hồ sơ và cài đặt hiện tại của bạn trên máy này.
+                    Lưu ý: Khôi phục sẽ ghi đè những mục có trong file sao lưu (dữ liệu hồ sơ / cài đặt / API Key). Mục nào không có trong file thì được giữ nguyên trên máy này.
                 </div>
                 
                 <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
@@ -987,205 +989,55 @@
                         <span style="flex: 1;">Cấu hình Trí tuệ Nhân tạo (AI)</span>
                         <span class="material-symbols-rounded" style="font-size: 20px; color: var(--text-muted);">touch_app</span>
                     </summary>
-                    <div style="margin-top: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05), inset -2px -2px 5px rgba(255,255,255,0.5);">
-                        <p class="modal-desc" style="margin-bottom: 12px;">Phân công tác vụ cho các nhà cung cấp AI khác nhau (Google, OpenAI, Anthropic, DeepSeek, Zhipu AI).</p>
-                        <!-- Phím tắt chuyển nhanh AI: Trung Quốc HOẶC Quốc tế / Google Gemini -->
-                        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;">
-                            <!-- 1. Bạn đang ở các nước khác (Việt Nam / Quốc tế) -> Dùng Google Gemini -->
-                            <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(16, 185, 129, 0.08)); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 10px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 600; color: #1d4ed8; font-size: 13px; display: flex; align-items: center; gap: 5px;">
-                                        <span>🌐</span> Bạn đang ở các nước khác (Việt Nam / Quốc tế)?
-                                    </div>
-                                    <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
-                                        Bấm nút bên cạnh để chuyển nhanh toàn bộ các mục AI sang Google Gemini (Flash 3.0 / Pro).
-                                    </div>
-                                </div>
-                                <button type="button" id="btn-preset-global" class="primary-btn neumorphic-btn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; white-space: nowrap; font-size: 12px; padding: 6px 12px; border: none; font-weight: 600; border-radius: 8px;">
-                                    Dùng Google
-                                </button>
-                            </div>
-
-                            <!-- 2. Bạn đang ở Trung Quốc (hoặc không dùng VPN) -> Dùng DeepSeek & Zhipu AI -->
-                            <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(245, 158, 11, 0.08)); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 600; color: #b91c1c; font-size: 13px; display: flex; align-items: center; gap: 5px;">
-                                        <span>🇨🇳</span> Bạn đang ở Trung Quốc (hoặc không dùng VPN)?
-                                    </div>
-                                    <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
-                                        Bấm nút bên cạnh để tự động chuyển tất cả các mục AI sang DeepSeek & Zhipu AI (GLM) không bị chặn mạng.
-                                    </div>
-                                </div>
-                                <button type="button" id="btn-preset-china" class="primary-btn neumorphic-btn" style="background: linear-gradient(135deg, #e11d48, #be123c); color: white; white-space: nowrap; font-size: 12px; padding: 6px 12px; border: none; font-weight: 600; border-radius: 8px;">
-                                    Dùng AI TQ
-                                </button>
-                            </div>
-                        </div>
-
-                        
-                        
+                    <div id="ai-settings-root" style="margin-top: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05), inset -2px -2px 5px rgba(255,255,255,0.5);">
+                        <!-- 1. Quốc gia: quyết định nhóm AI được hiển thị -->
                         <div class="form-group">
-                            <label style="font-weight: bold; color: var(--primary-blue);">AI Quét thông minh & Đọc ảnh hồ sơ (OCR)</label>
-                            <select id="input-ai-provider-ocr" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn AI Quét ảnh" data-help-desc="Hệ thống AI đọc ảnh phiếu xét nghiệm/hồ sơ. Khi ở Trung Quốc hoặc không có VPN, hãy chọn Zhipu AI GLM-4V (Miễn phí 100%).">
-                                <option value="gemini">Google Gemini 3.0 Flash / Latest (Mặc định)</option>
-                                <option value="zhipu">Zhipu AI GLM-4V-Flash (Trung Quốc / Miễn phí 100% / Không cần VPN)</option>
-                                <option value="openai">OpenAI ChatGPT (gpt-4o)</option>
+                            <label for="input-ai-region" style="font-weight: bold; color: var(--primary-blue);">🌍 Bạn đang ở quốc gia nào?</label>
+                            <select id="input-ai-region" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn quốc gia" data-help-desc="Trung Quốc: chỉ hiện AI Trung Quốc (DeepSeek, Zhipu GLM) vì không cần VPN. Các nước khác: hiện Google Gemini, ChatGPT, Claude (mặc định dùng Gemini).">
+                                <option value="vn">🇻🇳 Việt Nam</option>
+                                <option value="jp">🇯🇵 Nhật Bản</option>
+                                <option value="us">🇺🇸 Mỹ</option>
+                                <option value="cn">🇨🇳 Trung Quốc</option>
+                                <option value="other">🌐 Quốc gia khác</option>
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <label style="font-weight: bold; color: var(--primary-blue);">AI Phân tích tình trạng bệnh án</label>
-                            <select id="input-ai-provider-assessment" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn AI Phân tích" data-help-desc="Quyết định hệ thống AI nào sẽ đọc và giải thích hồ sơ bệnh án của bạn. (Khuyên dùng: OpenAI ChatGPT).">
-                                <option value="gemini">Google Gemini (Mặc định)</option>
-                                <option value="openai">OpenAI ChatGPT</option>
-                                <option value="anthropic">Anthropic Claude</option>
-                                <option value="deepseek">DeepSeek (Trung Quốc / Siêu rẻ)</option>
-                                <option value="zhipu">Zhipu AI - GLM (Trung Quốc / Miễn phí 100%)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label style="font-weight: bold; color: var(--primary-blue);">AI Tra cứu chuyên sâu & Hỏi đáp</label>
-                            <select id="input-ai-provider-search" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn AI Tra cứu" data-help-desc="Quyết định AI nào sẽ tìm kiếm thêm kiến thức y khoa mở rộng trên mạng.">
-                                <option value="gemini">Google Gemini (Mặc định)</option>
-                                <option value="openai">OpenAI ChatGPT</option>
-                                <option value="anthropic">Anthropic Claude</option>
-                                <option value="deepseek">DeepSeek (Trung Quốc / Siêu rẻ)</option>
-                                <option value="zhipu">Zhipu AI - GLM (Trung Quốc / Miễn phí 100%)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label style="font-weight: bold; color: var(--primary-blue);">AI Đánh giá xu hướng sức khỏe</label>
-                            <select id="input-ai-provider-trend" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn AI Đánh giá" data-help-desc="Hệ thống AI xử lý toàn bộ lịch sử bệnh án để tìm ra bức tranh tổng quát.">
-                                <option value="gemini">Google Gemini (Mặc định)</option>
-                                <option value="openai">OpenAI ChatGPT</option>
-                                <option value="anthropic">Anthropic Claude</option>
-                                <option value="deepseek">DeepSeek (Trung Quốc / Siêu rẻ)</option>
-                                <option value="zhipu">Zhipu AI - GLM (Trung Quốc / Miễn phí 100%)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label style="font-weight: bold; color: var(--primary-blue);">AI Trò chuyện & Giải thích chuyên sâu</label>
-                            <select id="input-ai-provider-chat" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn AI Trò chuyện" data-help-desc="Hệ thống AI đóng vai trò Trợ lý y tế để giải đáp thắc mắc về hồ sơ.">
-                                <option value="gemini">Google Gemini (Mặc định)</option>
-                                <option value="openai">OpenAI ChatGPT</option>
-                                <option value="anthropic">Anthropic Claude</option>
-                                <option value="deepseek">DeepSeek (Trung Quốc / Siêu rẻ)</option>
-                                <option value="zhipu">Zhipu AI - GLM (Trung Quốc / Miễn phí 100%)</option>
-                            </select>
+                            <div id="ai-region-hint" class="help-text" style="margin-top: 6px;"></div>
                         </div>
 
-                        <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 20px 0;">
-                        <h5 style="margin-bottom: 15px; color: var(--text-color);">Cài đặt API Keys & Mô hình nâng cao</h5>
+                        <!-- 2. API Key của các AI thuộc quốc gia đã chọn (JS dựng) -->
+                        <div id="ai-keys-container"></div>
 
-                        <div class="form-group">
-                            <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">
-                                <span style="font-weight: 600; color: var(--primary-blue);">Google Gemini API Key (Bắt buộc cho OCR Quét ảnh)</span>
-                                <div style="display: flex; gap: 8px; font-size: 12px;">
-                                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style="color: var(--primary-blue); font-weight: 600; text-decoration: underline;">Lấy Key Gemini ↗</a>
-                                    <a href="#" class="btn-create-key" data-provider="gemini" style="color: var(--text-muted); text-decoration: underline;">(Hướng dẫn)</a>
+                        <hr style="border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 14px 0;">
+
+                        <!-- 3. Mô hình theo từng tác vụ (JS dựng) -->
+                        <h5 style="margin: 0 0 4px; color: var(--text-color);">Mô hình AI cho từng tác vụ</h5>
+                        <p class="help-text" style="margin: 0 0 10px;">Để "Tự động" thì app tự chọn mô hình phù hợp nhất với từng việc. Bạn có thể bấm vào để đổi.</p>
+                        <div id="ai-tasks-container"></div>
+
+                        <!-- 4. Hạn mức trần API trả phí -->
+                        <details id="ai-budget-details" style="margin-top: 14px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--primary-blue);">💳 Hạn mức trần API trả phí</summary>
+                            <div style="margin-top: 10px;">
+                                <p class="help-text" style="margin: 0 0 8px;">App tự cộng dồn chi phí ƯỚC TÍNH khi dùng API trả phí trong tháng. Chạm hạn mức trần là app dừng dùng API trả phí cho đến khi bạn nâng hạn mức.</p>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <label for="input-ai-cap" style="font-size: 13px; white-space: nowrap;">Trần mỗi tháng (USD)</label>
+                                    <input type="number" id="input-ai-cap" class="neumorphic-input" min="0" step="0.5" style="max-width: 130px;" inputmode="decimal">
                                 </div>
-                            </label>
-                            <input type="password" id="input-api-key" class="neumorphic-input" placeholder="AIzaSy..." data-help-title="API Key của Google Gemini" data-help-desc="Nhập mã bí mật từ tài khoản Google AI Studio của bạn. Mã này được dùng để xử lý đọc ảnh và các tác vụ mặc định.">
-                            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
-                                <div style="flex: 1;">
-                                    <select id="input-gemini-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model Gemini" data-help-desc="Flash 3.0: Đọc ảnh và xử lý nhanh. Latest: Bản mới nhất. Pro: Suy luận y khoa chuyên sâu.">
-                                        <option value="gemini-3.0-flash">Gemini 3.0 Flash (Mặc định - Khuyên dùng)</option>
-                                        <option value="gemini-flash-latest">Gemini Flash Latest (Bản Flash mới nhất)</option>
-                                        <option value="gemini-3.1-pro">Gemini 3.1 Pro (Chuyên sâu)</option>
-                                    </select>
+                                <div style="margin-top: 10px; font-size: 13px;" id="ai-spend-text"></div>
+                                <div style="height: 8px; border-radius: 4px; background: rgba(0,0,0,0.08); margin-top: 6px; overflow: hidden;">
+                                    <div id="ai-spend-bar" style="height: 100%; width: 0; background: #10b981; transition: width 0.3s;"></div>
                                 </div>
-                                <button id="btn-fetch-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;" data-help-title="Tải Danh sách Model mới" data-help-desc="Kết nối tới máy chủ Google để tải về danh sách các phiên bản AI mới nhất vừa được phát hành.">
-                                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải
-                                </button>
+                                <button type="button" id="btn-ai-reset-spend" class="secondary-btn neumorphic-btn" style="margin-top: 10px; font-size: 12.5px; padding: 6px 12px;">Đặt lại số đã dùng tháng này</button>
                             </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">
-                                <span style="font-weight: 600; color: #10a37f;">OpenAI API Key (ChatGPT)</span>
-                                <div style="display: flex; gap: 8px; font-size: 12px;">
-                                    <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" style="color: #10a37f; font-weight: 600; text-decoration: underline;">Lấy Key OpenAI ↗</a>
-                                    <a href="#" class="btn-create-key" data-provider="openai" style="color: var(--text-muted); text-decoration: underline;">(Hướng dẫn)</a>
-                                </div>
-                            </label>
-                            <input type="password" id="input-openai-key" class="neumorphic-input" placeholder="sk-..." data-help-title="API Key của OpenAI (ChatGPT)" data-help-desc="Nhập mã bí mật từ nền tảng OpenAI. Giúp bạn sử dụng ChatGPT 4o cho các tác vụ phân tích chuyên sâu.">
-                            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
-                                <div style="flex: 1;">
-                                    <select id="input-openai-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model ChatGPT" data-help-desc="gpt-4o rất thông minh và hiểu tiếng Việt cực tốt.">
-                                        <option value="gpt-4o">gpt-4o (Khuyên dùng)</option>
-                                        <option value="gpt-4o-mini">gpt-4o-mini</option>
-                                    </select>
-                                </div>
-                                <button id="btn-fetch-openai-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;" data-help-title="Đồng bộ Model OpenAI" data-help-desc="Kiểm tra và tải về các Model ngôn ngữ mới ra mắt của OpenAI (Ví dụ: o1, gpt-5).">
-                                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải
-                                </button>
-                            </div>
+                        </details>
+
+                        <div style="margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <button id="btn-ai-refresh-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 8px 12px; font-size: 13px;" data-help-title="Cập nhật danh sách mô hình" data-help-desc="Kết nối tới nhà cung cấp (bằng API Key bạn đã nhập) để tải thêm các mô hình mới phát hành vào danh sách chọn.">
+                                <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Cập nhật danh sách mô hình
+                            </button>
                         </div>
 
-                        <div class="form-group">
-                            <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">
-                                <span style="font-weight: 600; color: #d35400;">Anthropic API Key (Claude)</span>
-                                <div style="display: flex; gap: 8px; font-size: 12px;">
-                                    <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" style="color: #d35400; font-weight: 600; text-decoration: underline;">Lấy Key Claude ↗</a>
-                                    <a href="#" class="btn-create-key" data-provider="anthropic" style="color: var(--text-muted); text-decoration: underline;">(Hướng dẫn)</a>
-                                </div>
-                            </label>
-                            <input type="password" id="input-anthropic-key" class="neumorphic-input" placeholder="sk-ant-..." data-help-title="API Key của Anthropic (Claude)" data-help-desc="Nhập mã bí mật từ Anthropic. Trí tuệ Claude cực kỳ xuất sắc trong việc đọc hiểu văn bản dài và lập luận y khoa.">
-                            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
-                                <div style="flex: 1;">
-                                    <select id="input-anthropic-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model Claude" data-help-desc="Sonnet 3.5 là phiên bản mạnh mẽ, nhanh và chính xác nhất cho các tác vụ phân tích.">
-                                        <option value="claude-3-5-sonnet-20240620">claude-3.5-sonnet (Khuyên dùng)</option>
-                                        <option value="claude-3-haiku-20240307">claude-3-haiku</option>
-                                    </select>
-                                </div>
-                                <button id="btn-fetch-anthropic-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 10px; font-size: 14px; white-space: nowrap;" data-help-title="Đồng bộ Model Claude" data-help-desc="Kiểm tra và tải về các phiên bản AI mới nhất từ hệ thống Anthropic.">
-                                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Tải
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- DeepSeek API Key -->
-                        <div class="form-group" style="margin-top: 15px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 15px;">
-                            <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">
-                                <span style="font-weight: 600; color: #1e40af;">DeepSeek API Key (Hoạt động tốt tại Trung Quốc)</span>
-                                <div style="display: flex; gap: 8px; font-size: 12px;">
-                                    <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener noreferrer" style="color: #1e40af; font-weight: 600; text-decoration: underline;">Lấy Key DeepSeek ↗</a>
-                                    <a href="#" class="btn-create-key" data-provider="deepseek" style="color: var(--text-muted); text-decoration: underline;">(Hướng dẫn)</a>
-                                </div>
-                            </label>
-                            <input type="password" id="input-deepseek-key" class="neumorphic-input" placeholder="sk-..." data-help-title="API Key của DeepSeek" data-help-desc="Nhập mã bí mật từ tài khoản DeepSeek. Hoạt động cực mượt tại Trung Quốc không cần VPN.">
-                            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
-                                <div style="flex: 1;">
-                                    <select id="input-deepseek-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model DeepSeek" data-help-desc="deepseek-chat là DeepSeek-V3 nhanh và thông minh. deepseek-reasoner là DeepSeek-R1 suy luận sâu.">
-                                        <option value="deepseek-chat">deepseek-chat (DeepSeek-V3 - Khuyên dùng)</option>
-                                        <option value="deepseek-reasoner">deepseek-reasoner (DeepSeek-R1 - Suy luận sâu)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Zhipu AI (GLM) API Key -->
-                        <div class="form-group" style="margin-top: 15px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 15px;">
-                            <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">
-                                <span style="font-weight: 600; color: #0284c7;">Zhipu AI (GLM) API Key (Miễn phí 100% tại TQ)</span>
-                                <div style="display: flex; gap: 8px; font-size: 12px;">
-                                    <a href="https://open.bigmodel.cn/usercenter/apikeys" target="_blank" rel="noopener noreferrer" style="color: #0284c7; font-weight: 600; text-decoration: underline;">Lấy Key Zhipu miễn phí ↗</a>
-                                    <a href="#" class="btn-create-key" data-provider="zhipu" style="color: var(--text-muted); text-decoration: underline;">(Hướng dẫn)</a>
-                                </div>
-                            </label>
-                            <input type="password" id="input-zhipu-key" class="neumorphic-input" placeholder="Mã API Key Zhipu..." data-help-title="API Key của Zhipu AI (GLM)" data-help-desc="Dịch vụ AI chính thức của Trung Quốc. Miễn phí 100% vĩnh viễn cả văn bản (glm-4-flash) và đọc ảnh OCR (glm-4v-flash).">
-                            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 8px;">
-                                <div style="flex: 1;">
-                                    <select id="input-zhipu-model" class="neumorphic-input" style="font-weight: 500;" data-help-title="Chọn Model Zhipu" data-help-desc="glm-4-flash hoàn toàn miễn phí, tốc độ cao.">
-                                        <option value="glm-4-flash">glm-4-flash (Miễn phí 100% vĩnh viễn)</option>
-                                        <option value="glm-4-plus">glm-4-plus (Bản cao cấp)</option>
-                                        <option value="glm-4-air">glm-4-air</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="help-text" style="margin-top: 15px;">
-                            Lưu ý bảo mật: Các khóa API được lưu trực tiếp trên thiết bị (không mã hóa).
+                        <div class="help-text" style="margin-top: 12px;">
+                            Lưu ý bảo mật: các khóa API được lưu trực tiếp trên thiết bị (không mã hóa). Khi sao lưu/chia sẻ file, bạn có thể chọn có kèm API Key hay không. Chi phí hiển thị chỉ là ước tính, không thay thế hóa đơn của nhà cung cấp.
                         </div>
                     </div>
                 </details>
@@ -1669,38 +1521,8 @@
                 <button type="button" class="icon-btn close-modal"><span class="material-symbols-rounded">close</span></button>
             </div>
             <div class="modal-body" style="padding: 15px 20px;">
-                <div class="form-group">
-                    <label style="font-weight: 700; color: var(--primary-blue); font-size: 14px;">Chọn Nguồn Giọng đọc</label>
-                    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
-                        <!-- Lựa chọn 1: Giọng Google Tự Nhiên (Khuyên dùng cho iPhone) -->
-                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 12px; background: rgba(59, 130, 246, 0.06); border: 1.5px solid rgba(59, 130, 246, 0.25); border-radius: 10px;">
-                            <input type="radio" name="tts_voice_provider" value="google_translate" style="margin-top: 4px;">
-                            <div style="flex: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 700; color: #1e40af;">Giọng Tự Nhiên Google (Khuyên dùng cho iPhone)</span>
-                                </div>
-                                <div style="font-size: 12px; color: #475569; margin-top: 3px; line-height: 1.4;">
-                                    Giọng đọc tiếng Việt truyền cảm, mượt mà và tự nhiên, khắc phục triệt để giọng đọc rè hoặc khô khan trên iPhone.
-                                </div>
-                                <button type="button" id="btn-test-google-voice" class="secondary-btn neumorphic-btn" style="font-size: 11.5px; padding: 4px 10px; margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; color: #2563eb; background: white; border-radius: 14px;">
-                                    <span class="material-symbols-rounded" style="font-size: 14px;">play_arrow</span> Nghe thử giọng này
-                                </button>
-                            </div>
-                        </label>
+                <p style="font-size: 12.5px; color: #64748b; line-height: 1.5; margin: 0 0 4px;">App dùng giọng đọc có sẵn trên thiết bị của bạn (hoạt động cả khi ngoại tuyến, không dùng mạng hay hạn mức API).</p>
 
-                        <!-- Lựa chọn 2: Giọng Hệ thống Thiết bị (iOS / Siri / Android) -->
-                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 12px; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.08); border-radius: 10px;">
-                            <input type="radio" name="tts_voice_provider" value="system" style="margin-top: 4px;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 700; color: var(--text-color);">Giọng Hệ thống Máy (iOS / Siri / Android)</div>
-                                <div style="font-size: 12px; color: #64748b; margin-top: 3px; line-height: 1.4;">
-                                    Sử dụng bộ tổng hợp giọng nói cài sẵn của thiết bị (hoạt động tốt khi ngoại tuyến).
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-                
                 <div id="tts-system-voice-options" class="form-group" style="margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 10px; border: 1px solid rgba(0,0,0,0.05);">
                     <label style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 6px; display: block;">Danh sách giọng nói trên máy:</label>
                     <div style="display: flex; gap: 8px;">
@@ -2043,6 +1865,34 @@
             </div>
         </div>
     </div>
+    <!-- Chọn nội dung sao lưu / chia sẻ -->
+    <div id="modal-backup-options" class="modal-overlay hidden" style="z-index: 10040;" role="dialog" aria-modal="true" aria-labelledby="backup-options-title">
+        <div class="modal-content neumorphic-modal" style="max-width: 440px;">
+            <h3 id="backup-options-title" style="margin: 0 0 6px; color: var(--primary-blue);">Chọn nội dung sao lưu</h3>
+            <p class="help-text" style="margin: 0 0 12px;">Chỉ những mục được chọn mới nằm trong file.</p>
+            <label style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; cursor: pointer;">
+                <input type="checkbox" id="chk-backup-data" style="margin-top: 3px;">
+                <span><strong>Dữ liệu hồ sơ</strong><br><span style="font-size: 12.5px; color: var(--text-muted);">Thành viên, hồ sơ khám, ảnh đính kèm, lịch nhắc.</span></span>
+            </label>
+            <label style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; cursor: pointer;">
+                <input type="checkbox" id="chk-backup-settings" style="margin-top: 3px;">
+                <span><strong>Cài đặt</strong><br><span style="font-size: 12.5px; color: var(--text-muted);">Ngôn ngữ, giờ uống thuốc, chuông, cấu hình AI (không gồm API Key và mã PIN).</span></span>
+            </label>
+            <label style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; cursor: pointer;">
+                <input type="checkbox" id="chk-backup-apikeys" style="margin-top: 3px;">
+                <span><strong>API Key &amp; mã PIN</strong><br><span style="font-size: 12.5px; color: var(--text-muted);">Các khóa AI (miễn phí/trả phí) và mã PIN đã băm.</span></span>
+            </label>
+            <div id="backup-options-warning" class="hidden" style="font-size: 12.5px; color: var(--danger); background: rgba(225,29,72,0.07); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px;">
+                ⚠️ File sẽ chứa API Key — ai có file này đều dùng được khóa của bạn (có thể phát sinh chi phí). Không gửi cho người bạn không tin tưởng.
+            </div>
+            <div id="backup-options-error" class="hidden" style="font-size: 12.5px; color: var(--danger); margin-bottom: 10px;">Hãy chọn ít nhất một mục.</div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px;">
+                <button type="button" id="btn-backup-options-cancel" class="secondary-btn neumorphic-btn">Hủy</button>
+                <button type="button" id="btn-backup-options-ok" class="primary-btn neumorphic-btn">Tiếp tục</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-api-key-guide" class="modal-overlay hidden" style="z-index: 9999;">
         <div class="modal-content neumorphic-panel" style="max-width: 500px;">
             <div class="modal-header" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px;">
