@@ -126,7 +126,6 @@ const DataManager = {
             // Hạn mức trần chi phí API trả phí (USD / tháng) và mức đã dùng (ước tính).
             aiCapUsd: 5, // giá trị chung cũ — chỉ còn dùng làm mặc định cho AI chưa đặt trần riêng
             aiCaps: {}, // hạn mức trần trả phí (USD/tháng) RIÊNG từng AI: { provider: usd }
-            aiSpend: null, // cũ (chung) — không còn dùng
             aiSpendBy: {}, // mức dùng API trả phí ước tính theo từng AI: { provider: { month, usd, calls } }
             aiFreeState: {}, // theo dõi hạn mức miễn phí từng AI + mô hình: { 'provider|model': { day, calls, exhaustedAt, resetAt, kind } }
             aiKeyOff: {}, // API Key đang TẮT tạm thời (key vẫn được giữ, app không dùng): { 'provider:free'|'provider:paid': true }
