@@ -41,27 +41,18 @@
   },
   "liveVersions": [],
   "actions": {
-    "deploy-firebase": {
-      "label": "Deploy Firebase Hosting",
+    "deploy-pages": {
+      "label": "Xuất bản GitHub Pages",
       "kind": "deploy",
       "bump": true,
-      "checks": [
-        {
-          "type": "file",
-          "path": ".firebaserc",
-          "hint": "Chạy «npx firebase use --add» (đúng tài khoản Google sở hữu project) để chọn project Firebase, rồi commit .firebaserc."
-        },
-        {
-          "type": "firebase-login"
-        }
-      ],
+      "confirm": true,
       "steps": [
         {
           "cwd": ".",
-          "run": "npx firebase deploy --only hosting"
+          "run": "git push origin HEAD:refs/heads/master"
         }
       ]
     }
   },
-  "releaseAction": "deploy-firebase"
+  "releaseAction": "deploy-pages"
 }

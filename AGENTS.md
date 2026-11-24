@@ -11,6 +11,6 @@
   - `node "<thư mục Công cụ phát hành>/cli.js" release --project . --action <hành động> --dry-run` để xem trước, bỏ `--dry-run` để chạy thật;
   - hoặc `npx --yes github:vuhuynh2035-alt/cong-cu-phat-hanh release --project . --action <hành động>`;
   - hoặc script tương đương trong dự án: `npm run release` / `npm run deploy` (đã chuyển sang gọi công cụ).
-  - Các hành động có tăng version trong dự án này: `deploy-firebase`.
+  - Các hành động có tăng version trong dự án này: `deploy-pages` (GitHub Pages; không dùng Firebase).
 - Không force-push, không `reset --hard`, không xoá/đổi tag phiên bản.
 <!-- cong-cu-phat-hanh:end -->
