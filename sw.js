@@ -1,4 +1,4 @@
-const SW_VERSION = 'v2.9.109';
+const SW_VERSION = 'v2.9.110';
 const CACHE_NAME = `family-health-static-${SW_VERSION}`;
 const NETWORK_TIMEOUT_MS = 4000;
 const BUILD_TIME = '2026-11-05_22-45';
