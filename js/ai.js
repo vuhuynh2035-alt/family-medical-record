@@ -58,37 +58,152 @@ const AIService = {
      * @param {(ctx:{provider:string,model:string,apiKey:string,tier:string,usage:?object})=>Promise<string>} fn
      */
     async _run(task, fn) {
+        try {
+            return await this._runInner(task, fn);
+        } catch (e) {
+            if (e && (e.isPaused || e.isCap || e.isKeyOff)) this._notifyUnavailable(task, e);
+            throw e;
+        }
+    },
+
+    /** Tất cả key cần dùng đều đang TẮT. */
+    _keyOffError(provider, slot) {
+        const prov = AIConfig.PROVIDERS[provider];
+        const e = new Error(`API Key ${slot === 'paid' ? 'trả phí' : 'miễn phí'} của ${prov.name} đang TẮT (bạn đã tắt tạm thời) nên app không dùng AI này. Muốn dùng, hãy bật lại công tắc của key trong Cài đặt > Trí tuệ nhân tạo.`);
+        e.isKeyOff = true;
+        e.notice = { tone: 'keyoff', provider, slot };
+        return e;
+    },
+
+    /** API TRẢ PHÍ bị nhà cung cấp giới hạn (hạn mức/tần suất của tài khoản trả phí). Khác với hạn mức trần do bạn đặt trong app. */
+    _paidProviderLimitError(provider, model, cause) {
+        const prov = AIConfig.PROVIDERS[provider];
+        const info = cause.quotaInfo || {};
+        const kind = info.kind || 'unknown';
+        const resetAt = AIConfig.computeReset(provider, kind === 'unknown' ? 'minute' : kind, info);
+        const label = AIConfig.kindRule(provider, kind).label;
+        const e = new Error(`API TRẢ PHÍ của ${prov.name} (mô hình ${AIConfig.modelLabel(provider, model)}) bị nhà cung cấp giới hạn: ${label}. Thử lại lúc ${AIConfig.formatReset(resetAt)}. Đây là giới hạn của tài khoản ${prov.short}, không phải hạn mức trần trong app.`);
+        e.isPaused = true;
+        e.notice = { tone: 'paid-provider', provider, model, kind, resetAt };
+        return e;
+    },
+
+    /** Dữ liệu hiển thị thông báo (tiêu đề, dòng chữ, đồng hồ đếm ngược, nút hành động) cho một lỗi hết hạn mức. */
+    _noticeSpec(task, e) {
+        const def = AIConfig.TASKS.find(t => t.id === task);
+        const taskLabel = def ? def.label : task;
         const plan = AIConfig.resolve(task);
-        const prov = AIConfig.PROVIDERS[plan.provider];
-        const keys = AIConfig.getKeys(plan.provider);
-        const modelLabel = AIConfig.modelLabel(plan.provider, plan.model);
-        const mk = (tier, apiKey) => ({ provider: plan.provider, model: plan.model, apiKey, tier, usage: null });
+        const p = plan.provider;
+        const prov = AIConfig.PROVIDERS[p];
+        const n = e.notice || {};
+        const modelName = AIConfig.modelLabel(p, n.model || plan.model);
+        const goCap = { label: `Nâng hạn mức trần của ${prov.short}`, run: () => AISettingsUI.focusField(`ai-cap-${p}`) };
+        if (e.isKeyOff) {
+            const slot = n.slot || 'paid';
+            return {
+                key: `keyoff|${p}|${slot}`, tone: 'cap',
+                title: `${prov.short}: API Key ${slot === 'paid' ? 'trả phí' : 'miễn phí'} đang TẮT`,
+                lines: [`Công việc «${taskLabel}» cần ${prov.name} (${modelName}) nhưng key này đang được tắt tạm thời nên app không dùng.`],
+                actions: [{ label: `Bật API Key ${slot === 'paid' ? 'trả phí' : 'miễn phí'} của ${prov.short}`, run: () => AISettingsUI.focusField(`ai-key-${p}-${slot}-on`) }]
+            };
+        }
+        if (e.isCap) {
+            const closed = AIConfig.getCap(p) <= 0;
+            return {
+                key: `cap|${p}`, tone: 'cap',
+                title: closed ? `${prov.short}: hết hạn mức API (chưa đặt hạn mức trần)` : `${prov.short}: API TRẢ PHÍ đã chạm hạn mức trần`,
+                lines: [`Công việc «${taskLabel}» đang dùng ${prov.name} (${modelName}) nhưng app đã dừng AI này.`,
+                    closed ? 'Muốn dùng tiếp: nhập hạn mức trần (USD/tháng) lớn hơn 0 cho AI này.' : `Đã dùng khoảng $${AIConfig.getSpend(p).usd.toFixed(2)} / trần $${AIConfig.getCap(p).toFixed(2)} tháng này. Muốn dùng tiếp: nâng hạn mức trần của ${prov.short}.`],
+                actions: [goCap]
+            };
+        }
+        if (n.tone === 'paid-provider') {
+            const rule = AIConfig.freeRule(p);
+            return {
+                key: `paid|${p}`, tone: 'paid', resetAt: n.resetAt,
+                title: `${prov.short}: API TRẢ PHÍ bị nhà cung cấp giới hạn (${AIConfig.kindRule(p, n.kind).label})`,
+                lines: [`Công việc «${taskLabel}» (${modelName}) tạm không chạy được. Đây là giới hạn của tài khoản ${prov.short}, không phải hạn mức trần trong app.`],
+                actions: rule && rule.docUrl ? [{ label: 'Xem/nâng giới hạn trên trang nhà cung cấp', url: rule.docUrl }] : []
+            };
+        }
+        // API MIỄN PHÍ hết hạn mức
+        const actions = [];
+        if (n.reason === 'declined') actions.push({ label: 'Cho phép dùng API trả phí tới lúc phục hồi', run: () => AIConfig.allowPaidUntilReset(p, n.model || plan.model) });
+        if (n.reason === 'paidoff') actions.push({ label: `Bật API Key trả phí của ${prov.short}`, run: () => AISettingsUI.focusField(`ai-key-${p}-paid-on`) });
+        if (n.reason === 'nopaid') actions.push({ label: `Thêm API Key trả phí cho ${prov.short}`, run: () => AISettingsUI.focusField(`ai-key-${p}-paid`) });
+        if (n.reason !== 'short' && AIConfig.getKeys(p).paid && AIConfig.isCapReached(p)) actions.push(goCap);
+        const rule = AIConfig.freeRule(p);
+        return {
+            key: `free|${p}|${n.model || plan.model}|${n.reason || ''}`, tone: 'free', resetAt: n.resetAt,
+            title: `${prov.short}: API MIỄN PHÍ đã hết ${AIConfig.kindRule(p, n.kind).label}`,
+            lines: [`Công việc «${taskLabel}» dùng mô hình ${modelName}.`, n.reason === 'short' ? 'Giới hạn ngắn hạn — app tự thử lại khi hết thời gian chờ.' : (n.reason === 'declined' ? 'Bạn đã từ chối dùng API trả phí nên AI này tạm dừng.' : (n.reason === 'paidoff' ? 'API trả phí đang TẮT nên AI này tạm dừng.' : 'Chưa có API trả phí dùng được nên AI này tạm dừng.'))],
+            actions, note: rule ? rule.text : ''
+        };
+    },
+
+    /** Khi tới công việc cần AI mà AI đó hết hạn mức: hiện thông báo có đồng hồ đếm ngược / hướng dẫn nâng hạn mức. */
+    _notifyUnavailable(task, e) {
+        const spec = this._noticeSpec(task, e);
+        if (typeof QuotaUI !== 'undefined') {
+            if (QuotaUI.isShown(spec.key)) return; // đúng thông báo này đang hiện: không hiện lặp
+            QuotaUI.show(spec);
+        }
+        else if (typeof showToast === 'function') showToast(`⚠️ ${spec.title}. ${e.message}`, 'error', 9000);
+    },
+
+    async _runInner(task, fn) {
+        const plan = AIConfig.resolve(task);
+        const p = plan.provider;
+        const prov = AIConfig.PROVIDERS[p];
+        const keys = AIConfig.getKeys(p);
+        const raw = AIConfig.getKeys(p, true); // gồm cả key đang tắt
+        const modelLabel = AIConfig.modelLabel(p, plan.model);
+        const mk = (tier, apiKey) => ({ provider: p, model: plan.model, apiKey, tier, usage: null });
         let reason = 'model';
+        let resetAt = null;
+        let kind = null;
 
         if (!plan.paidOnly && keys.free) {
-            try {
-                return await fn(mk('free', keys.free));
-            } catch (e) {
-                if (!(e && e.isQuota && keys.paid)) {
-                    if (e && e.isQuota && !keys.paid) {
-                        e.message += ' (Bạn có thể thêm API Key trả phí trong Cài đặt > Trí tuệ nhân tạo để app tự chuyển sang khi hết hạn mức miễn phí.)';
-                    }
-                    throw e;
+            let st = AIConfig.getFreeState(p, plan.model);
+            if (!st.exhausted) {
+                try {
+                    const out = await fn(mk('free', keys.free));
+                    AIConfig.recordFreeUse(p, plan.model);
+                    return out;
+                } catch (e) {
+                    if (!(e && e.isQuota)) throw e;
+                    AIConfig.markFreeExhausted(p, plan.model, e.quotaInfo);
+                    st = AIConfig.getFreeState(p, plan.model);
+                    console.warn(`[AI] Hết hạn mức miễn phí của ${prov.name} (${plan.model}), phục hồi lúc ${new Date(st.resetAt).toLocaleString('vi-VN')}.`);
                 }
-                console.warn(`[AI] Hết hạn mức miễn phí của ${prov.name}, chuyển sang API trả phí (cần xác nhận).`);
-                reason = 'quota';
             }
+            // Tới đây: API miễn phí của mô hình này đang hết hạn mức và chưa tới giờ phục hồi.
+            if (st.kind === 'minute') throw AIConfig.pausedError(p, plan.model, st, 'short'); // giới hạn ngắn hạn: chờ rồi thử lại, không cần trả phí
+            if (!keys.paid) throw AIConfig.pausedError(p, plan.model, st, raw.paid ? 'paidoff' : 'nopaid');
+            reason = 'quota';
+            resetAt = st.resetAt;
+            kind = st.kind;
         } else if (!keys.paid) {
+            if (raw.paid) throw this._keyOffError(p, 'paid');
             if (plan.paidOnly && keys.free) {
                 throw new Error(`Mô hình "${modelLabel}" (${prov.name}) chỉ có ở API trả phí. Hãy nhập API Key trả phí trong Cài đặt > Trí tuệ nhân tạo, hoặc chọn mô hình miễn phí cho tác vụ này.`);
             }
+            if (raw.free) throw this._keyOffError(p, 'free');
             throw new Error(`Vui lòng thiết lập ${prov.name} API Key trong Cài đặt > Trí tuệ nhân tạo trước khi dùng tính năng này.`);
         }
+        // Key miễn phí đang tắt nhưng key trả phí còn bật: hỏi rõ trước khi dùng trả phí
+        if (!plan.paidOnly && raw.free && !keys.free) reason = 'freeoff';
 
-        await AIConfig.authorizePaid({ reason, providerName: prov.name, modelLabel });
+        await AIConfig.authorizePaid({ provider: p, model: plan.model, reason, resetAt, kind, providerName: prov.name, modelLabel });
         const ctx = mk('paid', keys.paid);
-        const text = await fn(ctx);
-        AIConfig.recordUsage(plan.provider, plan.model, ctx.usage);
+        let text;
+        try {
+            text = await fn(ctx);
+        } catch (e) {
+            if (e && e.isQuota) throw this._paidProviderLimitError(p, plan.model, e); // API TRẢ PHÍ bị chính nhà cung cấp giới hạn (không phải hạn mức trần của app)
+            throw e;
+        }
+        AIConfig.recordUsage(p, plan.model, ctx.usage);
         return text;
     },
 
@@ -129,9 +244,10 @@ const AIService = {
     },
 
     /** Gắn cờ lỗi "hết hạn mức" để _run biết cần chuyển sang API trả phí. */
-    _quotaError(message) {
+    _quotaError(message, info) {
         const e = new Error(message);
         e.isQuota = true;
+        e.quotaInfo = info || {};
         return e;
     },
     _isQuotaResponse(response, apiMsg, code) {
@@ -206,11 +322,17 @@ const AIService = {
                     // Hết hạn mức / quá giới hạn request (429 RESOURCE_EXHAUSTED)
                     const isQuotaExceeded = response.status === 429 || data.error?.status === 'RESOURCE_EXHAUSTED' || /quota|rate limit|resource_exhausted/i.test(apiMsg);
                     if (isQuotaExceeded) {
-                        const isPerMinute = /minute|rpm|per minute/i.test(apiMsg);
-                        if (isPerMinute) {
-                            throw new Error(`Đã đạt giới hạn gửi yêu cầu/phút của Google Gemini (Rate Limit). Vui lòng đợi khoảng 1 phút rồi thử lại.`);
+                        const detailText = JSON.stringify(data.error?.details || '');
+                        // Google hết công suất mô hình: không phải hết hạn mức của người dùng
+                        if (/MODEL_CAPACITY_EXHAUSTED/i.test(detailText)) {
+                            throw new Error(`Mô hình "${model}" của Google đang quá tải (hết công suất phía Google, không phải hết hạn mức của bạn). Vui lòng thử lại sau ít phút.`);
                         }
-                        throw this._quotaError(`Hết hạn mức sử dụng (Quota Exceeded) của API Key Gemini hiện tại.`);
+                        const all = apiMsg + ' ' + detailText;
+                        // Phân loại: theo ngày (RPD/TPD) | theo phút (RPM/TPM) | không rõ
+                        const kind = /PerDay|per day|daily|RequestsPerDay|TokensPerDay/i.test(all) ? 'day'
+                            : (/PerMinute|per minute|\brpm\b|\btpm\b|minute/i.test(all) ? 'minute' : 'unknown');
+                        const retry = /"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/.exec(detailText) || /retry in (\d+(?:\.\d+)?)s/i.exec(apiMsg);
+                        throw this._quotaError(`Hết hạn mức của API Key Gemini (${kind === 'day' ? 'theo ngày' : kind === 'minute' ? 'theo phút' : 'không rõ loại'}).`, { kind, model, retryMs: retry ? Math.round(parseFloat(retry[1]) * 1000) : 0 });
                     }
 
                     // Quá tải máy chủ (503 / High Demand)
@@ -260,7 +382,7 @@ const AIService = {
     _finishChat({ response, data, label }, ctx) {
         if (!response.ok) {
             const msg = data.error?.message || `Lỗi khi gọi ${label} API.`;
-            if (this._isQuotaResponse(response, msg, data.error?.code)) throw this._quotaError(`Hết hạn mức sử dụng của API Key ${label}. ${msg}`);
+            if (this._isQuotaResponse(response, msg, data.error?.code)) throw this._quotaError(`Hết hạn mức sử dụng của API Key ${label}. ${msg}`, { kind: [1302, 1305].includes(Number(data.error?.code)) ? 'minute' : 'unknown' });
             throw new Error(msg);
         }
         if (data.usage) ctx.usage = { in: data.usage.prompt_tokens || 0, out: data.usage.completion_tokens || 0 };
@@ -649,7 +771,7 @@ Không cần lời chào hỏi, đi thẳng vào giải thích ý nghĩa.`;
         const settings = DataManager.getSettings();
         const tMorning = settings.medTimeMorning || '08:00';
         const tNoon = settings.medTimeNoon || '12:00';
-        const tAfternoon = settings.medTimeAfternoon || '14:00';
+        const tAfternoon = settings.medTimeAfternoon || '16:00';
         const tEvening = settings.medTimeEvening || '20:00';
 
         const prompt = `Hôm nay là: ${recordData.date}. Dựa vào hồ sơ dưới đây, hãy trích xuất lịch hẹn thông minh.

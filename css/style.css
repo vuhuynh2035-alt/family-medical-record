@@ -1970,3 +1970,88 @@ body.help-mode-active #btn-help-mobile {
 
 /* Nút xóa dòng chỉ số: hiệu ứng hover bằng CSS (không dùng thuộc tính onmouseover nội tuyến vì CSP chặn script nội tuyến) */
 .btn-remove-dynamic-field:hover { opacity: 1 !important; }
+
+/* Thông báo hết hạn mức AI (đồng hồ đếm ngược + nút dẫn tới ô cài đặt) */
+#quota-notice-container {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 16px;
+    width: min(94vw, 460px);
+    z-index: 10040;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+.quota-notice {
+    pointer-events: auto;
+    position: relative;
+    background: var(--bg-card, #fff);
+    color: var(--text-main, #1f2937);
+    border-left: 5px solid #f59e0b;
+    border-radius: 12px;
+    padding: 12px 34px 12px 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+    font-size: 13.5px;
+    line-height: 1.5;
+}
+.quota-notice-cap { border-left-color: #e11d48; }
+.quota-notice-paid { border-left-color: #7c3aed; }
+.quota-notice-recovered { border-left-color: #10b981; }
+.quota-notice-title { font-weight: 700; margin-bottom: 4px; }
+.quota-notice-line { margin-top: 2px; }
+.quota-notice-note { margin-top: 6px; font-size: 12px; color: var(--text-muted, #6b7280); }
+.quota-countdown { margin-top: 8px; font-weight: 600; }
+.quota-countdown-clock {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 1.15em;
+    letter-spacing: 0.5px;
+    color: #b45309;
+}
+.quota-notice-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.quota-notice-link {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary-blue, #2563eb);
+    background: transparent;
+    border: 0;
+    padding: 2px 0;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.quota-notice-close {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    border: 0;
+    background: transparent;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-muted, #6b7280);
+}
+.quota-highlight {
+    outline: 3px solid #f59e0b !important;
+    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.25) !important;
+    transition: box-shadow 0.3s;
+}
+
+/* Công tắc bật/tắt từng API Key */
+.ai-key-switch { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; user-select: none; }
+.ai-key-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.ai-key-switch-track {
+    position: relative; width: 38px; height: 22px; border-radius: 11px;
+    background: #cbd5e1; transition: background 0.2s; flex: 0 0 auto;
+}
+.ai-key-switch-track::after {
+    content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: transform 0.2s;
+}
+.ai-key-switch input:checked + .ai-key-switch-track { background: #10b981; }
+.ai-key-switch input:checked + .ai-key-switch-track::after { transform: translateX(16px); }
+.ai-key-switch input:focus-visible + .ai-key-switch-track { outline: 3px solid #f59e0b; outline-offset: 2px; }
+.ai-key-switch input.quota-highlight + .ai-key-switch-track { outline: 3px solid #f59e0b; outline-offset: 2px; }
+.ai-key-switch-text { font-size: 12px; font-weight: 700; min-width: 22px; }
+.ai-key-off { opacity: 0.5; }

@@ -667,14 +667,18 @@ function check(name, condition) {
   const policy = await page.evaluate(async () => {
     const out = {};
     const keep = JSON.stringify(DataManager.getSettings());
-    const reset = (patch) => { localStorage.setItem('family_settings', keep); DataManager.saveSettings(patch); AIConfig.sessionApproved = false; };
+    const reset = (patch) => { localStorage.setItem('family_settings', keep); DataManager.saveSettings(Object.assign({ aiCaps: {}, aiSpendBy: {}, aiFreeState: {} }, patch)); AIConfig.resetApprovals(); };
     const realFetch = window.fetch;
     const calls = [];
     window.fetch = async (url, opt) => {
       calls.push({ url: String(url), key: opt && opt.headers && (opt.headers['x-goog-api-key'] || '') });
       const free = (opt.headers['x-goog-api-key'] || '').startsWith('FREE');
       if (free && window.__freeQuota) {
-        return { ok: false, status: 429, json: async () => ({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Quota exceeded for requests per day' } }) };
+        const e = window.__quotaError || { status: 'RESOURCE_EXHAUSTED', message: 'Quota exceeded for requests per day' };
+        return { ok: false, status: 429, json: async () => ({ error: e }) };
+      }
+      if (!free && window.__paidQuota) {
+        return { ok: false, status: 429, json: async () => ({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Quota exceeded for requests per minute' } }) };
       }
       return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ text: 'ok' }] } }], usageMetadata: { promptTokenCount: 1000000, candidatesTokenCount: 0 } }) };
     };
@@ -682,7 +686,7 @@ function check(name, condition) {
     const autoAnswer = (yes) => new Promise(r => setTimeout(() => { const b = [...document.querySelectorAll('.modal-overlay button')].find(x => x.textContent.includes(yes ? 'Đồng ý dùng' : 'Không đồng ý')); if (b) b.click(); r(!!b); }, 50));
     try {
       // a) Key miễn phí được ưu tiên, không hỏi
-      reset({ aiRegion: 'vn', aiTasks: { chat: 'auto', assessment: 'auto', search: 'auto', trend: 'auto', ocr: 'auto' }, geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCapUsd: 5, aiSpend: null });
+      reset({ aiRegion: 'vn', aiTasks: { chat: 'auto', assessment: 'auto', search: 'auto', trend: 'auto', ocr: 'auto' }, geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCaps: { gemini: 5 } });
       window.__freeQuota = false; calls.length = 0;
       await AIService.route('chat', 'xin chao');
       out.freeFirst = calls.length === 1 && calls[0].key === 'FREE-1' && !document.querySelector('.modal-overlay[role=alertdialog]');
@@ -692,24 +696,133 @@ function check(name, condition) {
       const t = await AIService.route('chat', 'xin chao');
       out.askedOnQuota = await ans;
       out.paidAfterConsent = t === 'ok' && calls.map(c => c.key).join() === 'FREE-1,PAID-1';
-      out.spendRecorded = AIConfig.getSpend().usd > 0.2; // 1M token vào x $0.3
+      out.spendRecorded = AIConfig.getSpend('gemini').usd > 0.2;
+      const fs = AIConfig.getFreeState('gemini', 'gemini-3.0-flash'); const pt = AIConfig._ptParts(fs.resetAt);
+      out.resetAtMidnightPT = fs.exhausted && pt.hour === '00' && pt.minute === '00' && fs.resetAt - Date.now() > 0 && fs.resetAt - Date.now() <= 25 * 3600 * 1000; // 1M token vào x $0.3
       // c) Đã đồng ý trong phiên: lần sau không hỏi lại
       calls.length = 0;
       await AIService.route('chat', 'lan 2');
-      out.noAskTwice = calls.length === 2 && !document.querySelector('.modal-overlay[role=alertdialog]');
+      out.noAskTwice = calls.length === 1 && calls[0].key === 'PAID-1' && !document.querySelector('.modal-overlay[role=alertdialog]'); // free đang hết hạn mức: đi thẳng key trả phí, không thử lại free
+      // c2) Tới giờ phục hồi: tự quay về dùng API miễn phí
+      const stNow = DataManager.getSettings().aiFreeState; stNow['gemini|gemini-3.0-flash'].resetAt = Date.now() - 1000; DataManager.saveSettings({ aiFreeState: stNow });
+      window.__freeQuota = false; calls.length = 0;
+      await AIService.route('chat', 'sau phuc hoi');
+      out.backToFree = calls.length === 1 && calls[0].key === 'FREE-1' && !AIConfig.getFreeState('gemini', 'gemini-3.0-flash').exhausted;
+      window.__freeQuota = true;
       // d) Không đồng ý -> từ chối, không gọi key trả phí
-      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiSpend: null }); calls.length = 0;
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCaps: { gemini: 5 } }); calls.length = 0;
       const ans2 = autoAnswer(false);
       let declined = false;
       try { await AIService.route('chat', 'x'); } catch (e) { declined = !!e.isDeclined; }
       await ans2;
       out.declined = declined && !calls.some(c => c.key === 'PAID-1');
+      // d2) Đã từ chối: không hỏi lại và không gọi API nào nữa cho tới lúc phục hồi
+      calls.length = 0; let pausedAgain = false;
+      try { await AIService.route('chat', 'x'); } catch (e) { pausedAgain = !!e.isPaused; }
+      out.pausedNoCalls = pausedAgain && calls.length === 0 && !document.querySelector('.modal-overlay[role=alertdialog]');
+      // d3) Không có key trả phí: báo hết hạn mức, tạm dừng, không gọi lại
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: '' }); calls.length = 0;
+      let p1 = null; try { await AIService.route('chat', 'x'); } catch (e) { p1 = e; }
+      const n1 = calls.length; calls.length = 0;
+      let p2 = null; try { await AIService.route('chat', 'y'); } catch (e) { p2 = e; }
+      out.noPaidKeyPauses = !!(p1 && p1.isPaused) && n1 === 1 && !!(p2 && p2.isPaused) && calls.length === 0 && /Phục hồi/.test(p2.message);
+      // d4) Thông báo đúng lúc công việc cần AI hết hạn mức: nêu tên công việc + AI; ô chọn mô hình ghi chú AI đang bị chặn
+      const notice = [...document.querySelectorAll('#quota-notice-container .quota-notice-free')].find(n => /Thêm API Key trả phí/.test(n.textContent)) || document.querySelector('#quota-notice-container .quota-notice-free');
+      const nt = notice ? notice.textContent : '';
+      out.taskNotice = /AI Trò chuyện/.test(nt) && /Gemini/.test(nt) && /MIỄN PHÍ/.test(nt) && /hết hạn mức theo ngày/.test(nt);
+      const clock = notice && notice.querySelector('[data-countdown-to]');
+      out.countdownClock = !!clock && /^\d\d:\d\d:\d\d$/.test(clock.textContent);
+      const t0 = clock ? clock.textContent : '';
+      await new Promise(r => setTimeout(r, 1300));
+      out.countdownTicks = !!clock && clock.textContent !== t0;
+      out.noticeAddPaidLink = !!notice && /Thêm API Key trả phí/.test(nt);
+      const link = notice && [...notice.querySelectorAll('.quota-notice-link')].find(b => /Thêm API Key trả phí/.test(b.textContent));
+      if (link) link.click();
+      await new Promise(r => setTimeout(r, 700));
+      out.linkOpensField = !document.getElementById('modal-settings').classList.contains('hidden') && !!document.getElementById('ai-key-gemini-paid') && document.getElementById('ai-key-gemini-paid').classList.contains('quota-highlight');
+      document.getElementById('modal-settings').classList.add('hidden');
+      document.querySelectorAll('#quota-notice-container .quota-notice').forEach(n => n.remove());
+      out.optionNote = AIConfig.choicesFor('chat', 'vn').some(c => /⛔ hết hạn mức, dùng lại lúc/.test(c.label));
+      // d5) Giới hạn THEO PHÚT (retryDelay 20s): không hỏi trả phí, chờ rồi thử lại; mốc phục hồi ~20s
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCaps: { gemini: 5 } }); calls.length = 0;
+      window.__quotaError = { status: 'RESOURCE_EXHAUSTED', message: 'Quota exceeded for metric per minute', details: [{ '@type': 'type.googleapis.com/google.rpc.RetryInfo', retryDelay: '20s' }] };
+      let minuteErr = null; try { await AIService.route('chat', 'x'); } catch (e) { minuteErr = e; }
+      const ms = AIConfig.getFreeState('gemini', 'gemini-3.0-flash');
+      out.minuteKind = !!minuteErr && minuteErr.isPaused && ms.kind === 'minute' && ms.resetAt - Date.now() > 15000 && ms.resetAt - Date.now() < 25000 && !calls.some(c => c.key === 'PAID-1') && !document.querySelector('.modal-overlay[role=alertdialog]');
+      document.querySelectorAll('#quota-notice-container .quota-notice').forEach(n => n.remove());
+      // d6) Hạn mức tính RIÊNG từng mô hình: mô hình khác vẫn dùng được API miễn phí
+      window.__quotaError = null; window.__freeQuota = false; calls.length = 0;
+      DataManager.saveSettings({ aiTasks: { chat: 'gemini|gemini-flash-latest' } });
+      const other = await AIService.route('chat', 'mo hinh khac');
+      out.perModel = other === 'ok' && calls.length === 1 && calls[0].key === 'FREE-1';
+      window.__freeQuota = true;
+      // d7) API TRẢ PHÍ bị chính Google giới hạn: báo rõ là API trả phí, kèm đồng hồ đếm ngược
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCaps: { gemini: 5 } }); calls.length = 0;
+      window.__paidQuota = true; AIConfig.sessionApproved = true;
+      let paidErr = null; try { await AIService.route('chat', 'x'); } catch (e) { paidErr = e; }
+      window.__paidQuota = false;
+      out.paidProviderLimit = !!paidErr && /API TRẢ PHÍ/.test(paidErr.message) && !!paidErr.notice && paidErr.notice.tone === 'paid-provider';
+      const pn = document.querySelector('#quota-notice-container .quota-notice-paid');
+      out.paidNoticeClock = !!pn && !!pn.querySelector('[data-countdown-to]');
+      document.querySelectorAll('#quota-notice-container .quota-notice').forEach(n => n.remove());
+      // d8) Công tắc: tắt key MIỄN PHÍ -> chỉ còn key trả phí, app hỏi rõ rồi mới dùng
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCaps: { gemini: 5 }, aiKeyOff: { 'gemini:free': true } }); calls.length = 0;
+      window.__freeQuota = false;
+      const ansOff = autoAnswer(true);
+      const offRes = await AIService.route('chat', 'x');
+      await ansOff;
+      out.freeKeyOff = offRes === 'ok' && calls.length === 1 && calls[0].key === 'PAID-1' && AIConfig.getKeys('gemini').free === '' && AIConfig.getKeys('gemini', true).free === 'FREE-1';
+      // d9) Công tắc: tắt key TRẢ PHÍ của AI không có gói miễn phí -> không gọi API, báo key đang TẮT + link bật lại
+      reset({ aiRegion: 'vn', openaiApiKeyPaid: 'OAI', aiTasks: { chat: 'openai|gpt-4o-mini' }, aiCaps: { openai: 5 }, aiKeyOff: { 'openai:paid': true } }); calls.length = 0;
+      let offErr = null; try { await AIService.route('chat', 'x'); } catch (e) { offErr = e; }
+      out.paidKeyOffBlocks = !!offErr && offErr.isKeyOff && /TẮT/.test(offErr.message) && calls.length === 0;
+      const kn = [...document.querySelectorAll('#quota-notice-container .quota-notice')].find(n => /đang TẮT/.test(n.textContent));
+      out.keyOffNoticeLink = !!kn && [...kn.querySelectorAll('.quota-notice-link')].some(b => /Bật API Key trả phí của ChatGPT/.test(b.textContent));
+      document.querySelectorAll('#quota-notice-container .quota-notice').forEach(n => n.remove());
+      // d10) Hết hạn mức miễn phí + key trả phí đang TẮT: tạm dừng, nói rõ là API trả phí đang tắt
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCaps: { gemini: 5 }, aiKeyOff: { 'gemini:paid': true } }); calls.length = 0;
+      window.__freeQuota = true;
+      let offPaidErr = null; try { await AIService.route('chat', 'x'); } catch (e) { offPaidErr = e; }
+      out.paidOffPauses = !!offPaidErr && offPaidErr.isPaused && /API trả phí của Gemini đang TẮT/.test(offPaidErr.message) && !calls.some(c => c.key === 'PAID-1');
+      document.querySelectorAll('#quota-notice-container .quota-notice').forEach(n => n.remove());
+      // d11) Giao diện: công tắc lưu ngay, vẫn giữ nguyên key đã nhập khi dựng lại
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1' });
+      AISettingsUI.render();
+      const sw = document.getElementById('ai-key-gemini-paid-on');
+      sw.click();
+      AISettingsUI.render();
+      out.switchPersists = !!sw && AIConfig.isKeyOff('gemini', 'paid') && document.getElementById('ai-key-gemini-paid').value === 'PAID-1' && document.getElementById('ai-key-gemini-paid-on').checked === false && document.getElementById('ai-key-gemini-free-on').checked === true;
+      // e0) Chạm hạn mức trần của app: thông báo có link "Nâng hạn mức trần" dẫn tới đúng ô của AI đó
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCaps: { gemini: 0.1 }, aiSpendBy: { gemini: { month: AIConfig.monthKey(), usd: 0.5, calls: 3 } } });
+      AIConfig.sessionApproved = true; window.__freeQuota = true;
+      try { await AIService.route('chat', 'x'); } catch (e) { /* mong đợi isCap */ }
+      const capN = document.querySelector('#quota-notice-container .quota-notice-cap');
+      const capBtn = capN && [...capN.querySelectorAll('.quota-notice-link')].find(b => /Nâng hạn mức trần của Gemini/.test(b.textContent));
+      out.capNoticeLink = !!capBtn && /trần/.test(capN.textContent);
+      if (capBtn) capBtn.click();
+      await new Promise(r => setTimeout(r, 700));
+      const capEl = document.getElementById('ai-cap-gemini');
+      out.capLinkFocuses = !document.getElementById('modal-settings').classList.contains('hidden') && !!capEl && capEl.classList.contains('quota-highlight') && document.activeElement === capEl;
+      document.getElementById('modal-settings').classList.add('hidden');
+      document.querySelectorAll('#quota-notice-container .quota-notice').forEach(n => n.remove());
+      window.__freeQuota = true;
       // e) Chạm hạn mức trần -> chặn, không gọi API trả phí
-      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCapUsd: 0.1, aiSpend: { month: AIConfig.monthKey(), usd: 0.5, calls: 3 } });
+      reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: 'PAID-1', aiCaps: { gemini: 0.1 }, aiSpendBy: { gemini: { month: AIConfig.monthKey(), usd: 0.5, calls: 3 } } });
       AIConfig.sessionApproved = true; calls.length = 0;
       let capped = false;
       try { await AIService.route('chat', 'x'); } catch (e) { capped = !!e.isCap; }
       out.capBlocks = capped && !calls.some(c => c.key === 'PAID-1');
+      // e2) Hạn mức trần riêng từng AI: Gemini chạm trần không làm ChatGPT bị khoá (ChatGPT có trần riêng còn dư)
+      reset({ aiRegion: 'vn', openaiApiKeyPaid: 'OAI', aiCaps: { gemini: 0.1, openai: 5 }, aiSpendBy: { gemini: { month: AIConfig.monthKey(), usd: 0.5, calls: 3 } } });
+      out.capPerProvider = AIConfig.isCapReached('gemini') && !AIConfig.isCapReached('openai');
+      // e3) AI không có gói miễn phí: chưa nhập hạn mức hoặc nhập 0 -> đóng, báo hết hạn mức API, không gọi API
+      calls.length = 0; const closed = {};
+      for (const caps of [{}, { openai: 0 }]) {
+        reset({ aiRegion: 'vn', openaiApiKeyPaid: 'OAI', aiTasks: { chat: 'openai|gpt-4o-mini' }, aiCaps: caps });
+        let err = null; try { await AIService.route('chat', 'x'); } catch (e) { err = e; }
+        closed[JSON.stringify(caps)] = !!(err && err.isCap && /Hết hạn mức API/.test(err.message));
+      }
+      out.paidOnlyClosed = closed['{}'] && closed['{"openai":0}'] && calls.length === 0;
       // f) Mô hình Pro chỉ có ở trả phí: chọn tay Gemini Pro khi chỉ có key miễn phí -> báo lỗi rõ ràng
       reset({ aiRegion: 'vn', geminiApiKey: 'FREE-1', geminiApiKeyPaid: '', aiTasks: { chat: 'gemini|gemini-3.1-pro' }, aiSpend: null });
       let proErr = '';
@@ -734,6 +847,24 @@ function check(name, condition) {
   check('Đã đồng ý trong phiên: không hỏi lại ở các lần gọi sau', policy.noAskTwice);
   check('Không đồng ý: app không dùng key trả phí', policy.declined);
   check('Chạm hạn mức trần: app chặn API trả phí', policy.capBlocks);
+  check('Hết hạn mức miễn phí: ghi nhận giờ phục hồi (00:00 giờ Thái Bình Dương)', policy.resetAtMidnightPT);
+  check('Tới giờ phục hồi: app tự quay về dùng API miễn phí', policy.backToFree);
+  check('Từ chối dùng trả phí: app tạm dừng AI đó, không hỏi lại và không gọi API', policy.pausedNoCalls);
+  check('Không có API trả phí: báo hết hạn mức, tạm dừng đến lúc phục hồi', policy.noPaidKeyPauses);
+  check('Tới công việc cần AI hết hạn mức: hiện thông báo nêu tên công việc và AI', policy.taskNotice);
+  check('Ô chọn mô hình từng công việc ghi chú AI đang hết hạn mức', policy.optionNote);
+  check('Thông báo: có đồng hồ đếm ngược HH:MM:SS tới lúc phục hồi và đồng hồ chạy theo từng giây', policy.countdownClock && policy.countdownTicks);
+  check('Thông báo API miễn phí hết hạn mức: có nút dẫn tới đúng ô key trả phí của AI đó', policy.noticeAddPaidLink && policy.linkOpensField);
+  check('Giới hạn theo phút: không hỏi trả phí, phục hồi theo thời gian chờ Google báo', policy.minuteKind);
+  check('Hạn mức miễn phí tính riêng từng mô hình (mô hình khác vẫn dùng được)', policy.perModel);
+  check('API TRẢ PHÍ bị nhà cung cấp giới hạn: báo rõ là API trả phí kèm đồng hồ đếm ngược', policy.paidProviderLimit && policy.paidNoticeClock);
+  check('Công tắc: tắt key miễn phí thì app không dùng key đó (key vẫn được giữ)', policy.freeKeyOff);
+  check('Công tắc: tắt key trả phí của AI không có gói miễn phí thì không gọi API, báo đang TẮT kèm link bật lại', policy.paidKeyOffBlocks && policy.keyOffNoticeLink);
+  check('Hết hạn mức miễn phí mà key trả phí đang TẮT: tạm dừng và nói rõ API trả phí đang tắt', policy.paidOffPauses);
+  check('Công tắc lưu ngay và dựng lại giao diện vẫn giữ nguyên key đã nhập', policy.switchPersists);
+  check('Chạm hạn mức trần: thông báo có link "Nâng hạn mức trần" dẫn tới đúng ô của AI đó', policy.capNoticeLink && policy.capLinkFocuses);
+  check('Hạn mức trần tính riêng từng AI (AI này chạm trần không khoá AI khác)', policy.capPerProvider);
+  check('AI không có gói miễn phí: chưa nhập hạn mức hoặc = 0 thì đóng và báo hết hạn mức API', policy.paidOnlyClosed);
   check('Chọn mô hình chỉ có bản trả phí mà thiếu key trả phí: báo lỗi rõ ràng', policy.proNeedsPaidKey);
   check('Chế độ Tự động: tác vụ sâu dùng Pro khi có key trả phí, tác vụ thường dùng Flash', policy.autoPick);
   check('Quốc gia Trung Quốc: chỉ dùng AI Trung Quốc', policy.cnOnly);

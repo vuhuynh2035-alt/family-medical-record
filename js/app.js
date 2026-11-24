@@ -33,7 +33,7 @@ if (typeof pdfjsLib !== 'undefined') {
  * @param {string} message
  * @param {'success'|'error'} [type='success']
  */
-function showToast(message, type = 'success') {
+function showToast(message, type = 'success', durationMs = 3200) {
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
@@ -52,7 +52,7 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
-    }, 3200);
+    }, durationMs);
 }
 window.showConfirm = function(message) {
     return new Promise((resolve) => {
@@ -339,6 +339,28 @@ function describeBackupOptions(o) {
     if (o.settings) parts.push('cài đặt');
     if (o.apiKeys) parts.push('API Key & PIN');
     return parts.join(', ');
+}
+
+// Giờ uống thuốc mặc định theo buổi; người dùng sửa lại trong Cài đặt > Giờ uống thuốc.
+const MED_TIME_FIELDS = [
+    { key: 'medTimeMorning', input: 'input-med-time-morning', def: '08:00' },
+    { key: 'medTimeNoon', input: 'input-med-time-noon', def: '12:00' },
+    { key: 'medTimeAfternoon', input: 'input-med-time-afternoon', def: '16:00' },
+    { key: 'medTimeEvening', input: 'input-med-time-evening', def: '20:00' }
+];
+function fillMedTimeInputs(settings) {
+    MED_TIME_FIELDS.forEach(f => {
+        const el = document.getElementById(f.input);
+        if (el) el.value = (settings && settings[f.key]) || f.def;
+    });
+}
+function collectMedTimes() {
+    const out = {};
+    MED_TIME_FIELDS.forEach(f => {
+        const el = document.getElementById(f.input);
+        out[f.key] = (el && /^\d{2}:\d{2}$/.test(el.value)) ? el.value : f.def;
+    });
+    return out;
 }
 
 // Cấu hình nhanh theo quốc gia (dùng ở màn hình hướng dẫn lần đầu): đặt quốc gia và để mọi tác vụ ở chế độ Tự động.
@@ -1267,6 +1289,7 @@ function setupEventListeners() {
         }
         
         AISettingsUI.render();
+        fillMedTimeInputs(settings);
         updatePinUIState();
         
         // Render danh sách thành viên cho Cài đặt Chuông báo
@@ -1364,6 +1387,7 @@ function setupEventListeners() {
         DataManager.saveSettings({
             language: language,
             ...AISettingsUI.collect(), // quốc gia, API Key (miễn phí/trả phí), mô hình theo tác vụ, hạn mức trần
+            ...collectMedTimes(), // giờ uống thuốc mặc định: sáng/trưa/chiều/tối
             alarmSound: alarmSound,
             mutedMembers: mutedMembers
         });
@@ -3170,7 +3194,7 @@ function setupEventListeners() {
         document.getElementById('medplan-time-morning').value = settings.medTimeMorning || '08:00';
         document.getElementById('medplan-time-noon').value = settings.medTimeNoon || '12:00';
         if (document.getElementById('medplan-time-afternoon')) {
-            document.getElementById('medplan-time-afternoon').value = settings.medTimeAfternoon || '14:00';
+            document.getElementById('medplan-time-afternoon').value = settings.medTimeAfternoon || '16:00';
         }
         document.getElementById('medplan-time-evening').value = settings.medTimeEvening || '20:00';
 
@@ -3407,7 +3431,7 @@ function setupEventListeners() {
             const timeMap = {
                 'morning': document.getElementById('medplan-time-morning')?.value || '08:00',
                 'noon': document.getElementById('medplan-time-noon')?.value || '12:00',
-                'afternoon': document.getElementById('medplan-time-afternoon')?.value || '14:00',
+                'afternoon': document.getElementById('medplan-time-afternoon')?.value || '16:00',
                 'evening': document.getElementById('medplan-time-evening')?.value || '20:00'
             };
 
@@ -4532,7 +4556,7 @@ document.addEventListener('click', (e) => {
             const settings = DataManager.getSettings();
             let morningTime = '08:00';
             let noonTime = '12:00';
-            
+            let afternoonTime = settings.medTimeAfternoon || '16:00';
             let eveningTime = '20:00';
 
             // Phân loại các mốc thời gian có trong reminder.times vào các buổi
@@ -4548,7 +4572,8 @@ document.addEventListener('click', (e) => {
 
             document.getElementById('medplan-time-morning').value = morningTime;
             document.getElementById('medplan-time-noon').value = noonTime;
-            
+            const afternoonInput = document.getElementById('medplan-time-afternoon');
+            if (afternoonInput) afternoonInput.value = afternoonTime;
             document.getElementById('medplan-time-evening').value = eveningTime;
             
             const container = document.getElementById('medplan-items-container');

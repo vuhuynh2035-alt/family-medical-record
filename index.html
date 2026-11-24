@@ -1009,29 +1009,7 @@
                         <p class="help-text" style="margin: 0 0 10px;">Để "Tự động" thì app tự chọn mô hình phù hợp nhất với từng việc. Bạn có thể bấm vào để đổi.</p>
                         <div id="ai-tasks-container"></div>
 
-                        <!-- 4. Hạn mức trần API trả phí -->
-                        <details id="ai-budget-details" style="margin-top: 14px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--primary-blue);">💳 Hạn mức trần API trả phí</summary>
-                            <div style="margin-top: 10px;">
-                                <p class="help-text" style="margin: 0 0 8px;">App tự cộng dồn chi phí ƯỚC TÍNH khi dùng API trả phí trong tháng. Chạm hạn mức trần là app dừng dùng API trả phí cho đến khi bạn nâng hạn mức.</p>
-                                <div style="display: flex; gap: 10px; align-items: center;">
-                                    <label for="input-ai-cap" style="font-size: 13px; white-space: nowrap;">Trần mỗi tháng (USD)</label>
-                                    <input type="number" id="input-ai-cap" class="neumorphic-input" min="0" step="0.5" style="max-width: 130px;" inputmode="decimal">
-                                </div>
-                                <div style="margin-top: 10px; font-size: 13px;" id="ai-spend-text"></div>
-                                <div style="height: 8px; border-radius: 4px; background: rgba(0,0,0,0.08); margin-top: 6px; overflow: hidden;">
-                                    <div id="ai-spend-bar" style="height: 100%; width: 0; background: #10b981; transition: width 0.3s;"></div>
-                                </div>
-                                <button type="button" id="btn-ai-reset-spend" class="secondary-btn neumorphic-btn" style="margin-top: 10px; font-size: 12.5px; padding: 6px 12px;">Đặt lại số đã dùng tháng này</button>
-                            </div>
-                        </details>
-
-                        <div style="margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                            <button id="btn-ai-refresh-models" type="button" class="secondary-btn neumorphic-btn" style="padding: 8px 12px; font-size: 13px;" data-help-title="Cập nhật danh sách mô hình" data-help-desc="Kết nối tới nhà cung cấp (bằng API Key bạn đã nhập) để tải thêm các mô hình mới phát hành vào danh sách chọn.">
-                                <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 5px; vertical-align: text-bottom;">sync</span>Cập nhật danh sách mô hình
-                            </button>
-                        </div>
-
+                        <!-- Hạn mức trần trả phí và hạn mức miễn phí: nằm trong khung riêng của từng AI (ở mục API Key phía trên) -->
                         <div class="help-text" style="margin-top: 12px;">
                             Lưu ý bảo mật: các khóa API được lưu trực tiếp trên thiết bị (không mã hóa). Khi sao lưu/chia sẻ file, bạn có thể chọn có kèm API Key hay không. Chi phí hiển thị chỉ là ước tính, không thay thế hóa đơn của nhà cung cấp.
                         </div>

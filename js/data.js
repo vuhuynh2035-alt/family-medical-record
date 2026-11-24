@@ -122,14 +122,19 @@ const DataManager = {
             openaiApiKeyPaid: '', anthropicApiKeyPaid: '', deepseekApiKeyPaid: '',
             openaiApiKey: '', anthropicApiKey: '', deepseekApiKey: '', // khóa cũ (đọc như khóa trả phí)
             customModels: {}, // mô hình tải thêm từ tài khoản: { provider: [id, ...] }
+            customModelsAt: {}, // lần tải danh sách mô hình gần nhất của từng AI: { provider: mili-giây }
             // Hạn mức trần chi phí API trả phí (USD / tháng) và mức đã dùng (ước tính).
-            aiCapUsd: 5,
-            aiSpend: null,
+            aiCapUsd: 5, // giá trị chung cũ — chỉ còn dùng làm mặc định cho AI chưa đặt trần riêng
+            aiCaps: {}, // hạn mức trần trả phí (USD/tháng) RIÊNG từng AI: { provider: usd }
+            aiSpend: null, // cũ (chung) — không còn dùng
+            aiSpendBy: {}, // mức dùng API trả phí ước tính theo từng AI: { provider: { month, usd, calls } }
+            aiFreeState: {}, // theo dõi hạn mức miễn phí từng AI + mô hình: { 'provider|model': { day, calls, exhaustedAt, resetAt, kind } }
+            aiKeyOff: {}, // API Key đang TẮT tạm thời (key vẫn được giữ, app không dùng): { 'provider:free'|'provider:paid': true }
 
             // Giờ nhắc uống thuốc mặc định
             medTimeMorning: '08:00',
             medTimeNoon: '12:00',
-            medTimeAfternoon: '14:00',
+            medTimeAfternoon: '16:00',
             medTimeEvening: '20:00',
             // Khóa màn hình bằng mã PIN (xem sha256Hex ở trên) — mặc định tắt.
             pinEnabled: false,
@@ -156,11 +161,11 @@ const DataManager = {
     getLanguage() { return this.getSettings().language || 'vi'; },
     setLanguage(lang) { this.saveSettings({ language: lang }); },
     // Khóa/nhà cung cấp/mô hình đều do AIConfig (js/ai-policy.js) quyết định; các hàm dưới đây giữ lại để tương thích.
-    getGeminiApiKey() { const k = AIConfig.getKeys('gemini'); return k.free || k.paid; },
-    getOpenAIApiKey() { const k = AIConfig.getKeys('openai'); return k.free || k.paid; },
-    getAnthropicApiKey() { const k = AIConfig.getKeys('anthropic'); return k.free || k.paid; },
-    getDeepSeekApiKey() { const k = AIConfig.getKeys('deepseek'); return k.free || k.paid; },
-    getZhipuApiKey() { const k = AIConfig.getKeys('zhipu'); return k.free || k.paid; },
+    getGeminiApiKey() { const k = AIConfig.getKeys('gemini', true); return k.free || k.paid; },
+    getOpenAIApiKey() { const k = AIConfig.getKeys('openai', true); return k.free || k.paid; },
+    getAnthropicApiKey() { const k = AIConfig.getKeys('anthropic', true); return k.free || k.paid; },
+    getDeepSeekApiKey() { const k = AIConfig.getKeys('deepseek', true); return k.free || k.paid; },
+    getZhipuApiKey() { const k = AIConfig.getKeys('zhipu', true); return k.free || k.paid; },
     getProviderAssessment() { return AIConfig.resolve('assessment').provider; },
     getProviderSearch() { return AIConfig.resolve('search').provider; },
     getProviderTrend() { return AIConfig.resolve('trend').provider; },
@@ -462,7 +467,7 @@ const DataManager = {
     },
     // Dữ liệu chỉ có ý nghĩa trên từng máy (mức dùng API ước tính) — không bao giờ đưa vào file sao lưu.
     isDeviceLocalSettingField(name) {
-        return name === 'aiSpend';
+        return name === 'aiSpend' || name === 'aiSpendBy' || name === 'aiFreeState';
     },
 
     /**
